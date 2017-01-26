@@ -1,7 +1,7 @@
 
 #include "PredictorMaxProb.h"
-#include <omp.h>
-#include <emmintrin.h>
+// #include <omp.h>
+// #include <emmintrin.h>
 #include <iostream>
 
 ////////////////////////////////////////////////////////////////////////////
@@ -143,7 +143,7 @@ void
 PredictorMaxProb::
 fillHybridZ()
 {
-				std::cout << "foo" << std::endl;
+				// std::cout << "foo" << std::endl;
 
 	// global vars to avoid reallocation
 	size_t i1,i2,j1,j2,w1,w2,k1,k2;
@@ -156,7 +156,7 @@ fillHybridZ()
 	// current Z value
 	E_type curZ = 0.0;
 	// iterate increasingly over all window sizes w1 (seq1) and w2 (seq2)
-	#pragma omp parallel
+	// #pragma omp parallel
 	for (w1=0; w1<energy.getAccessibility1().getMaxLength(); w1++) {
 	for (w2=0; w2<energy.getAccessibility2().getMaxLength(); w2++) {
 		// iterate over all window starts i1 (seq1) and i2 (seq2)
@@ -203,9 +203,9 @@ fillHybridZ()
 			}
 
 			if (w1 > 1 && w2 > 1) {
-				__m128 curZ_SSE = {0.0, 0.0, 0.0, 0.0};
-				__m128 boltzmannWeight_SSE = {0.0, 0.0, 0.0, 0.0};
-				__m128 hybridZ_SSE = {0.0, 0.0, 0.0, 0.0};
+				// __m128 curZ_SSE = {0.0, 0.0, 0.0, 0.0};
+				// __m128 boltzmannWeight_SSE = {0.0, 0.0, 0.0, 0.0};
+				// __m128 hybridZ_SSE = {0.0, 0.0, 0.0, 0.0};
 				
 				// sum all combinations of decompositions into (i1,i2)..(k1,k2)-(j1,j2)
 				for (k1=std::min(j1-1,i1+energy.getMaxInternalLoopSize1()+1); k1>i1; k1--) {
