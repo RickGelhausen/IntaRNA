@@ -293,7 +293,7 @@ fillHybridE_seed( )
 					curMinE = seedHandler.getSeedE(i1,i2) + (*hybridE(k1,k2))(j1-k1,j2-k2);
 				}
 			}
-
+			std::cout << "foo" << std::endl;
 			// check all combinations of decompositions into (i1,i2)..(k1,k2)-(j1,j2)
 			// where k1..j1 contains a seed
 			for (k1=std::min(j1-seedHandler.getConstraint().getBasePairs()+1,i1+energy.getMaxInternalLoopSize1()+1); k1>i1; k1--) {
