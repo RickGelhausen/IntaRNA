@@ -7,6 +7,7 @@
 
 #include <boost/numeric/ublas/matrix.hpp>
 
+#include <emmintrin.h>
 /**
  * Memory efficient interaction predictor that uses a heuristic to
  * find the mfe or a close-to-mfe interaction.
