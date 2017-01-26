@@ -825,6 +825,7 @@ getE( const size_t i1, const size_t j1
 	// check if hybridization energy is not infinite
 	if ( E_isNotINF(hybridE) ) {
 		// compute overall interaction energy
+		// std::cout << "foo" << std::endl;
 		return hybridE
 				// accessibility penalty
 				+ getED1( i1, j1 )
@@ -845,7 +846,54 @@ getE( const size_t i1, const size_t j1
 
 ////////////////////////////////////////////////////////////////////////////
 
+inline
+__m128
+InteractionEnergy::
+getE_SSE( const __m128i i1, const __m128i j1
+		, const __m128i i2, const __m128i j2
+		, const __m128 hybridE ) const
+{
 
+	__m128 result = {0.0, 0.0, 0.0, 0.0};
+	__m128 resultMultiplication = {0.0, 0.0, 0.0, 0.0};
+	__m128 inf = {E_INF, E_INF, E_INF, E_INF};
+	__m128 ed1 = {getED1( i1[0], j1[0] ), getED1( i1[1], j1[1] ), getED1( i1[2], j1[2] ), getED1( i1[3], j1[3] )};
+	__m128 ed2 = {getED2( i2[0], j2[0] ), getED2( i2[1], j2[1] ), getED2( i2[2], j2[2] ), getED2( i2[3], j2[3] )};
+	__m128 getE_danglingLeft = {getE_danglingLeft( i1[0], i2[0] ), getE_danglingLeft( i1[1], i2[1] ), getE_danglingLeft( i1[2], i2[2] ), getE_danglingLeft( i1[3], i[3] )};
+	__m128 getPr_danglingLeft = {getPr_danglingLeft( i1[0], j1[0], i2[0], j2[0]), getPr_danglingLeft( i1[1], j1[1], i2[1], j2[1] ), getPr_danglingLeft( i1[2], j1[2] , i2[2], j2[2]), getPr_danglingLeft( i1[3], j1[3], i2[3], j2[3] )};
+	__m128 getE_danglingRight = {getE_danglingRight( j1[0], j2[0] ), getE_danglingRight( j1[1], j2[1] ), getE_danglingRight( j1[2], j2[2] ), getE_danglingRight( j1[3], j2[3] )};
+	__m128 getPr_danglingRight = {getPr_danglingRight(  i1[0], j1[0], i2[0], j2[0] ), getPr_danglingRight(  i1[1], j1[1], i2[1], j2[1]), getPr_danglingRight(  i1[2], j1[2], i2[2], j2[2]), getPr_danglingRight(  i1[3], j1[3], i2[3], j2[3])};
+	__m128 getE_endLeft = {getE_endLeft( i1[0], i2[0] ), getE_endLeft( i1[1], i2[1] ), getE_endLeft( i1[2], i2[2] ), getE_endLeft( i1[3], i2[3] )};
+	__m128 getE_endRight = {getE_endRight( j1[0], j2[0] ), getE_endRight( j1[1], j2[1] ), getE_endRight( j1[2], j2[2] ), getE_endRight( j1[3], j2[3] )};
+	
+	result = _mm_add_ps(_mm_add_ps(_mm_add_ps(ed1, ed2), getE_endLeft), getE_endRight);
+	resultMultiplication = _mm_add_ps(_mm_mul_ps(getE_danglingLeft, getPr_danglingLeft), _mm_mul_ps(getE_danglingRight, getPr_danglingRight));
+	result = _mm_add_ps(result, resultMultiplication);
+	__m128 infCompare = _mm_cmpeq_ps(hybridE, inf);
+	return _mm_or_ps(_mm_and_ps(infCompare,inf), _mm_andnot_ps(infCompare,result));
+	// return result;
+	// _mm_mul_ps(boltzmannWeight_SSE, hybridZ_SSE));
+	// // check if hybridization energy is not infinite
+	// if ( E_isNotINF(hybridE) ) {
+	// 	// compute overall interaction energy
+	// 	// std::cout << "foo" << std::endl;
+	// 	return hybridE
+	// 			// accessibility penalty
+	// 			+ getED1( i1, j1 )
+	// 			+ getED2( i2, j2 )
+	// 			// dangling end penalty
+	// 			// weighted by the probability that ends are unpaired
+	// 			+ (getE_danglingLeft( i1, i2 )*getPr_danglingLeft(i1,j1,i2,j2))
+	// 			+ (getE_danglingRight( j1, j2 )*getPr_danglingRight(i1,j1,i2,j2))
+	// 			// helix closure penalty
+	// 			+ getE_endLeft( i1, i2 )
+	// 			+ getE_endRight( j1, j2 )
+	// 			;
+	// } else {
+	// 	// hybridE is infinite, thus overall energy is infinity as well
+	// 	return E_INF;
+	// }
+}
 
 
 
