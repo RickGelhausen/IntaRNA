@@ -7,7 +7,7 @@
 #include "Interaction.h"
 #include "Accessibility.h"
 #include "ReverseAccessibility.h"
-
+#include <emmintrin.h>
 /**
  * Abstract utility class that covers necessary energy related functionalities
  * for the interaction energy computation given two RNAs.
@@ -94,6 +94,12 @@ public:
 			, const size_t i2, const size_t j2
 			, const E_type hybridE ) const;
 
+	virtual
+	__m128
+	getE_SSE( const __m128i i1, const __m128i j1
+				, const __m128i i2, const __m128i j2
+				, const __m128 hybridE ) const;
+		
 	/**
 	 * Provides details about the energy contributions for the given interaction
 	 *
@@ -859,15 +865,15 @@ getE_SSE( const __m128i i1, const __m128i j1
 	__m128 inf = {E_INF, E_INF, E_INF, E_INF};
 	__m128 ed1 = {getED1( i1[0], j1[0] ), getED1( i1[1], j1[1] ), getED1( i1[2], j1[2] ), getED1( i1[3], j1[3] )};
 	__m128 ed2 = {getED2( i2[0], j2[0] ), getED2( i2[1], j2[1] ), getED2( i2[2], j2[2] ), getED2( i2[3], j2[3] )};
-	__m128 getE_danglingLeft = {getE_danglingLeft( i1[0], i2[0] ), getE_danglingLeft( i1[1], i2[1] ), getE_danglingLeft( i1[2], i2[2] ), getE_danglingLeft( i1[3], i[3] )};
-	__m128 getPr_danglingLeft = {getPr_danglingLeft( i1[0], j1[0], i2[0], j2[0]), getPr_danglingLeft( i1[1], j1[1], i2[1], j2[1] ), getPr_danglingLeft( i1[2], j1[2] , i2[2], j2[2]), getPr_danglingLeft( i1[3], j1[3], i2[3], j2[3] )};
-	__m128 getE_danglingRight = {getE_danglingRight( j1[0], j2[0] ), getE_danglingRight( j1[1], j2[1] ), getE_danglingRight( j1[2], j2[2] ), getE_danglingRight( j1[3], j2[3] )};
-	__m128 getPr_danglingRight = {getPr_danglingRight(  i1[0], j1[0], i2[0], j2[0] ), getPr_danglingRight(  i1[1], j1[1], i2[1], j2[1]), getPr_danglingRight(  i1[2], j1[2], i2[2], j2[2]), getPr_danglingRight(  i1[3], j1[3], i2[3], j2[3])};
-	__m128 getE_endLeft = {getE_endLeft( i1[0], i2[0] ), getE_endLeft( i1[1], i2[1] ), getE_endLeft( i1[2], i2[2] ), getE_endLeft( i1[3], i2[3] )};
-	__m128 getE_endRight = {getE_endRight( j1[0], j2[0] ), getE_endRight( j1[1], j2[1] ), getE_endRight( j1[2], j2[2] ), getE_endRight( j1[3], j2[3] )};
+	__m128 E_danglingLeft = {getE_danglingLeft( i1[0], i2[0] ), getE_danglingLeft( i1[1], i2[1] ), getE_danglingLeft( i1[2], i2[2] ), getE_danglingLeft( i1[3], i2[3] )};
+	__m128 Pr_danglingLeft = {getPr_danglingLeft( i1[0], j1[0], i2[0], j2[0]), getPr_danglingLeft( i1[1], j1[1], i2[1], j2[1] ), getPr_danglingLeft( i1[2], j1[2] , i2[2], j2[2]), getPr_danglingLeft( i1[3], j1[3], i2[3], j2[3] )};
+	__m128 E_danglingRight = {getE_danglingRight( j1[0], j2[0] ), getE_danglingRight( j1[1], j2[1] ), getE_danglingRight( j1[2], j2[2] ), getE_danglingRight( j1[3], j2[3] )};
+	__m128 Pr_danglingRight = {getPr_danglingRight(  i1[0], j1[0], i2[0], j2[0] ), getPr_danglingRight(  i1[1], j1[1], i2[1], j2[1]), getPr_danglingRight(  i1[2], j1[2], i2[2], j2[2]), getPr_danglingRight(  i1[3], j1[3], i2[3], j2[3])};
+	__m128 E_endLeft = {getE_endLeft( i1[0], i2[0] ), getE_endLeft( i1[1], i2[1] ), getE_endLeft( i1[2], i2[2] ), getE_endLeft( i1[3], i2[3] )};
+	__m128 E_endRight = {getE_endRight( j1[0], j2[0] ), getE_endRight( j1[1], j2[1] ), getE_endRight( j1[2], j2[2] ), getE_endRight( j1[3], j2[3] )};
 	
-	result = _mm_add_ps(_mm_add_ps(_mm_add_ps(ed1, ed2), getE_endLeft), getE_endRight);
-	resultMultiplication = _mm_add_ps(_mm_mul_ps(getE_danglingLeft, getPr_danglingLeft), _mm_mul_ps(getE_danglingRight, getPr_danglingRight));
+	result = _mm_add_ps(_mm_add_ps(_mm_add_ps(ed1, ed2), E_endLeft), E_endRight);
+	resultMultiplication = _mm_add_ps(_mm_mul_ps(E_danglingLeft, Pr_danglingLeft), _mm_mul_ps(E_danglingRight, Pr_danglingRight));
 	result = _mm_add_ps(result, resultMultiplication);
 	__m128 infCompare = _mm_cmpeq_ps(hybridE, inf);
 	return _mm_or_ps(_mm_and_ps(infCompare,inf), _mm_andnot_ps(infCompare,result));
