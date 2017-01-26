@@ -876,7 +876,9 @@ getE_SSE( const __m128i i1, const __m128i j1
 	resultMultiplication = _mm_add_ps(_mm_mul_ps(E_danglingLeft, Pr_danglingLeft), _mm_mul_ps(E_danglingRight, Pr_danglingRight));
 	result = _mm_add_ps(result, resultMultiplication);
 	__m128 infCompare = _mm_cmpeq_ps(hybridE, inf);
-	return _mm_or_ps(_mm_and_ps(infCompare,inf), _mm_andnot_ps(infCompare,result));
+	__m128 foo = _mm_or_ps(_mm_and_ps(infCompare,inf), _mm_andnot_ps(infCompare,result));
+	std::cout << _mm_extract_ps(foo, 0) << ", "<< _mm_extract_ps(foo, 1) << ", "<< _mm_extract_ps(foo, 2) << ", "<< _mm_extract_ps(foo, 3) << std::endl;
+	return foo;
 	// return result;
 	// _mm_mul_ps(boltzmannWeight_SSE, hybridZ_SSE));
 	// // check if hybridization energy is not infinite
