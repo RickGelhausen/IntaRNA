@@ -3,6 +3,8 @@
 
 #include <stdexcept>
 
+#include <omp.h>
+#include <emmintrin.h>
 
 ////////////////////////////////////////////////////////////////////////////
 
@@ -99,13 +101,27 @@ fillHybridE()
 	// compute entries
 	// current minimal value
 	E_type curE = E_INF, curEtotal = E_INF, curCellEtotal = E_INF;
+	__m128 curE_SSE = {E_INF, E_INF, E_INF, E_INF};
+	__m128 curEtotal = {E_INF, E_INF, E_INF, E_INF};
+	__m128 curCellEtotal = {E_INF, E_INF, E_INF, E_INF};
+	__m128i i1_SSE;
+	__m128i i2_SSE;
+	__m128i rightExt_j1_SSE;
+	__m128i rightExt_j2_SSE;
 	size_t i1,i2,w1,w2;
 	BestInteraction * curCell = NULL;
 	const BestInteraction * rightExt = NULL;
+	const BestInteraction * rightExt_SSE1 = NULL;
+	const BestInteraction * rightExt_SSE1  = NULL;
+	const BestInteraction * rightExt_SSE1  = NULL;
+	
 	// iterate (decreasingly) over all left interaction starts
+	
 	for (i1=hybridE.size1(); i1-- > 0;) {
+		i1_SSE = _mm_set_epi32(i1, i1, i1, i1);
 	for (i2=hybridE.size2(); i2-- > 0;) {
 		// direct cell access
+		i2_SSE = _mm_set_epi32(i2, i2, i2, i2);
 		curCell = &(hybridE(i1,i2));
 		// check if left side can pair
 		if (E_isINF(curCell->E)) {
@@ -116,18 +132,33 @@ fillHybridE()
 
 		// TODO PARALLELIZE THIS DOUBLE LOOP ?!
 		// iterate over all loop sizes w1 (seq1) and w2 (seq2) (minus 1)
+		// #pragma omp parallel
 		for (w1=1; w1-1 <= energy.getMaxInternalLoopSize1() && i1+w1<hybridE.size1(); w1++) {
-		for (w2=1; w2-1 <= energy.getMaxInternalLoopSize2() && i2+w2<hybridE.size2(); w2++) {
+		for (w2=1; w2-1 <= energy.getMaxInternalLoopSize2() && i2+w2<hybridE.size2(); w2 += 4) {
 			// direct cell access (const)
 			rightExt = &(hybridE(i1+w1,i2+w2));
+			rightExt_SSE1 = &(hybridE(i1+w1,i2+w2+1));
+			rightExt_SSE2 = &(hybridE(i1+w1,i2+w2+2));
+			rightExt_SSE3 = &(hybridE(i1+w1,i2+w2+3));
 			// check if right side can pair
-			if (E_isINF(rightExt->E)) {
-				continue;
-			}
+			// if (E_isINF(rightExt->E)) {
+			// 	continue;
+			// }
+			// std::cout << "foo" << std::endl;
 			// compute energy for this loop sizes
-			curE = energy.getE_interLeft(i1,i1+w1,i2,i2+w2) + rightExt->E;
+			// curE_SSE = energy.getE_interLeft_SSE();
+
+			curE_SSE = {energy.getE_interLeft(i1,i1+w1,i2,i2+w2) + rightExt->E,
+						energy.getE_interLeft(i1,i1+w1,i2,i2+w2+1) + rightExt_SSE1->E,
+						energy.getE_interLeft(i1,i1+w1,i2,i2+w2+2) + rightExt_SSE2->E,
+						energy.getE_interLeft(i1,i1+w1,i2,i2+w2+3) + rightExt_SSE3->E
+						}
 			// check if this combination yields better energy
-			curEtotal = energy.getE(i1,rightExt->j1,i2,rightExt->j2,curE);
+			rightExt_j1_SSE = _mm_set_epi32(rightExt->j1, rightExt_SSE1->j1, rightExt_SSE2->j1, rightExt_SSE3->j1);
+			rightExt_j2_SSE = _mm_set_epi32(rightExt->j2, rightExt_SSE1->j2, rightExt_SSE2->j2, rightExt_SSE3->j2);
+			curEtotal_SSE = energy.getE_SSE(i1_SSE, rightExt_j1_SSE, i2_SSE, rightExt_j2_SSE, curE_SSE);
+			// curEtotal = energy.getE(i1,rightExt->j1,i2,rightExt->j2,curE);
+			// #pragma omp critical
 			if ( curEtotal < curCellEtotal )
 			{
 				// update current best for this left boundary
@@ -138,6 +169,29 @@ fillHybridE()
 				// store total energy to avoid recomputation
 				curCellEtotal = curEtotal;
 			}
+
+			// // direct cell access (const)
+			// rightExt = &(hybridE(i1+w1,i2+w2));
+			// // check if right side can pair
+			// if (E_isINF(rightExt->E)) {
+			// 	continue;
+			// }
+			// // std::cout << "foo" << std::endl;
+			// // compute energy for this loop sizes
+			// curE = energy.getE_interLeft(i1,i1+w1,i2,i2+w2) + rightExt->E;
+			// // check if this combination yields better energy
+			// curEtotal = energy.getE(i1,rightExt->j1,i2,rightExt->j2,curE);
+			// // #pragma omp critical
+			// if ( curEtotal < curCellEtotal )
+			// {
+			// 	// update current best for this left boundary
+			// 	// copy right boundary
+			// 	*curCell = *rightExt;
+			// 	// set new energy
+			// 	curCell->E = curE;
+			// 	// store total energy to avoid recomputation
+			// 	curCellEtotal = curEtotal;
+			// }
 
 		} // w2
 		} // w1
