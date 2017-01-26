@@ -3,8 +3,9 @@
 
 #include <stdexcept>
 
-#include <omp.h>
-#include <emmintrin.h>
+// #include <omp.h>
+#include <smmintrin.h>
+#include <vector>
 
 ////////////////////////////////////////////////////////////////////////////
 
@@ -116,12 +117,14 @@ fillHybridE()
 	const BestInteraction * rightExt_SSE3  = NULL;
 	
 	// iterate (decreasingly) over all left interaction starts
-	
+	std::vector< BestInteraction* > curCellVector(4, NULL);
+	std::vector< E_type > curCellEtotalVector(4, 0.0);
+	size_t loopCounter = 0;
 	for (i1=hybridE.size1(); i1-- > 0;) {
-		i1_SSE = _mm_set_epi32(i1, i1, i1, i1);
+		i1_SSE = _mm_setr_epi32(i1, i1, i1, i1);
 	for (i2=hybridE.size2(); i2-- > 0;) {
 		// direct cell access
-		i2_SSE = _mm_set_epi32(i2, i2, i2, i2);
+		i2_SSE = _mm_setr_epi32(i2, i2, i2, i2);
 		curCell = &(hybridE(i1,i2));
 		// check if left side can pair
 		if (E_isINF(curCell->E)) {
@@ -129,12 +132,17 @@ fillHybridE()
 		}
 		// current
 		curCellEtotal = energy.getE(i1,curCell->j1,i2,curCell->j2,curCell->E);
-
+		curCellEtotalVector[0] = energy.getE(i1,curCell->j1,i2,curCell->j2,curCell->E);
+		curCellEtotalVector[1] = energy.getE(i1,curCell->j1,i2,curCell->j2,curCell->E);
+		curCellEtotalVector[2] = energy.getE(i1,curCell->j1,i2,curCell->j2,curCell->E);
+		curCellEtotalVector[3] = energy.getE(i1,curCell->j1,i2,curCell->j2,curCell->E);
+		
 		// TODO PARALLELIZE THIS DOUBLE LOOP ?!
 		// iterate over all loop sizes w1 (seq1) and w2 (seq2) (minus 1)
 		// #pragma omp parallel
 		for (w1=1; w1-1 <= energy.getMaxInternalLoopSize1() && i1+w1<hybridE.size1(); w1++) {
 		for (w2=1; w2-1 <= energy.getMaxInternalLoopSize2() && i2+w2<hybridE.size2(); w2 += 4) {
+			loopCounter++;
 			// direct cell access (const)
 			rightExt = &(hybridE(i1+w1,i2+w2));
 			rightExt_SSE1 = &(hybridE(i1+w1,i2+w2+1));
@@ -148,53 +156,77 @@ fillHybridE()
 			// compute energy for this loop sizes
 			// curE_SSE = energy.getE_interLeft_SSE();
 
-			curE_SSE = _mm_set_ps(energy.getE_interLeft(i1,i1+w1,i2,i2+w2) + rightExt->E,
+			curE_SSE = _mm_setr_ps(energy.getE_interLeft(i1,i1+w1,i2,i2+w2) + rightExt->E,
 						energy.getE_interLeft(i1,i1+w1,i2,i2+w2+1) + rightExt_SSE1->E,
 						energy.getE_interLeft(i1,i1+w1,i2,i2+w2+2) + rightExt_SSE2->E,
 						energy.getE_interLeft(i1,i1+w1,i2,i2+w2+3) + rightExt_SSE3->E
 						);
 			// check if this combination yields better energy
-			rightExt_j1_SSE = _mm_set_epi32(rightExt->j1, rightExt_SSE1->j1, rightExt_SSE2->j1, rightExt_SSE3->j1);
-			rightExt_j2_SSE = _mm_set_epi32(rightExt->j2, rightExt_SSE1->j2, rightExt_SSE2->j2, rightExt_SSE3->j2);
+			rightExt_j1_SSE = _mm_setr_epi32(rightExt->j1, rightExt_SSE1->j1, rightExt_SSE2->j1, rightExt_SSE3->j1);
+			rightExt_j2_SSE = _mm_setr_epi32(rightExt->j2, rightExt_SSE1->j2, rightExt_SSE2->j2, rightExt_SSE3->j2);
 			curEtotal_SSE = energy.getE_SSE(i1_SSE, rightExt_j1_SSE, i2_SSE, rightExt_j2_SSE, curE_SSE);
 			// curEtotal = energy.getE(i1,rightExt->j1,i2,rightExt->j2,curE);
 			// #pragma omp critical
-			if ( curEtotal < curCellEtotal )
-			{
-				// update current best for this left boundary
-				// copy right boundary
-				*curCell = *rightExt;
-				// set new energy
-				curCell->E = curE;
-				// store total energy to avoid recomputation
-				curCellEtotal = curEtotal;
+
+			if ((float) _mm_extract_ps(curEtotal_SSE, 0) < curCellEtotalVector[0]) {
+				*(curCellVector[0]) = *rightExt_SSE1;
+				curCellVector[0]->E = (float) _mm_extract_ps(curE_SSE, 0);
+				curCellEtotalVector[0] = (float) _mm_extract_ps(curEtotal_SSE, 0);
+			}
+			if ((float) _mm_extract_ps(curEtotal_SSE, 1) < curCellEtotalVector[1]) {
+				*(curCellVector[1]) = *rightExt_SSE1;
+				curCellVector[1]->E = (float) _mm_extract_ps(curE_SSE, 1);
+				curCellEtotalVector[1] = (float) _mm_extract_ps(curEtotal_SSE, 1);
+			}
+			if ((float) _mm_extract_ps(curEtotal_SSE, 2) < curCellEtotalVector[2]) {
+				*(curCellVector[2]) = *rightExt_SSE1;
+				curCellVector[2]->E = (float) _mm_extract_ps(curE_SSE, 2);
+				curCellEtotalVector[2] = (float) _mm_extract_ps(curEtotal_SSE, 2);
+			}
+			if ((float) _mm_extract_ps(curEtotal_SSE, 3) < curCellEtotalVector[3]) {
+				*(curCellVector[3]) = *rightExt_SSE1;
+				curCellVector[3]->E = (float) _mm_extract_ps(curE_SSE, 3);
+				curCellEtotalVector[3] = (float) _mm_extract_ps(curEtotal_SSE, 3);
 			}
 
-			// // direct cell access (const)
-			// rightExt = &(hybridE(i1+w1,i2+w2));
-			// // check if right side can pair
-			// if (E_isINF(rightExt->E)) {
-			// 	continue;
-			// }
-			// // std::cout << "foo" << std::endl;
-			// // compute energy for this loop sizes
-			// curE = energy.getE_interLeft(i1,i1+w1,i2,i2+w2) + rightExt->E;
-			// // check if this combination yields better energy
-			// curEtotal = energy.getE(i1,rightExt->j1,i2,rightExt->j2,curE);
-			// // #pragma omp critical
-			// if ( curEtotal < curCellEtotal )
-			// {
-			// 	// update current best for this left boundary
-			// 	// copy right boundary
-			// 	*curCell = *rightExt;
-			// 	// set new energy
-			// 	curCell->E = curE;
-			// 	// store total energy to avoid recomputation
-			// 	curCellEtotal = curEtotal;
-			// }
-
 		} // w2
+		// check eventually missing remainders
+		if (loopCounter * 4 < w2) {
+			for (w2=loopCounter; w2-1 <= energy.getMaxInternalLoopSize2() && i2+w2<hybridE.size2(); w2 += 4) {
+				// direct cell access (const)
+				rightExt = &(hybridE(i1+w1,i2+w2));
+				// check if right side can pair
+				if (E_isINF(rightExt->E)) {
+					continue;
+				}
+				// compute energy for this loop sizes
+				curE = energy.getE_interLeft(i1,i1+w1,i2,i2+w2) + rightExt->E;
+				// check if this combination yields better energy
+				curEtotal = energy.getE(i1,rightExt->j1,i2,rightExt->j2,curE);
+				if ( curEtotal < curCellEtotal )
+				{
+					// update current best for this left boundary
+					// copy right boundary
+					*curCell = *rightExt;
+					// set new energy
+					curCell->E = curE;
+					// store total energy to avoid recomputation
+					curCellEtotal = curEtotal;
+				}
+			}
+		}
+		loopCounter = 0;
 		} // w1
+		
+		// merge values from the two loops
+
+		for (size_t i = 0; i < 4; ++i) {
+			if (curCellEtotalVector[i] < curCellEtotal) {
+				*curCell = *(curCellVector[i]);
+				curCell->E = curCellVector[i]->E;
+				curCellEtotal = curCellEtotalVector[i];
+			}
+		}
 
 		// update mfe if needed
 		updateOptima( i1,curCell->j1, i2,curCell->j2, curCellEtotal, false );
