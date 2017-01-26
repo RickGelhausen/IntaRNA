@@ -102,8 +102,8 @@ fillHybridE()
 	// current minimal value
 	E_type curE = E_INF, curEtotal = E_INF, curCellEtotal = E_INF;
 	__m128 curE_SSE = {E_INF, E_INF, E_INF, E_INF};
-	__m128 curEtotal = {E_INF, E_INF, E_INF, E_INF};
-	__m128 curCellEtotal = {E_INF, E_INF, E_INF, E_INF};
+	__m128 curEtotal_SSE = {E_INF, E_INF, E_INF, E_INF};
+	__m128 curCellEtotal_SSE = {E_INF, E_INF, E_INF, E_INF};
 	__m128i i1_SSE;
 	__m128i i2_SSE;
 	__m128i rightExt_j1_SSE;
@@ -112,8 +112,8 @@ fillHybridE()
 	BestInteraction * curCell = NULL;
 	const BestInteraction * rightExt = NULL;
 	const BestInteraction * rightExt_SSE1 = NULL;
-	const BestInteraction * rightExt_SSE1  = NULL;
-	const BestInteraction * rightExt_SSE1  = NULL;
+	const BestInteraction * rightExt_SSE2  = NULL;
+	const BestInteraction * rightExt_SSE3  = NULL;
 	
 	// iterate (decreasingly) over all left interaction starts
 	
@@ -148,11 +148,11 @@ fillHybridE()
 			// compute energy for this loop sizes
 			// curE_SSE = energy.getE_interLeft_SSE();
 
-			curE_SSE = {energy.getE_interLeft(i1,i1+w1,i2,i2+w2) + rightExt->E,
+			curE_SSE = _mm_set_ps(energy.getE_interLeft(i1,i1+w1,i2,i2+w2) + rightExt->E,
 						energy.getE_interLeft(i1,i1+w1,i2,i2+w2+1) + rightExt_SSE1->E,
 						energy.getE_interLeft(i1,i1+w1,i2,i2+w2+2) + rightExt_SSE2->E,
 						energy.getE_interLeft(i1,i1+w1,i2,i2+w2+3) + rightExt_SSE3->E
-						}
+						);
 			// check if this combination yields better energy
 			rightExt_j1_SSE = _mm_set_epi32(rightExt->j1, rightExt_SSE1->j1, rightExt_SSE2->j1, rightExt_SSE3->j1);
 			rightExt_j2_SSE = _mm_set_epi32(rightExt->j2, rightExt_SSE1->j2, rightExt_SSE2->j2, rightExt_SSE3->j2);
