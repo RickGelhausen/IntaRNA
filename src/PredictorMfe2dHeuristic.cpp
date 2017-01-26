@@ -99,6 +99,7 @@ void
 PredictorMfe2dHeuristic::
 fillHybridE()
 {
+	std::cout << "foo" << std::endl;
 	// compute entries
 	// current minimal value
 	E_type curE = E_INF, curEtotal = E_INF, curCellEtotal = E_INF;
@@ -109,12 +110,15 @@ fillHybridE()
 	__m128i i2_SSE;
 	__m128i rightExt_j1_SSE;
 	__m128i rightExt_j2_SSE;
+	std::cout << __LINE__ << std::endl;
+	
 	size_t i1,i2,w1,w2;
 	BestInteraction * curCell = NULL;
 	const BestInteraction * rightExt = NULL;
 	const BestInteraction * rightExt_SSE1 = NULL;
 	const BestInteraction * rightExt_SSE2  = NULL;
 	const BestInteraction * rightExt_SSE3  = NULL;
+	std::cout << __LINE__ << std::endl;
 	
 	// iterate (decreasingly) over all left interaction starts
 	std::vector< BestInteraction* > curCellVector(4, NULL);
@@ -130,12 +134,15 @@ fillHybridE()
 		if (E_isINF(curCell->E)) {
 			continue;
 		}
+	std::cout << __LINE__ << std::endl;
+		
 		// current
 		curCellEtotal = energy.getE(i1,curCell->j1,i2,curCell->j2,curCell->E);
 		curCellEtotalVector[0] = energy.getE(i1,curCell->j1,i2,curCell->j2,curCell->E);
 		curCellEtotalVector[1] = energy.getE(i1,curCell->j1,i2,curCell->j2,curCell->E);
 		curCellEtotalVector[2] = energy.getE(i1,curCell->j1,i2,curCell->j2,curCell->E);
 		curCellEtotalVector[3] = energy.getE(i1,curCell->j1,i2,curCell->j2,curCell->E);
+	std::cout << __LINE__ << std::endl;
 		
 		// TODO PARALLELIZE THIS DOUBLE LOOP ?!
 		// iterate over all loop sizes w1 (seq1) and w2 (seq2) (minus 1)
@@ -155,18 +162,37 @@ fillHybridE()
 			// std::cout << "foo" << std::endl;
 			// compute energy for this loop sizes
 			// curE_SSE = energy.getE_interLeft_SSE();
-
+	std::cout << __LINE__ << std::endl;
+			float foo_EinnerLeft = energy.getE_interLeft(i1,i1+w1,i2,i2+w2) + rightExt->E;
+	std::cout << __LINE__ << std::endl;
+			
+			float foo_EinnerLeft1 = energy.getE_interLeft(i1,i1+w1,i2,i2+w2+1) + rightExt->E;
+	std::cout << __LINE__ << std::endl;
+			
+			float foo_EinnerLeft2 = energy.getE_interLeft(i1,i1+w1,i2,i2+w2+2) + rightExt->E;
+	std::cout << __LINE__ << std::endl;
+			
+			float foo_EinnerLeft3 = energy.getE_interLeft(i1,i1+w1,i2,i2+w2+3) + rightExt->E;
+	std::cout << __LINE__ << std::endl;
+std::cout << "FOOOO: " << foo_EinnerLeft + foo_EinnerLeft1 + foo_EinnerLeft2 + foo_EinnerLeft3 << std::endl;
 			curE_SSE = _mm_setr_ps(energy.getE_interLeft(i1,i1+w1,i2,i2+w2) + rightExt->E,
 						energy.getE_interLeft(i1,i1+w1,i2,i2+w2+1) + rightExt_SSE1->E,
 						energy.getE_interLeft(i1,i1+w1,i2,i2+w2+2) + rightExt_SSE2->E,
 						energy.getE_interLeft(i1,i1+w1,i2,i2+w2+3) + rightExt_SSE3->E
 						);
+	std::cout << __LINE__ << std::endl;
+						
 			// check if this combination yields better energy
 			rightExt_j1_SSE = _mm_setr_epi32(rightExt->j1, rightExt_SSE1->j1, rightExt_SSE2->j1, rightExt_SSE3->j1);
+	std::cout << __LINE__ << std::endl;
+			
 			rightExt_j2_SSE = _mm_setr_epi32(rightExt->j2, rightExt_SSE1->j2, rightExt_SSE2->j2, rightExt_SSE3->j2);
+	std::cout << __LINE__ << std::endl;
+			
 			curEtotal_SSE = energy.getE_SSE(i1_SSE, rightExt_j1_SSE, i2_SSE, rightExt_j2_SSE, curE_SSE);
 			// curEtotal = energy.getE(i1,rightExt->j1,i2,rightExt->j2,curE);
 			// #pragma omp critical
+	std::cout << __LINE__ << std::endl;
 
 			if ((float) _mm_extract_ps(curEtotal_SSE, 0) < curCellEtotalVector[0]) {
 				*(curCellVector[0]) = *rightExt_SSE1;
@@ -188,8 +214,12 @@ fillHybridE()
 				curCellVector[3]->E = (float) _mm_extract_ps(curE_SSE, 3);
 				curCellEtotalVector[3] = (float) _mm_extract_ps(curEtotal_SSE, 3);
 			}
+	std::cout << __LINE__ << std::endl;
+			
 
 		} // w2
+	std::cout << __LINE__ << std::endl;
+		
 		// check eventually missing remainders
 		if (loopCounter * 4 < w2) {
 			for (w2=loopCounter; w2-1 <= energy.getMaxInternalLoopSize2() && i2+w2<hybridE.size2(); w2 += 4) {
@@ -215,10 +245,13 @@ fillHybridE()
 				}
 			}
 		}
+	std::cout << __LINE__ << std::endl;
+		
 		loopCounter = 0;
 		} // w1
 		
 		// merge values from the two loops
+	std::cout << __LINE__ << std::endl;
 
 		for (size_t i = 0; i < 4; ++i) {
 			if (curCellEtotalVector[i] < curCellEtotal) {
@@ -227,12 +260,16 @@ fillHybridE()
 				curCellEtotal = curCellEtotalVector[i];
 			}
 		}
+	std::cout << __LINE__ << std::endl;
 
 		// update mfe if needed
 		updateOptima( i1,curCell->j1, i2,curCell->j2, curCellEtotal, false );
+	std::cout << __LINE__ << std::endl;
+		
 
 	} // i2
 	} // i1
+	std::cout << "foo" << std::endl;
 
 }
 
