@@ -291,7 +291,10 @@ InteractionEnergyVrna::
 getE_interLeft( const size_t i1, const size_t j1, const size_t i2, const size_t j2 ) const
 {
 	// if valid internal loop
+	// std::cout << __LINE__ << std::endl;
 	if ( isValidInternalLoop(i1,j1,i2,j2) ) {
+	// std::cout << __LINE__ << std::endl;
+		
 		assert( i1!=j1 && i2!=j2 );
 		// Vienna RNA : compute internal loop / stacking energy for base pair [i1,i2]
 		return (E_type)E_IntLoop(	(int)j1-i1-1	// unpaired region 1
@@ -307,6 +310,8 @@ getE_interLeft( const size_t i1, const size_t j1, const size_t i2, const size_t 
 				/ (E_type)100.0
 				;
 	} else {
+	// std::cout << __LINE__ << std::endl;
+		
 		return E_INF;
 	}
 }

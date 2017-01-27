@@ -237,11 +237,17 @@ E_type
 InteractionEnergyBasePair::
 getE_interLeft( const size_t i1, const size_t j1, const size_t i2, const size_t j2 ) const
 {
+		// std::cout << __LINE__ << std::endl;
+
 	// if valid internal loop
 	if ( isValidInternalLoop(i1,j1,i2,j2) ) {
+			// std::cout << __LINE__ << std::endl;
+
 		// return negated number of gained base pairs by closing this loop = -1
 		return getBestE_interLoop();
 	} else {
+			// std::cout << __LINE__ << std::endl;
+
 		return E_INF;
 	}
 }

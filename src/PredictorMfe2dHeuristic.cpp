@@ -110,6 +110,22 @@ fillHybridE()
 	__m128i i2_SSE;
 	__m128i rightExt_j1_SSE;
 	__m128i rightExt_j2_SSE;
+
+	E_type energy0 = E_INF;
+	E_type energy1 = E_INF;
+	E_type energy2 = E_INF;
+	E_type energy3 = E_INF;
+	
+	E_type energy0_j1 = E_INF;
+	E_type energy1_j1 = E_INF;
+	E_type energy2_j1 = E_INF;
+	E_type energy3_j1 = E_INF;
+
+	E_type energy0_j2 = E_INF;
+	E_type energy1_j2 = E_INF;
+	E_type energy2_j2 = E_INF;
+	E_type energy3_j2 = E_INF;
+
 	std::cout << __LINE__ << std::endl;
 	
 	size_t i1,i2,w1,w2;
@@ -148,45 +164,66 @@ fillHybridE()
 		// iterate over all loop sizes w1 (seq1) and w2 (seq2) (minus 1)
 		// #pragma omp parallel
 		for (w1=1; w1-1 <= energy.getMaxInternalLoopSize1() && i1+w1<hybridE.size1(); w1++) {
-		for (w2=1; w2-1 <= energy.getMaxInternalLoopSize2() && i2+w2<hybridE.size2(); w2 += 4) {
+		for (w2=1; w2+3-1 <= energy.getMaxInternalLoopSize2() && i2+w2+3<hybridE.size2(); w2 += 4) {
 			loopCounter++;
 			// direct cell access (const)
 			rightExt = &(hybridE(i1+w1,i2+w2));
 			rightExt_SSE1 = &(hybridE(i1+w1,i2+w2+1));
 			rightExt_SSE2 = &(hybridE(i1+w1,i2+w2+2));
 			rightExt_SSE3 = &(hybridE(i1+w1,i2+w2+3));
+			std::cout << __LINE__ << std::endl;
+
 			// check if right side can pair
-			// if (E_isINF(rightExt->E)) {
-			// 	continue;
-			// }
+			if (E_isINF(rightExt->E)) {
+				energy0 = E_INF;
+				energy0_j1 = E_INF;
+				energy0_j2 = E_INF;
+			} else {
+				energy0 = energy.getE_interLeft(i1,i1+w1,i2,i2+w2) + rightExt->E;
+				energy0_j1 = rightExt->j1;
+				energy0_j2 = rightExt->j2;
+			}
+			if (E_isINF(rightExt_SSE1->E)) {
+				energy1 = E_INF;
+				energy1_j1 = E_INF;
+				energy1_j2 = E_INF;
+			} else {
+				energy1 = energy.getE_interLeft(i1,i1+w1,i2,i2+w2+1) + rightExt_SSE1->E;
+				energy1_j1 = rightExt_SSE1->j1;
+				energy1_j2 = rightExt_SSE1->j2;
+			}
+			if (E_isINF(rightExt_SSE2->E)) {
+				energy2 = E_INF;
+				energy2_j1 = E_INF;
+				energy2_j2 = E_INF;
+			} else {
+				energy2 = energy.getE_interLeft(i1,i1+w1,i2,i2+w2+2) + rightExt_SSE2->E;
+				energy2_j1 = rightExt_SSE2->j1;
+				energy2_j2 = rightExt_SSE2->j2;
+			}
+			if (E_isINF(rightExt_SSE3->E)) {
+				energy3 = E_INF;
+				energy3_j1 = E_INF;
+				energy3_j2 = E_INF;
+			} else {
+				energy3 = energy.getE_interLeft(i1,i1+w1,i2,i2+w2+3) + rightExt_SSE3->E;
+				energy3_j1 = rightExt_SSE3->j1;
+				energy3_j2 = rightExt_SSE3->j2;
+			}
 			// std::cout << "foo" << std::endl;
 			// compute energy for this loop sizes
 			// curE_SSE = energy.getE_interLeft_SSE();
 	std::cout << __LINE__ << std::endl;
-			float foo_EinnerLeft = energy.getE_interLeft(i1,i1+w1,i2,i2+w2) + rightExt->E;
-	std::cout << __LINE__ << std::endl;
-			
-			float foo_EinnerLeft1 = energy.getE_interLeft(i1,i1+w1,i2,i2+w2+1) + rightExt->E;
-	std::cout << __LINE__ << std::endl;
-			
-			float foo_EinnerLeft2 = energy.getE_interLeft(i1,i1+w1,i2,i2+w2+2) + rightExt->E;
-	std::cout << __LINE__ << std::endl;
-			
-			float foo_EinnerLeft3 = energy.getE_interLeft(i1,i1+w1,i2,i2+w2+3) + rightExt->E;
-	std::cout << __LINE__ << std::endl;
-std::cout << "FOOOO: " << foo_EinnerLeft + foo_EinnerLeft1 + foo_EinnerLeft2 + foo_EinnerLeft3 << std::endl;
-			curE_SSE = _mm_setr_ps(energy.getE_interLeft(i1,i1+w1,i2,i2+w2) + rightExt->E,
-						energy.getE_interLeft(i1,i1+w1,i2,i2+w2+1) + rightExt_SSE1->E,
-						energy.getE_interLeft(i1,i1+w1,i2,i2+w2+2) + rightExt_SSE2->E,
-						energy.getE_interLeft(i1,i1+w1,i2,i2+w2+3) + rightExt_SSE3->E
-						);
+
+			curE_SSE = _mm_setr_ps(energy0, energy1, energy2, energy3);
 	std::cout << __LINE__ << std::endl;
 						
+						
 			// check if this combination yields better energy
-			rightExt_j1_SSE = _mm_setr_epi32(rightExt->j1, rightExt_SSE1->j1, rightExt_SSE2->j1, rightExt_SSE3->j1);
+			rightExt_j1_SSE = _mm_setr_epi32(energy0_j1, energy1_j1, energy2_j1, energy3_j1);
 	std::cout << __LINE__ << std::endl;
 			
-			rightExt_j2_SSE = _mm_setr_epi32(rightExt->j2, rightExt_SSE1->j2, rightExt_SSE2->j2, rightExt_SSE3->j2);
+			rightExt_j2_SSE = _mm_setr_epi32(energy0_j2, energy1_j2, energy2_j2, energy3_j2);
 	std::cout << __LINE__ << std::endl;
 			
 			curEtotal_SSE = energy.getE_SSE(i1_SSE, rightExt_j1_SSE, i2_SSE, rightExt_j2_SSE, curE_SSE);
@@ -199,16 +236,22 @@ std::cout << "FOOOO: " << foo_EinnerLeft + foo_EinnerLeft1 + foo_EinnerLeft2 + f
 				curCellVector[0]->E = (float) _mm_extract_ps(curE_SSE, 0);
 				curCellEtotalVector[0] = (float) _mm_extract_ps(curEtotal_SSE, 0);
 			}
+	std::cout << __LINE__ << std::endl;
+			
 			if ((float) _mm_extract_ps(curEtotal_SSE, 1) < curCellEtotalVector[1]) {
 				*(curCellVector[1]) = *rightExt_SSE1;
 				curCellVector[1]->E = (float) _mm_extract_ps(curE_SSE, 1);
 				curCellEtotalVector[1] = (float) _mm_extract_ps(curEtotal_SSE, 1);
 			}
+	std::cout << __LINE__ << std::endl;
+			
 			if ((float) _mm_extract_ps(curEtotal_SSE, 2) < curCellEtotalVector[2]) {
 				*(curCellVector[2]) = *rightExt_SSE1;
 				curCellVector[2]->E = (float) _mm_extract_ps(curE_SSE, 2);
 				curCellEtotalVector[2] = (float) _mm_extract_ps(curEtotal_SSE, 2);
 			}
+	std::cout << __LINE__ << std::endl;
+			
 			if ((float) _mm_extract_ps(curEtotal_SSE, 3) < curCellEtotalVector[3]) {
 				*(curCellVector[3]) = *rightExt_SSE1;
 				curCellVector[3]->E = (float) _mm_extract_ps(curE_SSE, 3);

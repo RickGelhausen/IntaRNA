@@ -600,6 +600,7 @@ E_type
 InteractionEnergyIdxOffset::
 getE_interLeft( const size_t i1, const size_t j1, const size_t i2, const size_t j2 ) const
 {
+	// std::cout << __LINE__ << std::endl;
 	return energyOriginal.getE_interLeft(i1+offset1, j1+offset1, i2+offset2, j2+offset2);
 }
 
