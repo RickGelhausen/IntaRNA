@@ -99,34 +99,23 @@ void
 PredictorMfe2dHeuristic::
 fillHybridE()
 {
-	std::cout << "foo" << std::endl;
+	// std::cout << "foo" << std::endl;
 	// compute entries
 	// current minimal value
 	E_type curE = E_INF, curEtotal = E_INF, curCellEtotal = E_INF;
 	__m128 curE_SSE = {E_INF, E_INF, E_INF, E_INF};
-	__m128 curEtotal_SSE = {E_INF, E_INF, E_INF, E_INF};
+	std::vector<float> curEtotal_SSE(4,E_INF);
 	__m128 curCellEtotal_SSE = {E_INF, E_INF, E_INF, E_INF};
-	__m128i i1_SSE;
-	__m128i i2_SSE;
-	__m128i rightExt_j1_SSE;
-	__m128i rightExt_j2_SSE;
-
+	std::vector<size_t> rightExt_j1_SSE(4,0);
+	std::vector<size_t> rightExt_j2_SSE(4,0);
+	std::vector<float> result(4,0);
 	E_type energy0 = E_INF;
 	E_type energy1 = E_INF;
 	E_type energy2 = E_INF;
 	E_type energy3 = E_INF;
 	
-	E_type energy0_j1 = E_INF;
-	E_type energy1_j1 = E_INF;
-	E_type energy2_j1 = E_INF;
-	E_type energy3_j1 = E_INF;
 
-	E_type energy0_j2 = E_INF;
-	E_type energy1_j2 = E_INF;
-	E_type energy2_j2 = E_INF;
-	E_type energy3_j2 = E_INF;
 
-	std::cout << __LINE__ << std::endl;
 	
 	size_t i1,i2,w1,w2;
 	BestInteraction * curCell = NULL;
@@ -134,138 +123,120 @@ fillHybridE()
 	const BestInteraction * rightExt_SSE1 = NULL;
 	const BestInteraction * rightExt_SSE2  = NULL;
 	const BestInteraction * rightExt_SSE3  = NULL;
-	std::cout << __LINE__ << std::endl;
+	// std::cout << __LINE__ << std::endl;
 	
 	// iterate (decreasingly) over all left interaction starts
 	std::vector< BestInteraction* > curCellVector(4, NULL);
 	std::vector< E_type > curCellEtotalVector(4, 0.0);
 	size_t loopCounter = 0;
 	for (i1=hybridE.size1(); i1-- > 0;) {
-		i1_SSE = _mm_setr_epi32(i1, i1, i1, i1);
 	for (i2=hybridE.size2(); i2-- > 0;) {
 		// direct cell access
-		i2_SSE = _mm_setr_epi32(i2, i2, i2, i2);
 		curCell = &(hybridE(i1,i2));
+		curCellVector[0] = &(hybridE(i1,i2));
+		curCellVector[1] = &(hybridE(i1,i2));
+		curCellVector[2] = &(hybridE(i1,i2));
+		curCellVector[3] = &(hybridE(i1,i2));
+		
 		// check if left side can pair
 		if (E_isINF(curCell->E)) {
 			continue;
 		}
-	std::cout << __LINE__ << std::endl;
 		
 		// current
 		curCellEtotal = energy.getE(i1,curCell->j1,i2,curCell->j2,curCell->E);
-		curCellEtotalVector[0] = energy.getE(i1,curCell->j1,i2,curCell->j2,curCell->E);
-		curCellEtotalVector[1] = energy.getE(i1,curCell->j1,i2,curCell->j2,curCell->E);
-		curCellEtotalVector[2] = energy.getE(i1,curCell->j1,i2,curCell->j2,curCell->E);
-		curCellEtotalVector[3] = energy.getE(i1,curCell->j1,i2,curCell->j2,curCell->E);
-	std::cout << __LINE__ << std::endl;
+		curCellEtotalVector[0] = curCellEtotal;
+		curCellEtotalVector[1] = curCellEtotal;
+		curCellEtotalVector[2] = curCellEtotal;
+		curCellEtotalVector[3] = curCellEtotal;
 		
 		// TODO PARALLELIZE THIS DOUBLE LOOP ?!
 		// iterate over all loop sizes w1 (seq1) and w2 (seq2) (minus 1)
 		// #pragma omp parallel
 		for (w1=1; w1-1 <= energy.getMaxInternalLoopSize1() && i1+w1<hybridE.size1(); w1++) {
-		for (w2=1; w2+3-1 <= energy.getMaxInternalLoopSize2() && i2+w2+3<hybridE.size2(); w2 += 4) {
+		for (w2=1; w2-1 <= energy.getMaxInternalLoopSize2() -4 && i2+w2<hybridE.size2() -4; w2 += 4) {
 			loopCounter++;
 			// direct cell access (const)
 			rightExt = &(hybridE(i1+w1,i2+w2));
 			rightExt_SSE1 = &(hybridE(i1+w1,i2+w2+1));
 			rightExt_SSE2 = &(hybridE(i1+w1,i2+w2+2));
 			rightExt_SSE3 = &(hybridE(i1+w1,i2+w2+3));
-			std::cout << __LINE__ << std::endl;
-
+			// std::cout << __LINE__ << std::endl;
+			if (E_isINF(rightExt->E) && E_isINF(rightExt_SSE1->E) && E_isINF(rightExt_SSE2->E) && E_isINF(rightExt_SSE3->E)) {
+				continue;
+			}
 			// check if right side can pair
 			if (E_isINF(rightExt->E)) {
 				energy0 = E_INF;
-				energy0_j1 = E_INF;
-				energy0_j2 = E_INF;
+				rightExt_j1_SSE[0] = i1;
+				rightExt_j2_SSE[0] = i2;
 			} else {
 				energy0 = energy.getE_interLeft(i1,i1+w1,i2,i2+w2) + rightExt->E;
-				energy0_j1 = rightExt->j1;
-				energy0_j2 = rightExt->j2;
+				rightExt_j1_SSE[0] = rightExt->j1;
+				rightExt_j2_SSE[0] = rightExt->j2;
 			}
 			if (E_isINF(rightExt_SSE1->E)) {
 				energy1 = E_INF;
-				energy1_j1 = E_INF;
-				energy1_j2 = E_INF;
+				rightExt_j1_SSE[1] = i1;
+				rightExt_j2_SSE[1] = i2;
 			} else {
 				energy1 = energy.getE_interLeft(i1,i1+w1,i2,i2+w2+1) + rightExt_SSE1->E;
-				energy1_j1 = rightExt_SSE1->j1;
-				energy1_j2 = rightExt_SSE1->j2;
+				rightExt_j1_SSE[1] = rightExt_SSE1->j1;
+				rightExt_j2_SSE[1] = rightExt_SSE1->j2;
 			}
 			if (E_isINF(rightExt_SSE2->E)) {
 				energy2 = E_INF;
-				energy2_j1 = E_INF;
-				energy2_j2 = E_INF;
+				rightExt_j1_SSE[2] = i1;
+				rightExt_j2_SSE[2] = i2;
 			} else {
 				energy2 = energy.getE_interLeft(i1,i1+w1,i2,i2+w2+2) + rightExt_SSE2->E;
-				energy2_j1 = rightExt_SSE2->j1;
-				energy2_j2 = rightExt_SSE2->j2;
+				rightExt_j1_SSE[2] = rightExt_SSE2->j1;
+				rightExt_j2_SSE[2] = rightExt_SSE2->j2;
 			}
 			if (E_isINF(rightExt_SSE3->E)) {
 				energy3 = E_INF;
-				energy3_j1 = E_INF;
-				energy3_j2 = E_INF;
+				rightExt_j1_SSE[3] = i1;
+				rightExt_j2_SSE[3] = i2;
 			} else {
 				energy3 = energy.getE_interLeft(i1,i1+w1,i2,i2+w2+3) + rightExt_SSE3->E;
-				energy3_j1 = rightExt_SSE3->j1;
-				energy3_j2 = rightExt_SSE3->j2;
+				rightExt_j1_SSE[3] = rightExt_SSE3->j1;
+				rightExt_j2_SSE[3] = rightExt_SSE3->j2;
 			}
-			// std::cout << "foo" << std::endl;
 			// compute energy for this loop sizes
-			// curE_SSE = energy.getE_interLeft_SSE();
-	std::cout << __LINE__ << std::endl;
-
-			curE_SSE = _mm_setr_ps(energy0, energy1, energy2, energy3);
-	std::cout << __LINE__ << std::endl;
-						
-						
 			// check if this combination yields better energy
-			rightExt_j1_SSE = _mm_setr_epi32(energy0_j1, energy1_j1, energy2_j1, energy3_j1);
-	std::cout << __LINE__ << std::endl;
-			
-			rightExt_j2_SSE = _mm_setr_epi32(energy0_j2, energy1_j2, energy2_j2, energy3_j2);
-	std::cout << __LINE__ << std::endl;
-			
-			curEtotal_SSE = energy.getE_SSE(i1_SSE, rightExt_j1_SSE, i2_SSE, rightExt_j2_SSE, curE_SSE);
+			curE_SSE = _mm_setr_ps(energy0, energy1, energy2, energy3);
+			 energy.getE_SSE(i1, rightExt_j1_SSE, i2, rightExt_j2_SSE, curE_SSE, curEtotal_SSE);
 			// curEtotal = energy.getE(i1,rightExt->j1,i2,rightExt->j2,curE);
 			// #pragma omp critical
-	std::cout << __LINE__ << std::endl;
 
-			if ((float) _mm_extract_ps(curEtotal_SSE, 0) < curCellEtotalVector[0]) {
-				*(curCellVector[0]) = *rightExt_SSE1;
-				curCellVector[0]->E = (float) _mm_extract_ps(curE_SSE, 0);
-				curCellEtotalVector[0] = (float) _mm_extract_ps(curEtotal_SSE, 0);
+			if (curEtotal_SSE[0] < curCellEtotalVector[0] && !E_isINF(energy0)) {
+				*(curCellVector[0]) = *rightExt;
+				curCellVector[0]->E = energy0;
+				curCellEtotalVector[0] = curEtotal_SSE[0];
 			}
-	std::cout << __LINE__ << std::endl;
 			
-			if ((float) _mm_extract_ps(curEtotal_SSE, 1) < curCellEtotalVector[1]) {
+			if (curEtotal_SSE[1] < curCellEtotalVector[1] && !E_isINF(energy1)) {
 				*(curCellVector[1]) = *rightExt_SSE1;
-				curCellVector[1]->E = (float) _mm_extract_ps(curE_SSE, 1);
-				curCellEtotalVector[1] = (float) _mm_extract_ps(curEtotal_SSE, 1);
+				curCellVector[1]->E = energy1;
+				curCellEtotalVector[1] = curEtotal_SSE[1];
 			}
-	std::cout << __LINE__ << std::endl;
 			
-			if ((float) _mm_extract_ps(curEtotal_SSE, 2) < curCellEtotalVector[2]) {
-				*(curCellVector[2]) = *rightExt_SSE1;
-				curCellVector[2]->E = (float) _mm_extract_ps(curE_SSE, 2);
-				curCellEtotalVector[2] = (float) _mm_extract_ps(curEtotal_SSE, 2);
+			if (curEtotal_SSE[2] < curCellEtotalVector[2] && !E_isINF(energy2)) {
+				*(curCellVector[2]) = *rightExt_SSE2;
+				curCellVector[2]->E = energy2;
+				curCellEtotalVector[2] = curEtotal_SSE[2];
 			}
-	std::cout << __LINE__ << std::endl;
 			
-			if ((float) _mm_extract_ps(curEtotal_SSE, 3) < curCellEtotalVector[3]) {
-				*(curCellVector[3]) = *rightExt_SSE1;
-				curCellVector[3]->E = (float) _mm_extract_ps(curE_SSE, 3);
-				curCellEtotalVector[3] = (float) _mm_extract_ps(curEtotal_SSE, 3);
+			if (curEtotal_SSE[3] < curCellEtotalVector[3] && !E_isINF(energy3)) {
+				*(curCellVector[3]) = *rightExt_SSE3;
+				curCellVector[3]->E = energy3;
+				curCellEtotalVector[3] = curEtotal_SSE[3];
 			}
-	std::cout << __LINE__ << std::endl;
-			
-
 		} // w2
-	std::cout << __LINE__ << std::endl;
 		
 		// check eventually missing remainders
 		if (loopCounter * 4 < w2) {
-			for (w2=loopCounter; w2-1 <= energy.getMaxInternalLoopSize2() && i2+w2<hybridE.size2(); w2 += 4) {
+			for (w2=loopCounter; w2-1 <= energy.getMaxInternalLoopSize2() && i2+w2<hybridE.size2(); w2 += 1) {
 				// direct cell access (const)
 				rightExt = &(hybridE(i1+w1,i2+w2));
 				// check if right side can pair
@@ -288,13 +259,11 @@ fillHybridE()
 				}
 			}
 		}
-	std::cout << __LINE__ << std::endl;
 		
 		loopCounter = 0;
 		} // w1
 		
 		// merge values from the two loops
-	std::cout << __LINE__ << std::endl;
 
 		for (size_t i = 0; i < 4; ++i) {
 			if (curCellEtotalVector[i] < curCellEtotal) {
@@ -303,16 +272,13 @@ fillHybridE()
 				curCellEtotal = curCellEtotalVector[i];
 			}
 		}
-	std::cout << __LINE__ << std::endl;
 
 		// update mfe if needed
 		updateOptima( i1,curCell->j1, i2,curCell->j2, curCellEtotal, false );
-	std::cout << __LINE__ << std::endl;
 		
 
 	} // i2
 	} // i1
-	std::cout << "foo" << std::endl;
 
 }
 
