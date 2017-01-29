@@ -197,12 +197,12 @@ AccessibilityVrna::
 getED( const size_t from, const size_t to ) const
 {
 	// input range check
-	std::cout << __LINE__ << std::endl;
+	// std::cout << __LINE__ << std::endl;
 	checkIndices(from,to);
-	std::cout << __LINE__ << std::endl;
+	// std::cout << __LINE__ << std::endl;
 
 	if ((to-from+1) <= getMaxLength() && to < edValues.size1() && from < edValues.size2()) {
-	std::cout << __LINE__ << std::endl;
+	// std::cout << __LINE__ << std::endl;
 		
 		// return according ED value from the precomputed matrix
 		// std::cout << "Size1: " << edValues.size1() << std::endl;
@@ -211,7 +211,7 @@ getED( const size_t from, const size_t to ) const
 		return edValues (from,to);
 		
 	} else {
-	std::cout << __LINE__ << std::endl;
+	// std::cout << __LINE__ << std::endl;
 		
 		// region length exceeds maximally allowed length -> no value
 		return ED_UPPER_BOUND;
