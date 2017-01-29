@@ -95,10 +95,10 @@ public:
 			, const E_type hybridE ) const;
 
 	virtual
-	__m128
-	getE_SSE( const __m128i i1, const __m128i j1
-				, const __m128i i2, const __m128i j2
-				, const __m128 hybridE ) const;
+	void 
+	getE_SSE(  const size_t i1, const std::vector<size_t>& j1
+		, size_t i2, std::vector<size_t>& j2
+		, const __m128 hybridE, std::vector<float>& result  ) const;
 		
 	/**
 	 * Provides details about the energy contributions for the given interaction
@@ -601,15 +601,10 @@ bool
 InteractionEnergy::
 isValidInternalLoop( const size_t i1, const size_t j1, const size_t i2, const size_t j2 ) const
 {
-		std::cout << __LINE__ << std::endl;
 		bool foo = (j1-i1>0 && j2-i2>0);
-		std::cout << __LINE__ << std::endl;
 		foo = foo && areComplementary( i1, i2);
-		std::cout << __LINE__ << std::endl;
 		foo = foo &&areComplementary( j1, j2);
-		std::cout << __LINE__ << std::endl;
 		foo = foo &&InteractionEnergy::isAllowedLoopRegion(accS1.getSequence(), i1, j1, maxInternalLoopSize1);
-		std::cout << __LINE__ << std::endl;
 		foo = foo &&InteractionEnergy::isAllowedLoopRegion(accS2.getSequence(), i2, j2, maxInternalLoopSize2);
 		return foo;
 	// return
@@ -870,74 +865,78 @@ getE( const size_t i1, const size_t j1
 ////////////////////////////////////////////////////////////////////////////
 
 inline
-__m128
+void 
 InteractionEnergy::
-getE_SSE( const __m128i i1, const __m128i j1
-		, const __m128i i2, const __m128i j2
-		, const __m128 hybridE ) const
+getE_SSE( const size_t i1, const std::vector<size_t>& j1
+		, size_t i2, std::vector<size_t>& j2
+		, const __m128 hybridE, std::vector<float>& pResult ) const
 {
-	std::cout << __LINE__ << std::endl;
+
+	float danglingLeft = getE_danglingLeft( i1, i2 );
+
+	float endLeft = getE_endLeft(i1, i2);			
 
 	__m128 result = {0.0, 0.0, 0.0, 0.0};
+
 	__m128 resultMultiplication = {0.0, 0.0, 0.0, 0.0};
+
 	__m128 inf = {E_INF, E_INF, E_INF, E_INF};
-		std::cout << __LINE__ << std::endl;
 
-	__m128 ed1 = {getED1( i1[0], j1[0] ), getED1( i1[1], j1[1] ), getED1( i1[2], j1[2] ), getED1( i1[3], j1[3] )};
-		std::cout << __LINE__ << std::endl;
-
-	__m128 ed2 = {getED2( i2[0], j2[0] ), getED2( i2[1], j2[1] ), getED2( i2[2], j2[2] ), getED2( i2[3], j2[3] )};
-		std::cout << __LINE__ << std::endl;
-
-	__m128 E_danglingLeft = {getE_danglingLeft( i1[0], i2[0] ), getE_danglingLeft( i1[1], i2[1] ), getE_danglingLeft( i1[2], i2[2] ), getE_danglingLeft( i1[3], i2[3] )};
-		std::cout << __LINE__ << std::endl;
-
-	__m128 Pr_danglingLeft = {getPr_danglingLeft( i1[0], j1[0], i2[0], j2[0]), getPr_danglingLeft( i1[1], j1[1], i2[1], j2[1] ), getPr_danglingLeft( i1[2], j1[2] , i2[2], j2[2]), getPr_danglingLeft( i1[3], j1[3], i2[3], j2[3] )};
-	std::cout << __LINE__ << std::endl;
-
+	__m128 ed1 = {getED1( i1, j1[0] ), getED1( i1, j1[1] ), getED1( i1, j1[2] ), getED1( i1, j1[3] )};
+	__m128 ed2 = {getED2( i2, j2[0] ), getED2( i2, j2[1] ), getED2( i2, j2[2] ), getED2( i2, j2[3] )};
+	__m128 E_danglingLeft = {danglingLeft, danglingLeft, danglingLeft, danglingLeft};
+	__m128 Pr_danglingLeft = {getPr_danglingLeft( i1, j1[0], i2, j2[0]), getPr_danglingLeft( i1, j1[1], i2, j2[1] ), getPr_danglingLeft( i1, j1[2] , i2, j2[2]), getPr_danglingLeft( i1, j1[3], i2, j2[3] )};
 	__m128 E_danglingRight = {getE_danglingRight( j1[0], j2[0] ), getE_danglingRight( j1[1], j2[1] ), getE_danglingRight( j1[2], j2[2] ), getE_danglingRight( j1[3], j2[3] )};
-	std::cout << __LINE__ << std::endl;
-
-	__m128 Pr_danglingRight = {getPr_danglingRight(  i1[0], j1[0], i2[0], j2[0] ), getPr_danglingRight(  i1[1], j1[1], i2[1], j2[1]), getPr_danglingRight(  i1[2], j1[2], i2[2], j2[2]), getPr_danglingRight(  i1[3], j1[3], i2[3], j2[3])};
-	std::cout << __LINE__ << std::endl;
-
-	__m128 E_endLeft = {getE_endLeft( i1[0], i2[0] ), getE_endLeft( i1[1], i2[1] ), getE_endLeft( i1[2], i2[2] ), getE_endLeft( i1[3], i2[3] )};
-	std::cout << __LINE__ << std::endl;
-
+	__m128 Pr_danglingRight = {getPr_danglingRight(  i1, j1[0], i2, j2[0] ), getPr_danglingRight(  i1, j1[1], i2, j2[1]), getPr_danglingRight(  i1, j1[2], i2, j2[2]), getPr_danglingRight(  i1, j1[3], i2, j2[3])};
+	__m128 E_endLeft = {endLeft, endLeft, endLeft, endLeft};
 	__m128 E_endRight = {getE_endRight( j1[0], j2[0] ), getE_endRight( j1[1], j2[1] ), getE_endRight( j1[2], j2[2] ), getE_endRight( j1[3], j2[3] )};
-	std::cout << __LINE__ << std::endl;
-	
+
 	result = _mm_add_ps(_mm_add_ps(_mm_add_ps(ed1, ed2), E_endLeft), E_endRight);
 	resultMultiplication = _mm_add_ps(_mm_mul_ps(E_danglingLeft, Pr_danglingLeft), _mm_mul_ps(E_danglingRight, Pr_danglingRight));
 	result = _mm_add_ps(result, resultMultiplication);
 	__m128 infCompare = _mm_cmpeq_ps(hybridE, inf);
-	__m128 foo = _mm_or_ps(_mm_and_ps(infCompare,inf), _mm_andnot_ps(infCompare,result));
-	std::cout << _mm_extract_ps(foo, 0) << ", "<< _mm_extract_ps(foo, 1) << ", "<< _mm_extract_ps(foo, 2) << ", "<< _mm_extract_ps(foo, 3) << std::endl;
-	return foo;
-	// return result;
-	// _mm_mul_ps(boltzmannWeight_SSE, hybridZ_SSE));
-	// // check if hybridization energy is not infinite
-	// if ( E_isNotINF(hybridE) ) {
-	// 	// compute overall interaction energy
-	// 	// std::cout << "foo" << std::endl;
-	// 	return hybridE
-	// 			// accessibility penalty
-	// 			+ getED1( i1, j1 )
-	// 			+ getED2( i2, j2 )
-	// 			// dangling end penalty
-	// 			// weighted by the probability that ends are unpaired
-	// 			+ (getE_danglingLeft( i1, i2 )*getPr_danglingLeft(i1,j1,i2,j2))
-	// 			+ (getE_danglingRight( j1, j2 )*getPr_danglingRight(i1,j1,i2,j2))
-	// 			// helix closure penalty
-	// 			+ getE_endLeft( i1, i2 )
-	// 			+ getE_endRight( j1, j2 )
-	// 			;
-	// } else {
-	// 	// hybridE is infinite, thus overall energy is infinity as well
-	// 	return E_INF;
-	// }
+	__m128 ifclause = _mm_or_ps(_mm_and_ps(infCompare,inf), _mm_andnot_ps(infCompare,result));
+	pResult[0] = _mm_cvtss_f32(_mm_shuffle_ps(ifclause, ifclause, _MM_SHUFFLE(0, 0, 0, 0)));
+	pResult[1] = _mm_cvtss_f32(_mm_shuffle_ps(ifclause, ifclause, _MM_SHUFFLE(0, 0, 0, 1)));
+	pResult[2] = _mm_cvtss_f32(_mm_shuffle_ps(ifclause, ifclause, _MM_SHUFFLE(0, 0, 0, 2)));
+	pResult[3] = _mm_cvtss_f32(_mm_shuffle_ps(ifclause, ifclause, _MM_SHUFFLE(0, 0, 0, 3)));
+
+	// return pResult;
 }
 
+// inline
+// E_type
+// InteractionEnergy::
+// getE_SSE_horizontal( const size_t i1, const size_t j1
+// 		, const size_t i2, const size_t j2
+// 		, const E_type hybridE ) const
+// {
+// 	// check if hybridization energy is not infinite
+// 	if ( E_isNotINF(hybridE) ) {
+// 		// compute overall interaction energy
+// 		// std::cout << "foo" << std::endl;
+// 		__m128 sum = {hybridE, getED1( i1, j1 ), getED2( i2, j2 ), getE_endLeft( i1, i2 )};
+// 		__m128 mul__m128 = {(getE_danglingLeft( i1, i2 ), getE_danglingRight( j1, j2 ), getE_endRight( j1, j2 ), 0.0};
+// 		__m128 mul_2__m128 = {getPr_danglingLeft(i1,j1,i2,j2), getPr_danglingRight(i1,j1,i2,j2), 1.0, 0.0};
+// 		mul__m128 = _mm_mul_ps(mul__m128, mul_2__m128);
 
+// 		_mm_hadd_ps(sum, sum_2)
+// 		return hybridE
+// 				// accessibility penalty
+// 				+ getED1( i1, j1 )
+// 				+ getED2( i2, j2 )
+// 				// dangling end penalty
+// 				// weighted by the probability that ends are unpaired
+// 				+ (getE_danglingLeft( i1, i2 )*getPr_danglingLeft(i1,j1,i2,j2))
+// 				+ (getE_danglingRight( j1, j2 )*getPr_danglingRight(i1,j1,i2,j2))
+// 				// helix closure penalty
+// 				+ getE_endLeft( i1, i2 )
+// 				+ getE_endRight( j1, j2 )
+// 				;
+// 	} else {
+// 		// hybridE is infinite, thus overall energy is infinity as well
+// 		return E_INF;
+// 	}
+// }
 
 #endif /* INTERACTIONENERGY_H_ */
