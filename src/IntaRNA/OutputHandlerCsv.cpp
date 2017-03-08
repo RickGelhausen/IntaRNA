@@ -180,7 +180,13 @@ add( const Interaction & i )
 				break;
 
 			case E_loops:
-				out <<contr.loops;
+			{
+				E_type e_loops = contr.loops;
+				if (i.gap != NULL) {
+					e_loops -= i.gap->energy;
+				}
+				out <<e_loops;
+			}
 				break;
 
 			case E_dangleL:
@@ -199,11 +205,25 @@ add( const Interaction & i )
 				out <<contr.endRight;
 				break;
 
+			case E_gaps:
+				if (i.gap == NULL) {
+					out <<std::numeric_limits<E_type>::signaling_NaN();
+				} else {
+					out <<i.gap->energy;
+				}
+				break;
+
 			case seedStart1:
 				if (i.seed == NULL) {
 					out <<std::numeric_limits<E_type>::signaling_NaN();
 				} else {
 					out <<(i.seed->bp_i.first+1);
+					// print info for remaining (multi-side) seeds
+					if (i.gap != NULL) {
+						for (auto s = i.gap->seeds.rbegin(); s!=i.gap->seeds.rend(); s++) {
+							out <<','<<(s->bp_i.first+1);
+						}
+					}
 				}
 				break;
 
@@ -212,6 +232,12 @@ add( const Interaction & i )
 					out <<std::numeric_limits<E_type>::signaling_NaN();
 				} else {
 					out <<(i.seed->bp_j.first+1);
+					// print info for remaining (multi-side) seeds
+					if (i.gap != NULL) {
+						for (auto s = i.gap->seeds.rbegin(); s!=i.gap->seeds.rend(); s++) {
+							out <<','<<(s->bp_j.first+1);
+						}
+					}
 				}
 				break;
 
@@ -220,6 +246,12 @@ add( const Interaction & i )
 					out <<std::numeric_limits<E_type>::signaling_NaN();
 				} else {
 					out <<(i.seed->bp_j.second+1);
+					// print info for remaining (multi-side) seeds
+					if (i.gap != NULL) {
+						for (auto s = i.gap->seeds.rbegin(); s!=i.gap->seeds.rend(); s++) {
+							out <<','<<(s->bp_j.second+1);
+						}
+					}
 				}
 				break;
 
@@ -228,6 +260,12 @@ add( const Interaction & i )
 					out <<std::numeric_limits<E_type>::signaling_NaN();
 				} else {
 					out <<(i.seed->bp_i.second+1);
+					// print info for remaining (multi-side) seeds
+					if (i.gap != NULL) {
+						for (auto s = i.gap->seeds.rbegin(); s!=i.gap->seeds.rend(); s++) {
+							out <<','<<(s->bp_i.second+1);
+						}
+					}
 				}
 				break;
 
@@ -236,6 +274,12 @@ add( const Interaction & i )
 					out <<std::numeric_limits<E_type>::signaling_NaN();
 				} else {
 					out <<i.seed->energy;
+					// print info for remaining (multi-side) seeds
+					if (i.gap != NULL) {
+						for (auto s = i.gap->seeds.rbegin(); s!=i.gap->seeds.rend(); s++) {
+							out <<','<<(s->energy);
+						}
+					}
 				}
 				break;
 
@@ -244,6 +288,12 @@ add( const Interaction & i )
 					out <<std::numeric_limits<E_type>::signaling_NaN();
 				} else {
 					out <<energy.getED1( i.seed->bp_i.first, i.seed->bp_j.first );
+					// print info for remaining (multi-side) seeds
+					if (i.gap != NULL) {
+						for (auto s = i.gap->seeds.rbegin(); s!=i.gap->seeds.rend(); s++) {
+							out <<','<<energy.getED1( s->bp_i.first, s->bp_j.first );
+						}
+					}
 				}
 				break;
 
@@ -252,6 +302,12 @@ add( const Interaction & i )
 					out <<std::numeric_limits<E_type>::signaling_NaN();
 				} else {
 					out <<energy.getAccessibility2().getAccessibilityOrigin().getED( i.seed->bp_j.second, i.seed->bp_i.second );
+					// print info for remaining (multi-side) seeds
+					if (i.gap != NULL) {
+						for (auto s = i.gap->seeds.rbegin(); s!=i.gap->seeds.rend(); s++) {
+							out <<','<<energy.getAccessibility2().getAccessibilityOrigin().getED( s->bp_j.second, s->bp_i.second );
+						}
+					}
 				}
 				break;
 
@@ -260,6 +316,12 @@ add( const Interaction & i )
 					out <<std::numeric_limits<E_type>::signaling_NaN();
 				} else {
 					out <<std::exp( - energy.getED1( i.seed->bp_i.first, i.seed->bp_j.first ) / energy.getRT() );
+					// print info for remaining (multi-side) seeds
+					if (i.gap != NULL) {
+						for (auto s = i.gap->seeds.rbegin(); s!=i.gap->seeds.rend(); s++) {
+							out <<','<<std::exp( - energy.getED1( s->bp_i.first, s->bp_j.first ) / energy.getRT() );
+						}
+					}
 				}
 				break;
 
@@ -268,6 +330,24 @@ add( const Interaction & i )
 					out <<std::numeric_limits<E_type>::signaling_NaN();
 				} else {
 					out <<std::exp( - energy.getAccessibility2().getAccessibilityOrigin().getED( i.seed->bp_j.second, i.seed->bp_i.second ) / energy.getRT() );
+					// print info for remaining (multi-side) seeds
+					if (i.gap != NULL) {
+						for (auto s = i.gap->seeds.rbegin(); s!=i.gap->seeds.rend(); s++) {
+							out <<','<<std::exp( - energy.getAccessibility2().getAccessibilityOrigin().getED( s->bp_j.second, s->bp_i.second ) / energy.getRT() );
+						}
+					}
+				}
+				break;
+
+			case gaps1:
+				if (i.gap != NULL) {
+					out <<i.gap->gaps1.shift(1,i.s1->size());
+				}
+				break;
+
+			case gaps2:
+				if (i.gap != NULL) {
+					out <<i.gap->gaps2.shift(1,i.s2->size());
 				}
 				break;
 
