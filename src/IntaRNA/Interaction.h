@@ -40,6 +40,11 @@ public:
 		BasePair bp_j;
 		//! overall energy of seed
 		E_type energy;
+
+        //! default constructor
+        Seed()
+                : bp_i(), bp_j(), energy(0.0)
+        {}
 	};
 
 	/**
@@ -273,6 +278,7 @@ Interaction::Interaction( const RnaSequence & s1, const RnaSequence & s2 )
 	, basePairs()
 	, energy( std::numeric_limits<E_type>::signaling_NaN() )
 	, seed( NULL )
+    , gap( NULL )
 {
 }
 
@@ -281,18 +287,21 @@ Interaction::Interaction( const RnaSequence & s1, const RnaSequence & s2 )
 inline
 Interaction::Interaction( const Interaction & toCopy )
 :
-	s1(toCopy.s1)
-	, s2(toCopy.s2)
-	, basePairs(toCopy.basePairs)
-	, energy( toCopy.energy )
-	, seed( toCopy.seed == NULL ? NULL : new Seed() )
+    s1(toCopy.s1)
+    , s2(toCopy.s2)
+    , basePairs(toCopy.basePairs)
+    , energy( toCopy.energy )
+    , seed( toCopy.seed == NULL ? NULL : new Seed() )
+    , gap( toCopy.gap == NULL ? NULL : new Gap() )
 {
-	// copy seed if needed
-	if (seed != NULL) {
-		seed->bp_i = toCopy.seed->bp_i;
-		seed->bp_j = toCopy.seed->bp_j;
-		seed->energy = toCopy.seed->energy;
-	}
+    // copy seed if needed
+    if (seed != NULL) {
+        (*seed) = *(toCopy.seed);
+    }
+    // copy gap if needed
+    if (gap != NULL) {
+        (*gap) = *(toCopy.gap);
+    }
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -315,7 +324,8 @@ Interaction::Interaction( const InteractionRange & range )
 inline
 Interaction::~Interaction()
 {
-	 INTARNA_CLEANUP(seed);
+    INTARNA_CLEANUP(seed);
+    INTARNA_CLEANUP(gap);
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -351,7 +361,8 @@ clear()
 	// clear energy
 	energy = std::numeric_limits<E_type>::signaling_NaN();
 	// undo seed information
-	 INTARNA_CLEANUP(seed);
+    INTARNA_CLEANUP(seed);
+    INTARNA_CLEANUP(gap);
 
 }
 

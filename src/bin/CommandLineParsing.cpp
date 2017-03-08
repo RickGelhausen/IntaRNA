@@ -342,6 +342,7 @@ CommandLineParsing::CommandLineParsing()
 					).c_str())
 		;
 	opts_cmdline_short.add(opts_inter);
+
 	opts_inter.add_options()
 		("pred"
 			, value<char>(&(pred.val))
@@ -349,7 +350,8 @@ CommandLineParsing::CommandLineParsing()
 				->notifier(boost::bind(&CommandLineParsing::validate_pred,this,_1))
 			, std::string("prediction target : "
 					"\n 'S' = single-site minimum-free-energy interaction (interior loops only), "
-					"\n 'P' = single-site maximum-probability interaction (interior loops only)"
+					"\n, 'P' = single-site maximum-probability interaction (interior loops only)"
+                    "\n, 'M' = multi-site maximum-probability interaction (interior and multi loops), see also '--predMulti' argument"
 					).c_str())
 		("predMulti"
 				, value<char>(&(predMulti.val))
@@ -1460,11 +1462,11 @@ getPredictor( const InteractionEnergy & energy, OutputHandler & output ) const
 			switch ( predMode.val ) {
 			case 'E' : {
 				switch ( predMulti.val ) {
-					case 'Q': return new PredictorMfe4dMulti( energy, output, predTracker, Predictor::AllowES ::ES_query);
-					case 'T': return new PredictorMfe4dMulti( energy, output, predTracker, Predictor::AllowES ::ES_target);
-					case 'X': return new PredictorMfe4dMulti( energy, output, predTracker, Predictor::AllowES ::ES_xorQueryTarget);
-					case 'B': return new PredictorMfe4dMulti( energy, output, predTracker, Predictor::AllowES ::ES_both);
-					default: INTARNA_NOT_IMPLEMENTED("mode "+toString(predMode.val)+" not implemented for prediction target "+toString(pred.val));
+                case 'Q': return new PredictorMfe4dMulti( energy, output, predTracker, Predictor::AllowES ::ES_query);
+                case 'T': return new PredictorMfe4dMulti( energy, output, predTracker, Predictor::AllowES ::ES_target);
+                case 'X': return new PredictorMfe4dMulti( energy, output, predTracker, Predictor::AllowES ::ES_xorQueryTarget);
+                case 'B': return new PredictorMfe4dMulti( energy, output, predTracker, Predictor::AllowES ::ES_both);
+                default: INTARNA_NOT_IMPLEMENTED("mode "+toString(predMode.val)+" not implemented for prediction target "+toString(pred.val));
 				}
 			}
 			default :  INTARNA_NOT_IMPLEMENTED("mode "+toString(predMode.val)+" not implemented for prediction target "+toString(pred.val));
@@ -1495,11 +1497,11 @@ getPredictor( const InteractionEnergy & energy, OutputHandler & output ) const
 			switch ( predMode.val ) {
 			case 'E' : {
 				switch ( predMulti.val ) {
-					case 'Q': return new PredictorMfe4dMultiSeed( energy, output, predTracker, Predictor::AllowES ::ES_query, getSeedConstraint( energy ));
-					case 'T': return new PredictorMfe4dMultiSeed( energy, output, predTracker, Predictor::AllowES ::ES_target, getSeedConstraint( energy ));
-					case 'X': return new PredictorMfe4dMultiSeed( energy, output, predTracker, Predictor::AllowES ::ES_xorQueryTarget, getSeedConstraint( energy ));
-					case 'B': return new PredictorMfe4dMultiSeed( energy, output, predTracker, Predictor::AllowES ::ES_both, getSeedConstraint( energy ));
-					default: INTARNA_NOT_IMPLEMENTED("mode "+toString(predMode.val)+" not implemented for prediction target "+toString(pred.val));
+                case 'Q': return new PredictorMfe4dMultiSeed( energy, output, predTracker, Predictor::AllowES ::ES_query, getSeedConstraint( energy ));
+                case 'T': return new PredictorMfe4dMultiSeed( energy, output, predTracker, Predictor::AllowES ::ES_target, getSeedConstraint( energy ));
+                case 'X': return new PredictorMfe4dMultiSeed( energy, output, predTracker, Predictor::AllowES ::ES_xorQueryTarget, getSeedConstraint( energy ));
+                case 'B': return new PredictorMfe4dMultiSeed( energy, output, predTracker, Predictor::AllowES ::ES_both, getSeedConstraint( energy ));
+                default: INTARNA_NOT_IMPLEMENTED("mode "+toString(predMode.val)+" not implemented for prediction target "+toString(pred.val));
 				}
 
 			}

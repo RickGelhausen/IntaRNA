@@ -91,6 +91,16 @@ operator= ( const Interaction & toCopy )
 		 INTARNA_CLEANUP(seed);
 	}
 
+	// copy gap data
+	if (toCopy.gap != NULL) {
+		// create gap info if not existing
+		if (gap == NULL) { gap = new Gap(); }
+		// copy data
+		*gap = *(toCopy.gap);
+	} else {
+		// remove gap information if present
+		INTARNA_CLEANUP(gap);
+	}
 	return *this;
 }
 
@@ -108,7 +118,8 @@ operator= ( const InteractionRange & range )
 	basePairs.clear();
 
 	// undo seed information
-	 INTARNA_CLEANUP(seed);
+	INTARNA_CLEANUP(seed);
+	INTARNA_CLEANUP(gap);
 
 	// copy sequence handles
 	s1 = range.s1;
