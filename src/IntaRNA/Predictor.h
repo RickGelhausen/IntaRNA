@@ -21,6 +21,15 @@ namespace IntaRNA {
 class Predictor {
 
 public:
+	/**
+	 * Possible combinations where ES-terms are considered
+	 */
+	enum AllowES {
+		ES_query,
+		ES_target,
+		ES_xorQueryTarget,
+		ES_both
+	};
 
 	/**
 	 * Constructs an RNA-RNA interaction prediction handler and sets the

@@ -36,6 +36,9 @@
 #include "IntaRNA/PredictorMfe2dSeed.h"
 #include "IntaRNA/PredictorMfe4dSeed.h"
 
+#include "IntaRNA/PredictorMfe4dMulti.h"
+#include "IntaRNA/PredictorMfe4dMultiSeed.h"
+
 #include "IntaRNA/PredictionTracker.h"
 #include "IntaRNA/PredictionTrackerHub.h"
 #include "IntaRNA/PredictionTrackerPairMinE.h"
@@ -106,8 +109,9 @@ CommandLineParsing::CommandLineParsing()
 
 	temperature(0,100,37),
 
-	pred( "SP", 'S'),
+	pred( "SPM", 'S'),
 	predMode( "HME", 'H'),
+	predMulti("QTXB", 'Q'),
 #if INTARNA_MULITHREADING
 	threads( 1, omp_get_max_threads(), 1),
 #endif
@@ -347,6 +351,16 @@ CommandLineParsing::CommandLineParsing()
 					"\n 'S' = single-site minimum-free-energy interaction (interior loops only), "
 					"\n 'P' = single-site maximum-probability interaction (interior loops only)"
 					).c_str())
+		("predMulti"
+				, value<char>(&(predMulti.val))
+				 ->default_value(predMulti.def)
+				 ->notifier(boost::bind(&CommandLineParsing::validate_predMulti,this,_1))
+				, std::string("for '--pred=M' : where intramolecular structure (ES-terms) are considered: "
+									  "\n, 'Q' = query only"
+									  "\n, 'T' = target only"
+									  "\n, 'X' = either in query or in target"
+									  "\n, 'B' = both in query and in target"
+		 ).c_str())
 		("energy,e"
 			, value<char>(&(energy.val))
 				->default_value(energy.def)
@@ -1444,6 +1458,15 @@ getPredictor( const InteractionEnergy & energy, OutputHandler & output ) const
 		// multi-site mfe interactions (contain interior and multi-loops loops)
 		case 'M' : {
 			switch ( predMode.val ) {
+			case 'E' : {
+				switch ( predMulti.val ) {
+					case 'Q': return new PredictorMfe4dMulti( energy, output, predTracker, Predictor::AllowES ::ES_query);
+					case 'T': return new PredictorMfe4dMulti( energy, output, predTracker, Predictor::AllowES ::ES_target);
+					case 'X': return new PredictorMfe4dMulti( energy, output, predTracker, Predictor::AllowES ::ES_xorQueryTarget);
+					case 'B': return new PredictorMfe4dMulti( energy, output, predTracker, Predictor::AllowES ::ES_both);
+					default: INTARNA_NOT_IMPLEMENTED("mode "+toString(predMode.val)+" not implemented for prediction target "+toString(pred.val));
+				}
+			}
 			default :  INTARNA_NOT_IMPLEMENTED("mode "+toString(predMode.val)+" not implemented for prediction target "+toString(pred.val));
 			}
 		} break;
@@ -1470,6 +1493,17 @@ getPredictor( const InteractionEnergy & energy, OutputHandler & output ) const
 		// multi-site mfe interactions (contain interior and multi-loops loops)
 		case 'M' : {
 			switch ( predMode.val ) {
+			case 'E' : {
+				switch ( predMulti.val ) {
+					case 'Q': return new PredictorMfe4dMultiSeed( energy, output, predTracker, Predictor::AllowES ::ES_query, getSeedConstraint( energy ));
+					case 'T': return new PredictorMfe4dMultiSeed( energy, output, predTracker, Predictor::AllowES ::ES_target, getSeedConstraint( energy ));
+					case 'X': return new PredictorMfe4dMultiSeed( energy, output, predTracker, Predictor::AllowES ::ES_xorQueryTarget, getSeedConstraint( energy ));
+					case 'B': return new PredictorMfe4dMultiSeed( energy, output, predTracker, Predictor::AllowES ::ES_both, getSeedConstraint( energy ));
+					default: INTARNA_NOT_IMPLEMENTED("mode "+toString(predMode.val)+" not implemented for prediction target "+toString(pred.val));
+				}
+
+			}
+
 			default :  INTARNA_NOT_IMPLEMENTED("mode "+toString(predMode.val)+" not implemented for prediction target "+toString(pred.val));
 			}
 		} break;

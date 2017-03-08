@@ -21,6 +21,11 @@ class InteractionEnergy {
 
 public:
 
+	//! minimal distance of subsequence ends i<j to be considered for ES
+	//! computation, i.e. considered if j-i-1 >= minDistES
+	static const size_t minDistES;
+
+
 	/**
 	 * defines where intramolecular structure contributions are to be considered
 	 * e.g. in getE_multi().

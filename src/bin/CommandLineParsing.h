@@ -411,6 +411,9 @@ protected:
 	CharParameter pred;
 	//! the prediction mode (heuristic, space-efficient, exact)
 	CharParameter predMode;
+
+	//! defines for pred=M where intramolecular ES terms are considered
+	CharParameter predMulti;
 #if INTARNA_MULITHREADING
 	//! number of threads = number of parallel predictors running
 	NumberParameter<int> threads;
@@ -630,6 +633,12 @@ protected:
 	 * @param value the argument value to validate
 	 */
 	void validate_predMode(const char & value);
+
+	/**
+     * Validates the prediction mode argument.
+     * @param value the argument value to validate
+	 */
+	void validate_predMulti(const char & value);
 
 	/**
 	 * Validates the temperature argument.
@@ -1238,6 +1247,15 @@ void CommandLineParsing::validate_predMode(const char & value)
 {
 	// forward check to general method
 	validate_charArgument("mode", predMode, value);
+}
+
+////////////////////////////////////////////////////////////////////////////
+
+inline
+void CommandLineParsing::validate_predMulti(const char & value)
+{
+	// forward check to general method
+	validate_charArgument("mode", predMulti, value);
 }
 
 ////////////////////////////////////////////////////////////////////////////

@@ -8,6 +8,7 @@
 #include "IntaRNA/general.h"
 #include "IntaRNA/RnaSequence.h"
 #include "IntaRNA/InteractionRange.h"
+#include "IntaRNA/IndexRangeList.h"
 
 namespace IntaRNA {
 
@@ -41,6 +42,25 @@ public:
 		E_type energy;
 	};
 
+	/**
+	 * Provides information on multi-side gaps
+	 */
+	class Gap {
+	public:
+		//! index ranges of the intramolecularly structured gap in seq1
+		IndexRangeList gaps1;
+		//! index ranges of the intramolecularly structured gap in seq2
+		IndexRangeList gaps2;
+		//! summed energy terms that score all gaps
+		E_type energy;
+		//! list of all but the right most (in seq1)
+		std::list< Seed > seeds;
+
+		//! default constructor
+		Gap()
+				: gaps1(), gaps2(), energy(0.0), seeds()
+		{}
+	};
 public:
 
 	//! the first interaction partner
@@ -57,6 +77,9 @@ public:
 
 	//! optional: seed information
 	Seed * seed;
+
+	//! optional: multi-side gap information
+	Gap * gap;
 
 	/**
 	 * construction

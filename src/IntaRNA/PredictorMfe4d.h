@@ -86,12 +86,14 @@ protected:
 	/**
 	 * Removes all temporary data structures and resets the predictor
 	 */
+	virtual
 	void
 	clear();
 
 	/**
 	 * computes all entries of the hybridE matrix
 	 */
+	virtual
 	void
 	fillHybridE( );
 
