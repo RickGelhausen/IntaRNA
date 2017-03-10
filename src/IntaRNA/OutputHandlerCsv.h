@@ -49,6 +49,7 @@ public:
 		E_dangleR, //!< dangling end contribution of base pair (end1,start2)
 		E_endL, //!< penalty of closing base pair (start1,end2)
 		E_endR, //!< penalty of closing base pair (end1,start2)
+		E_gaps, //!< energy of structured multi-side gaps
 		seedStart1, //!< start index of the seed in seq1
 		seedEnd1, //!< end index of the seed in seq1
 		seedStart2, //!< start index of the seed in seq2
@@ -58,6 +59,8 @@ public:
 		seedED2, //!< ED value of seq2 of the seed only (excluding rest)
 		seedPu1, //!< probability of seed region to be accessible for seq1
 		seedPu2, //!< probability of seed region to be accessible for seq2
+		gaps1, //!< list of multi-side gaps in seq1
+		gaps2, //!< list of multi-side gaps in seq2
 		ColTypeNumber //!< number of column types
 	};
 
@@ -109,6 +112,7 @@ protected:
 			colType2string[E_dangleR] = "E_dangleR";
 			colType2string[E_endL] = "E_endL";
 			colType2string[E_endR] = "E_endR";
+			colType2string[E_gaps] = "E_gaps";
 			colType2string[seedStart1] = "seedStart1";
 			colType2string[seedEnd1] = "seedEnd1";
 			colType2string[seedStart2] = "seedStart2";
@@ -118,6 +122,8 @@ protected:
 			colType2string[seedED2] = "seedED2";
 			colType2string[seedPu1] = "seedPu1";
 			colType2string[seedPu2] = "seedPu2";
+			colType2string[gaps1] = "gaps1";
+			colType2string[gaps2] = "gaps2";
 			// ensure filling is complete
 			for (size_t i=0; i<ColTypeNumber; i++) {
 				if ( colType2string.find( static_cast<ColType>(i) ) == colType2string.end() ) {

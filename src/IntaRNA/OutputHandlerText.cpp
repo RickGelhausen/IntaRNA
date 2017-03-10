@@ -293,32 +293,48 @@ add( const Interaction & i )
 			;
 
 		if (detailedOutput) {
+			E_type Egaps = (i.gap == NULL) ? 0.0 : i.gap->energy;
 			out
-				<<"  = E(init)        = "<<contr.init<<'\n'
-				<<"  + E(loops)       = "<<contr.loops<<'\n'
-				<<"  + E(dangleLeft)  = "<<contr.dangleLeft<<'\n'
-				<<"  + E(dangleRight) = "<<contr.dangleRight<<'\n'
-				<<"  + E(endLeft)     = "<<contr.endLeft<<'\n'
-				<<"  + E(endRight)    = "<<contr.endRight<<'\n'
-				<<"  + ED(seq1)       = "<<contr.ED1<<'\n'
-				<<"  + ED(seq2)       = "<<contr.ED2<<'\n'
-				<<"  + Pu(seq1)       = "<<std::exp(-contr.ED1/energy.getRT())<<'\n'
-				<<"  + Pu(seq2)       = "<<std::exp(-contr.ED2/energy.getRT())<<'\n'
-				;
+					<<"  = E(init)        = "<<contr.init<<'\n'
+					<<"  + E(loops)       = "<<(contr.loops-Egaps)<<'\n'
+					<<"  + E(dangleLeft)  = "<<contr.dangleLeft<<'\n'
+					<<"  + E(dangleRight) = "<<contr.dangleRight<<'\n'
+					<<"  + E(endLeft)     = "<<contr.endLeft<<'\n'
+					<<"  + E(endRight)    = "<<contr.endRight<<'\n'
+					<<"  + ED(seq1)       = "<<contr.ED1<<'\n'
+					<<"    from Pu(seq1)  = "<<std::exp(-contr.ED1/energy.getRT())<<'\n'
+					<<"  + ED(seq2)       = "<<contr.ED2<<'\n'
+					<<"    from Pu(seq2)  = "<<std::exp(-contr.ED2/energy.getRT())<<'\n'
+					;
+			if (i.gap != NULL) {
+				out
+						<<"  + E(gaps)        = "<<Egaps<<'\n'
+						;
+			}
 
 			// print seed information if available
 			if (i.seed != NULL) {
-				out
-					<<"\n"
-					<<"seed seq1   = "<<(i.seed->bp_i.first +1)<<" -- "<<(i.seed->bp_j.first +1) <<'\n'
-					<<"seed seq2   = "<<(i.seed->bp_j.second +1)<<" -- "<<(i.seed->bp_i.second +1) <<'\n'
-					<<"seed energy = "<<(i.seed->energy)<<" kcal/mol\n"
-					<<"seed ED1    = "<<energy.getED1( i.seed->bp_i.first, i.seed->bp_j.first )<<" kcal/mol\n"
-					<<"seed ED2    = "<<energy.getAccessibility2().getAccessibilityOrigin().getED( i.seed->bp_j.second, i.seed->bp_i.second )<<" kcal/mol\n"
-					<<"seed Pu1    = "<<std::exp(-(energy.getED1( i.seed->bp_i.first, i.seed->bp_j.first ))/energy.getRT())<<'\n'
-					<<"seed Pu2    = "<<std::exp(-(energy.getAccessibility2().getAccessibilityOrigin().getED( i.seed->bp_j.second, i.seed->bp_i.second ))/energy.getRT())<<'\n'
-					;
+				if (i.gap != NULL) {
+					// print all seeds left of last gap
+					for (auto is = i.gap->seeds.begin(); is!=i.gap->seeds.end(); is++) {
+						out <<"\n";
+						seedToStream( *(is) );
+					}
+				}
+				// print seed right of last gap
+				out <<"\n";
+				seedToStream( *(i.seed) );
 			} // seed
+
+			// print multi-side gap information if available
+			if (i.gap != NULL) {
+				out
+						<<"\n"
+						<<"gaps seq1   = "<<i.gap->gaps1.shift(1,i.s1->size()) <<'\n'
+						<<"gaps seq2   = "<<i.gap->gaps2.shift(1,i.s1->size()) <<'\n'
+						;
+			} // gap
+
 		} // detailed
 	} // omp critical(intarna_omp_outputStreamUpdate)
 
@@ -326,6 +342,22 @@ add( const Interaction & i )
 
 
 ////////////////////////////////////////////////////////////////////////////
+
+	void
+	OutputHandlerText::
+	seedToStream( const Interaction::Seed & seed )
+	{
+		out
+				<<"seed seq1   = "<<(seed.bp_i.first +1)<<" -- "<<(seed.bp_j.first +1) <<'\n'
+				<<"seed seq2   = "<<(seed.bp_j.second +1)<<" -- "<<(seed.bp_i.second +1) <<'\n'
+				<<"seed energy = "<<(seed.energy)<<" kcal/mol\n"
+				<<"seed ED1    = "<<energy.getED1( seed.bp_i.first, seed.bp_j.first )<<" kcal/mol\n"
+				<<"seed ED2    = "<<energy.getAccessibility2().getAccessibilityOrigin().getED( seed.bp_j.second, seed.bp_i.second )<<" kcal/mol\n"
+				<<"seed Pu1    = "<<std::exp(-(energy.getED1( seed.bp_i.first, seed.bp_j.first ))/energy.getRT())<<'\n'
+				<<"seed Pu2    = "<<std::exp(-(energy.getAccessibility2().getAccessibilityOrigin().getED( seed.bp_j.second, seed.bp_i.second ))/energy.getRT())<<'\n'
+				;
+
+	}
 
 ////////////////////////////////////////////////////////////////////////////
 

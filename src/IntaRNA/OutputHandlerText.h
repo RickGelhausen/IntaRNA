@@ -73,6 +73,14 @@ protected:
 	//! whether or not detailed output has to be provided
 	const bool detailedOutput;
 
+protected:
+
+	/**
+	 * Prints the seed information
+	 * @param seed the seed to print information for
+	 */
+	void
+	seedToStream( const Interaction::Seed & seed );
 };
 
 
