@@ -76,7 +76,7 @@ The following topics are covered by this documentation:
       - [Local versus global unpaired probabilities](#accLocalGlobal)
       - [Read/write accessibility from/to file or stream](#accFromFile)
   - [Multi-threading and parallelized computation](#multithreading)
-- [Library](#lib)
+- [Library for integration in external tools](#lib)
 
 
 
@@ -96,7 +96,7 @@ Follow
 [![install with bioconda](https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg?style=flat-square)](http://bioconda.github.io/recipes/intarna/README.html)
 to get detailed information or run
 ```bash
-conda install intarna
+conda install -c bioconda intarna
 ```
 if you are using bioconda already.
 
@@ -910,12 +910,13 @@ using `configure --disable-multithreading`.
 
 <br /><br /><br /><br />
 <a name="lib" />
-# Library
+# Library for integration in external tools
 
 The IntaRNA package also comes with a C++ library `libIntaRNA.a` containing the core classes
-and functionalities using within the IntaRNA tool. The whole library comes with
-a `IntaRNA` namespace and exhaustive class and member API documentation that is
+and functionalities used within the IntaRNA tool. The whole library comes with
+an `IntaRNA` namespace and exhaustive class and member API documentation that is
 processed using doxygen to generate html/pdf versions.
+
 When IntaRNA is build while `pkg-config` is present, according pkg-config
 information is generated and installed too.
 
