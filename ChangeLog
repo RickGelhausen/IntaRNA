@@ -1,4 +1,10 @@
 
+170328 Martin Mann :
+ * PredictorHeuristic* :
+   * predict() :
+     * bugfix : reinit was not overwriting all matrix entries 
+       (thanks to Alex Gawronski)
+
 170307 Martin Mann :
  * header defines prefixed with INTARNA_
  * general.h :
@@ -6,6 +12,13 @@
    * intarna specific defines prefixed with INTARNA_
  * configure.ac :
    * VRNA configure flag conform with LocARNA (--with-vrna)
+ * README.md
+   + (minimal) library information added
+ * CommandLineParsing :
+   + argument boundaries for outDeltaE and outMaxE
+ * SeedHandler :
+   * traceBackSeed() : 
+     * bugfix: was not using offset1/2
 
 170306 Martin Mann :
  + src/IntaRNA : subfolder that holds all libIntaRNA related sources
