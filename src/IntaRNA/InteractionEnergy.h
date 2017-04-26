@@ -226,6 +226,20 @@ public:
 				, const size_t i2, const size_t j2
 				, const ES_multi_mode ES_mode ) const;
 
+    //**
+    virtual
+    E_type
+    getE_multiLeft(  const size_t i1, const size_t j1
+                    , const size_t i2
+                    , const ES_multi_mode ES_mode ) const;
+
+    // TODO: Documentation
+    virtual
+    E_type
+    getE_multiRight(  const size_t j1
+            , const size_t i2, const size_t j2
+            , const ES_multi_mode ES_mode ) const;
+
 	/**
 	 * Provides the ensemble energy (ES) of all intramolecular substructures
 	 * that can be formed within a given region of sequence 1 under the
@@ -940,6 +954,50 @@ getE_multi(  const size_t i1, const size_t j1
 
 ////////////////////////////////////////////////////////////////////////////
 
+inline
+E_type
+InteractionEnergy::
+getE_multiLeft(  const size_t i1, const size_t j1
+        , const size_t i2
+        , const ES_multi_mode ES_mode ) const
+{
+
+    return
+        // intramolecular structure contributions
+            (ES_mode == ES_multi_both ? getES1(i1,j1) : 0)
+            // dangling end treatments (including helix closure penalty)
+            + getE_danglingRight(i1,i2)
+            // multiloop unpaired contributions
+            + getE_multiUnpaired(
+                    (ES_mode == ES_multi_2only ? j1-i1-1 : 0 )
+            )
+            // multiloop closure
+            + getE_multiClosing()
+            ;
+}
+
+////////////////////////////////////////////////////////////////////////////
+
+inline
+E_type
+InteractionEnergy::
+getE_multiRight(  const size_t j1
+        , const size_t i2, const size_t j2
+        , const ES_multi_mode ES_mode ) const
+{
+
+    return
+        // intramolecular structure contributions
+            ((ES_mode == ES_multi_2only || ES_mode == ES_multi_both) ? getES2(i2,j2) : 0)
+            // dangling end treatments (including helix closure penalty)
+            + getE_danglingLeft(j1,j2)
+
+            // multiloop helix contribution (right side interaction site)
+            + getE_multiHelix( j1, j2 )
+            ;
+}
+
+////////////////////////////////////////////////////////////////////////////
 
 } // namespace
 
