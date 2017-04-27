@@ -1203,7 +1203,7 @@ getEnergyHandler( const Accessibility& accTarget, const ReverseAccessibility& ac
 	checkIfParsed();
 
 	// check whether to compute ES values (for multi-site predictions
-	const bool initES = std::string("M").find(pred.val) != std::string::npos;
+	const bool initES = (std::string("M").find(pred.val) or std::string("O").find(pred.val)) != std::string::npos;
 
 	switch( energy.val ) {
 	case 'B' : return new InteractionEnergyBasePair( accTarget, accQuery, tIntLoopMax.val, qIntLoopMax.val, initES );
@@ -1495,16 +1495,16 @@ getPredictor( const InteractionEnergy & energy, OutputHandler & output ) const
 		// multi-site mfe interactions using hybridO matrix
 		case 'O' : {
 			switch ( predMode.val ) {
-				case 'E' : {
-					switch ( predMulti.val ) {
-						case 'Q': return new PredictorMfe4dMultiPlus( energy, output, predTracker, Predictor::AllowES ::ES_query);
-						case 'T': return new PredictorMfe4dMultiPlus( energy, output, predTracker, Predictor::AllowES ::ES_target);
-						case 'X': return new PredictorMfe4dMultiPlus( energy, output, predTracker, Predictor::AllowES ::ES_xorQueryTarget);
-						case 'B': return new PredictorMfe4dMultiPlus( energy, output, predTracker, Predictor::AllowES ::ES_both);
-						default: INTARNA_NOT_IMPLEMENTED("mode "+toString(predMode.val)+" not implemented for prediction target "+toString(pred.val));
-					}
-				}
-				default :  INTARNA_NOT_IMPLEMENTED("mode "+toString(predMode.val)+" not implemented for prediction target "+toString(pred.val));
+            case 'E' : {
+                switch ( predMulti.val ) {
+                case 'Q': return new PredictorMfe4dMultiPlus( energy, output, predTracker, Predictor::AllowES ::ES_query);
+                case 'T': return new PredictorMfe4dMultiPlus( energy, output, predTracker, Predictor::AllowES ::ES_target);
+                case 'X': return new PredictorMfe4dMultiPlus( energy, output, predTracker, Predictor::AllowES ::ES_xorQueryTarget);
+                case 'B': return new PredictorMfe4dMultiPlus( energy, output, predTracker, Predictor::AllowES ::ES_both);
+                default: INTARNA_NOT_IMPLEMENTED("mode "+toString(predMode.val)+" not implemented for prediction target "+toString(pred.val));
+                }
+            }
+            default :  INTARNA_NOT_IMPLEMENTED("mode "+toString(predMode.val)+" not implemented for prediction target "+toString(pred.val));
 			}
 		} break;
 		default : INTARNA_NOT_IMPLEMENTED("mode "+toString(predMode.val)+" not implemented");

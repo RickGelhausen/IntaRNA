@@ -9,7 +9,7 @@ PredictorMfe4dMultiPlus( const InteractionEnergy & energy
         , OutputHandler & output
         , PredictionTracker * predTracker
         , const AllowES allowES_)
-        : PredictorMfe4d(energy,output, predTracker)
+        : PredictorMfe4d(energy, output, predTracker)
         , allowES( allowES_ )
 {
 }
@@ -42,7 +42,7 @@ predict( const IndexRange & r1
 #if IN_DEBUG_MODE
     // check indices
 if (!(r1.isAscending() && r2.isAscending()) )
-    throw std::runtime_error("PredictorMfe4d::predict("+toString(r1)+","+toString(r2)+") is not sane");
+throw std::runtime_error("PredictorMfe4d::predict("+toString(r1)+","+toString(r2)+") is not sane");
 #endif
 
     // clear data
@@ -131,6 +131,7 @@ fillHybridE( ) {
 
     // current minimal value
     E_type curMinE = E_INF;
+    E_type curMinO = E_INF;
     // iterate increasingly over all window sizes w1 (seq1) and w2 (seq2)
     for (w1 = 0; w1 < energy.getAccessibility1().getMaxLength(); w1++) {
         for (w2 = 0; w2 < energy.getAccessibility2().getMaxLength(); w2++) {
@@ -179,7 +180,6 @@ fillHybridE( ) {
                         if (w1 > 0 && w2 > 0)
                         {
                             // interior loop case
-
                             // check all combinations of decompositions into (i1,i2)..(k1,k2)-(j1,j2)
                             for (k1 = std::min(j1, i1 + energy.getMaxInternalLoopSize1() + 1); k1 > i1; k1--) {
                                 for (k2 = std::min(j2, i2 + energy.getMaxInternalLoopSize2() + 1); k2 > i2; k2--) {
@@ -194,14 +194,24 @@ fillHybridE( ) {
                                     }
                                 }
                             }
-
+                            LOG(DEBUG) << "Passed!";
                             // fill hybridO matrix
                             if (allowES != ES_target) {
+                                LOG(DEBUG) << "Passed!";
                                 for (k1 = std::min(j1, i1 + energy.getMaxInternalLoopSize1() + 1); k1 > i1; k1--) {
+                                    LOG(DEBUG) << "Passed!";
                                     for (k2 = j2; k2 > i2 + InteractionEnergy::minDistES; k2--) {
-                                        (*hybridO(k1, i2))(j1 - k1, j2 - i2) = energy.getE_multi(i1, j1, i2, k2, InteractionEnergy::ES_multi_2only)
-                                                               + (*hybridE(k1, k2))(j1 - k1, j2 - k2);
+                                        LOG(DEBUG) << "Passed1!";
+                                        curMinO = std::min(curMinO, energy.getE_multiRight(j1, i2, k2, InteractionEnergy::ES_multi_2only)
+                                                  + (*hybridE(k1, k2))(j1 - k1, j2 - k2));
+
                                     }
+                                    LOG(DEBUG) << "Passed!";
+                                    LOG(DEBUG) << "\n" << "w1, w2: " << w1 << ", " << w2 << "\n"
+                                                << "i1, i2: " << i1 << ", " << i2 << "\n"
+                                                << "j1, j2: " << j1 << ", " << j2 << "\n"
+                                                << "k1: " << k1;
+                                    (*hybridO(k1, i2))(j1-k1, j2-i2) = curMinO;
                                 }
                             }
 
@@ -210,15 +220,17 @@ fillHybridE( ) {
                             // Both-sided structure
                             if (allowES == ES_both) {
                                 for (k1 = j1; k1 > i1 + InteractionEnergy::minDistES; k1--) {
-                                    if (hybridE(k1, i2) != NULL
-                                        && hybridE(k1, i2)->size1() > (j1 - k1)
-                                        && hybridE(k1, i2)->size2() > (j2 - i2))
-                                    {
-                                        // update minE
-                                        curMinE = std::min(curMinE,
-                                                           (energy.getE_multi(i1, k1, i2, j2, InteractionEnergy::ES_multi_mode::ES_multi_1only)
-                                                            + (*hybridO(k1, i2))(j1 - k1, j2 - i2)
-                                                           ));
+                                    for (k2 = j2; k2 > i2 + InteractionEnergy::minDistES; k2--) {
+                                        if (hybridE(k1, i2) != NULL
+                                            && hybridE(k1, i2)->size1() > (j1 - k1)
+                                            && hybridE(k1, i2)->size2() > (j2 - i2))
+                                        {
+                                            // update minE
+                                            curMinE = std::min(curMinE,
+                                                               (energy.getE_multiLeft(i1, k1, i2, InteractionEnergy::ES_multi_mode::ES_multi_1only)
+                                                                + (*hybridO(k1, i2))(j1 - k1, j2 - i2)
+                                                               ));
+                                        }
                                     }
                                 }
                             }
@@ -290,10 +302,10 @@ traceBack( Interaction & interaction )
 #if IN_DEBUG_MODE
     // sanity checks
 if ( ! interaction.isValid() ) {
-    throw std::runtime_error("PredictorMfe4d::traceBack() : given interaction not valid");
+throw std::runtime_error("PredictorMfe4d::traceBack() : given interaction not valid");
 }
 if ( interaction.basePairs.size() != 2 ) {
-    throw std::runtime_error("PredictorMfe4d::traceBack() : given interaction does not contain boundaries only");
+throw std::runtime_error("PredictorMfe4d::traceBack() : given interaction does not contain boundaries only");
 }
 #endif
 
