@@ -90,6 +90,13 @@ throw std::runtime_error("PredictorMfe4d::predict("+toString(r1)+","+toString(r2
         }
     }
 
+    for (size_t i1=0; i1<hybridO.size1(); i1++) {
+        for (size_t i2=0; i2<hybridO.size2(); i2++) {
+            hybridO(i1,i2) = new E2dMatrix(
+                    /*w1 = */ std::min(energy.getAccessibility1().getMaxLength(), hybridO.size1()-i1 ),
+                    /*w2 = */ std::min(energy.getAccessibility2().getMaxLength(), hybridO.size2()-i2 ));
+        }
+    }
     // initialize mfe interaction for updates
     initOptima( outConstraint );
 
