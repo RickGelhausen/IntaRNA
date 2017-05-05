@@ -11,6 +11,7 @@ PredictorMfe4dMultiPlus( const InteractionEnergy & energy
         , const AllowES allowES_)
         : PredictorMfe4d(energy, output, predTracker)
         , allowES( allowES_ )
+        , hybridO()
 {
 }
 
@@ -20,6 +21,7 @@ PredictorMfe4dMultiPlus( const InteractionEnergy & energy
 PredictorMfe4dMultiPlus::
 ~PredictorMfe4dMultiPlus()
 {
+    LOG(DEBUG) <<"cleanup multi plus";
     // clean up
     this->clear();
 }
@@ -58,10 +60,7 @@ throw std::runtime_error("PredictorMfe4d::predict("+toString(r1)+","+toString(r2
             , std::min( energy.size2()
                     , (r2.to==RnaSequence::lastPos?energy.size2()-1:r2.to)-r2.from+1 ) );
 
-    hybridO.resize( std::min( energy.size1()
-            , (r1.to==RnaSequence::lastPos?energy.size1()-1:r1.to)-r1.from+1 )
-            , std::min( energy.size2()
-                    , (r2.to==RnaSequence::lastPos?energy.size2()-1:r2.to)-r2.from+1 ) );
+    hybridO.resize( hybridE.size1(), hybridE.size2() );
 
     size_t w1, w2;
 
@@ -97,6 +96,8 @@ throw std::runtime_error("PredictorMfe4d::predict("+toString(r1)+","+toString(r2
                     /*w2 = */ std::min(energy.getAccessibility2().getMaxLength(), hybridO.size2()-i2 ));
         }
     }
+
+    LOG(DEBUG) <<"init multi plus done";
     // initialize mfe interaction for updates
     initOptima( outConstraint );
 
@@ -123,6 +124,17 @@ clear()
     }
     // clear matrix, free data
     hybridE.clear();
+
+    // delete 3rd and 4th dimension of the matrix
+    for (E4dMatrix::iterator1 ijEntry = hybridO.begin1(); ijEntry != hybridO.end1(); ijEntry++) {
+        if (*ijEntry != NULL) {
+            // delete 2d matrix for current ij
+            delete (*ijEntry);
+            *ijEntry = NULL;
+        }
+    }
+    // clear matrix, free data
+    hybridO.clear();
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -144,9 +156,49 @@ fillHybridE( ) {
         for (w2 = 0; w2 < energy.getAccessibility2().getMaxLength(); w2++) {
             // iterate over all window starts i1 (seq1) and i2 (seq2)
             // TODO PARALLELIZE THIS DOUBLE LOOP ?!
+            if (allowES == ES_both) {
+            for (i1 = 0; i1 + w1 < hybridO.size1(); i1++) {
+                for (i2 = 0; i2 + w2 < hybridO.size2(); i2++) {
+                    //LOG(DEBUG) << "Start HybridO";
+                    // and widths are possible (ie available within data structure)
+                    if (hybridO(i1, i2)->size1() <= w1 || hybridO(i1, i2)->size2() <= w2) {
+                        // interaction not possible: nothing to do, since no storage reserved
+                        continue;
+                    }
+
+                    // get window ends j (seq1) and l (seq2)
+                    j1 = i1 + w1;
+                    j2 = i2 + w2;
+
+                    // check if right boundary is complementary
+                    if (hybridO(j1, j2) == NULL) {
+                        // not complementary -> ignore this entry
+                        (*hybridO(i1, i2))(w1, w2) = E_INF;
+                        continue;
+                    }
+
+                    // fill hybridO matrix
+
+                    // init
+                    curMinO = E_INF;
+
+                    for (k2 = j2; k2 > i2 + InteractionEnergy::minDistES; k2--) {
+                        LOG(DEBUG) << "\n"
+                                   << "i1: " << i1 << " j1: " << j1 << "\n"
+                                    << "i2: " << i2 << "\n"
+                                    << "k2: " << k2 << " j2: " << j2 << "\n";
+                        curMinO = std::min(curMinO,
+                                           energy.getE_multiRight(j1, i2, k2, InteractionEnergy::ES_multi_2only)
+                                           + (*hybridE(i1, k2))(j1 - i1, j2 - k2));
+                    }
+                    (*hybridO(i1, i2))(w1, w2) = curMinO;
+                    continue;
+                }
+            }
+            }
+
             for (i1 = 0; i1 + w1 < hybridE.size1(); i1++) {
                 for (i2 = 0; i2 + w2 < hybridE.size2(); i2++) {
-
                     // check if left boundary is complementary
                     if (hybridE(i1, i2) == NULL) {
                         // interaction not possible: nothing to do, since no storage reserved
@@ -178,6 +230,7 @@ fillHybridE( ) {
 
                         // either interaction initiation
                         if (w1 == 0 && w2 == 0) {
+                            LOG(DEBUG) << "Was here0!";
                             // interaction initiation
                             curMinE = energy.getE_init();
                         }
@@ -201,43 +254,23 @@ fillHybridE( ) {
                                     }
                                 }
                             }
-                            LOG(DEBUG) << "Passed!";
-                            // fill hybridO matrix
-                            if (allowES != ES_target) {
-                                LOG(DEBUG) << "Passed!";
-                                for (k1 = std::min(j1, i1 + energy.getMaxInternalLoopSize1() + 1); k1 > i1; k1--) {
-                                    LOG(DEBUG) << "Passed!";
-                                    for (k2 = j2; k2 > i2 + InteractionEnergy::minDistES; k2--) {
-                                        LOG(DEBUG) << "Passed1!";
-                                        curMinO = std::min(curMinO, energy.getE_multiRight(j1, i2, k2, InteractionEnergy::ES_multi_2only)
-                                                  + (*hybridE(k1, k2))(j1 - k1, j2 - k2));
-
-                                    }
-                                    LOG(DEBUG) << "Passed!";
-                                    LOG(DEBUG) << "\n" << "w1, w2: " << w1 << ", " << w2 << "\n"
-                                                << "i1, i2: " << i1 << ", " << i2 << "\n"
-                                                << "j1, j2: " << j1 << ", " << j2 << "\n"
-                                                << "k1: " << k1;
-                                    (*hybridO(k1, i2))(j1-k1, j2-i2) = curMinO;
-                                }
-                            }
 
                             // Multiloop cases = ES-gap
 
                             // Both-sided structure
                             if (allowES == ES_both) {
+                                LOG(DEBUG) << "Was here1!";
                                 for (k1 = j1; k1 > i1 + InteractionEnergy::minDistES; k1--) {
-                                    for (k2 = j2; k2 > i2 + InteractionEnergy::minDistES; k2--) {
-                                        if (hybridE(k1, i2) != NULL
-                                            && hybridE(k1, i2)->size1() > (j1 - k1)
-                                            && hybridE(k1, i2)->size2() > (j2 - i2))
-                                        {
-                                            // update minE
-                                            curMinE = std::min(curMinE,
-                                                               (energy.getE_multiLeft(i1, k1, i2, InteractionEnergy::ES_multi_mode::ES_multi_1only)
-                                                                + (*hybridO(k1, i2))(j1 - k1, j2 - i2)
-                                                               ));
-                                        }
+                                    if (hybridE(k1, i2) != NULL
+                                        && hybridE(k1, i2)->size1() > (j1 - k1)
+                                        && hybridE(k1, i2)->size2() > (j2 - i2))
+                                    {
+                                        LOG(DEBUG) << "Was here1!";
+                                        // update minE
+                                        curMinE = std::min(curMinE,
+                                                           (energy.getE_multiLeft(i1, k1, i2, InteractionEnergy::ES_multi_mode::ES_multi_1only)
+                                                            + (*hybridO(k1, i2))(j1 - k1, j2 - i2)
+                                                           ));
                                     }
                                 }
                             }
