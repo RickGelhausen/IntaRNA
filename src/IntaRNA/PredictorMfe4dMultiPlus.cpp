@@ -177,16 +177,17 @@ fillHybridE( ) {
                         continue;
                     }
 
+                    LOG(DEBUG) << "\n"
+                              << "w1, w2: " << w1 << " " << w2 << "\n"
+                               << "i1, i2: " << i1 << " " << i2 << "\n"
+                            << "j1, j2: " << j1 << " " << j2 << "\n";
+
                     // fill hybridO matrix
 
                     // init
                     curMinO = E_INF;
 
                     for (k2 = j2; k2 > i2 + InteractionEnergy::minDistES; k2--) {
-                        LOG(DEBUG) << "\n"
-                                   << "i1: " << i1 << " j1: " << j1 << "\n"
-                                    << "i2: " << i2 << "\n"
-                                    << "k2: " << k2 << " j2: " << j2 << "\n";
                         curMinO = std::min(curMinO,
                                            energy.getE_multiRight(j1, i2, k2, InteractionEnergy::ES_multi_2only)
                                            + (*hybridE(i1, k2))(j1 - i1, j2 - k2));
@@ -196,7 +197,7 @@ fillHybridE( ) {
                 }
             }
             }
-
+            LOG(DEBUG) << "Calculate next HybridE entries!";
             for (i1 = 0; i1 + w1 < hybridE.size1(); i1++) {
                 for (i2 = 0; i2 + w2 < hybridE.size2(); i2++) {
                     // check if left boundary is complementary
@@ -230,7 +231,6 @@ fillHybridE( ) {
 
                         // either interaction initiation
                         if (w1 == 0 && w2 == 0) {
-                            LOG(DEBUG) << "Was here0!";
                             // interaction initiation
                             curMinE = energy.getE_init();
                         }
@@ -259,13 +259,11 @@ fillHybridE( ) {
 
                             // Both-sided structure
                             if (allowES == ES_both) {
-                                LOG(DEBUG) << "Was here1!";
                                 for (k1 = j1; k1 > i1 + InteractionEnergy::minDistES; k1--) {
                                     if (hybridE(k1, i2) != NULL
                                         && hybridE(k1, i2)->size1() > (j1 - k1)
                                         && hybridE(k1, i2)->size2() > (j2 - i2))
                                     {
-                                        LOG(DEBUG) << "Was here1!";
                                         // update minE
                                         curMinE = std::min(curMinE,
                                                            (energy.getE_multiLeft(i1, k1, i2, InteractionEnergy::ES_multi_mode::ES_multi_1only)
