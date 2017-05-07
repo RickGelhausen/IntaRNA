@@ -154,9 +154,10 @@ fillHybridE( ) {
     // iterate increasingly over all window sizes w1 (seq1) and w2 (seq2)
     for (w1 = 0; w1 < energy.getAccessibility1().getMaxLength(); w1++) {
         for (w2 = 0; w2 < energy.getAccessibility2().getMaxLength(); w2++) {
-            // iterate over all window starts i1 (seq1) and i2 (seq2)
+            // iterate over all window starts i1 (seq1) and i2 (seq23)
             // TODO PARALLELIZE THIS DOUBLE LOOP ?!
             if (allowES == ES_both) {
+            LOG(DEBUG) << "Calculate next hybridO entries!";
             for (i1 = 0; i1 + w1 < hybridO.size1(); i1++) {
                 for (i2 = 0; i2 + w2 < hybridO.size2(); i2++) {
                     //LOG(DEBUG) << "Start HybridO";
@@ -178,8 +179,8 @@ fillHybridE( ) {
                     }
 
                     LOG(DEBUG) << "\n"
-                              << "w1, w2: " << w1 << " " << w2 << "\n"
-                               << "i1, i2: " << i1 << " " << i2 << "\n"
+                            << "w1, w2: " << w1 << " " << w2 << "\n"
+                            << "i1, i2: " << i1 << " " << i2 << "\n"
                             << "j1, j2: " << j1 << " " << j2 << "\n";
 
                     // fill hybridO matrix
@@ -192,6 +193,7 @@ fillHybridE( ) {
                                            energy.getE_multiRight(j1, i2, k2, InteractionEnergy::ES_multi_2only)
                                            + (*hybridE(i1, k2))(j1 - i1, j2 - k2));
                     }
+                    LOG(DEBUG) << "PASSED!";
                     (*hybridO(i1, i2))(w1, w2) = curMinO;
                     continue;
                 }
@@ -321,6 +323,7 @@ fillHybridE( ) {
                     }
                 }
             }
+            LOG(DEBUG) << "Done!";
         }
     }
 }
