@@ -268,7 +268,7 @@ fillHybridE( ) {
                                     {
                                         // update minE
                                         curMinE = std::min(curMinE,
-                                                           (energy.getE_multiLeft(i1, k1, i2)
+                                                           (energy.getE_multiLeft(i1, k1, i2, InteractionEnergy::ES_multi_mode::ES_multi_both)
                                                             + (*hybridO(k1, i2))(j1 - k1, j2 - i2)
                                                            ));
                                     }
@@ -412,16 +412,16 @@ throw std::runtime_error("PredictorMfe4d::traceBack() : given interaction does n
                 {
                     LOG(DEBUG) << "Found Both";
                     if (E_equal(curE,
-                                (energy.getE_multiLeft(i1, k1, i2)
+                                (energy.getE_multiLeft(i1, k1, i2, InteractionEnergy::ES_multi_mode::ES_multi_both)
                                  + (*hybridO(k1, i2))(j1 - k1, j2 - i2)
                                 ))) {
                         // stop searching
                         traceNotFound = false;
                         // store splitting base pair
-                        interaction.basePairs.push_back(energy.getBasePair(k1, i2));
+                        interaction.basePairs.push_back(energy.getBasePair(i1, i2));
                         // store gap information
                         if (interaction.gap == NULL) { interaction.gap = new Interaction::Gap(); }
-                        interaction.gap->energy += energy.getE_multiLeft(i1, k1, i2);
+                        interaction.gap->energy += energy.getE_multiLeft(i1, k1, i2, InteractionEnergy::ES_multi_mode::ES_multi_both);
                         Interaction::BasePair bpLeft = energy.getBasePair(i1,i2);
                         interaction.gap->gaps1.push_back( IndexRange(bpLeft.first,interaction.basePairs.rbegin()->first) );
                         interaction.gap->gaps2.push_back( IndexRange(interaction.basePairs.rbegin()->second,bpLeft.second) );

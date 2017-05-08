@@ -230,7 +230,7 @@ public:
     virtual
     E_type
     getE_multiLeft(  const size_t i1, const size_t j1
-                    , const size_t i2) const;
+                    , const size_t i2, const ES_multi_mode ES_mode ) const;
 
     // TODO: Documentation
     virtual
@@ -956,17 +956,19 @@ inline
 E_type
 InteractionEnergy::
 getE_multiLeft(  const size_t i1, const size_t j1
-        , const size_t i2) const
+        , const size_t i2
+        , const ES_multi_mode ES_mode ) const
 {
 
     return
         // intramolecular structure contributions
-            getES1(i1,j1)
+            (ES_mode == ES_multi_both ? getES1(i1, j1) : 0)
 
+            // multiloop unpaired contributions
+            + getE_multiUnpaired(ES_mode == ES_multi_1only ? j1-i1-1 : 0)
             // dangling end treatments (including helix closure penalty)
             + getE_danglingRight(i1,i2)
-            // multiloop unpaired contributions
-            + getE_multiUnpaired(j1-i1-1)
+
             // multiloop closure
             + getE_multiClosing()
             ;
@@ -977,7 +979,7 @@ getE_multiLeft(  const size_t i1, const size_t j1
 inline
 E_type
 InteractionEnergy::
-getE_multiRight(  const size_t j1
+getE_multiRight( const size_t j1
         , const size_t i2, const size_t j2) const
 {
 
