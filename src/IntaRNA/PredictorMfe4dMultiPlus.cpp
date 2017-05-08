@@ -167,7 +167,7 @@ fillHybridE( ) {
                         continue;
                     }
 
-                    // get window ends j (seq1) and l (seq2)
+                    // get window ends j1 (seq1) and j2 (seq2)
                     j1 = i1 + w1;
                     j2 = i2 + w2;
 
@@ -181,7 +181,7 @@ fillHybridE( ) {
                     LOG(DEBUG) << "\n"
                             << "w1, w2: " << w1 << " " << w2 << "\n"
                             << "i1, i2: " << i1 << " " << i2 << "\n"
-                            << "j1, j2: " << j1 << " " << j2 << "\n";
+                            << "j1, j2: " << j1 << " " << j2;
 
                     // fill hybridO matrix
 
@@ -193,7 +193,7 @@ fillHybridE( ) {
                                            energy.getE_multiRight(j1, i2, k2, InteractionEnergy::ES_multi_2only)
                                            + (*hybridE(i1, k2))(j1 - i1, j2 - k2));
                     }
-                    LOG(DEBUG) << "PASSED!";
+                    LOG(DEBUG) << "PASSED! \n";
                     (*hybridO(i1, i2))(w1, w2) = curMinO;
                     continue;
                 }
@@ -262,9 +262,9 @@ fillHybridE( ) {
                             // Both-sided structure
                             if (allowES == ES_both) {
                                 for (k1 = j1; k1 > i1 + InteractionEnergy::minDistES; k1--) {
-                                    if (hybridE(k1, i2) != NULL
-                                        && hybridE(k1, i2)->size1() > (j1 - k1)
-                                        && hybridE(k1, i2)->size2() > (j2 - i2))
+                                    if (hybridO(k1, i2) != NULL
+                                        && hybridO(k1, i2)->size1() > (j1 - k1)
+                                        && hybridO(k1, i2)->size2() > (j2 - i2))
                                     {
                                         // update minE
                                         curMinE = std::min(curMinE,
