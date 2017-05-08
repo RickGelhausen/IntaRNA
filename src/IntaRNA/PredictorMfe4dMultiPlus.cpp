@@ -157,7 +157,7 @@ fillHybridE( ) {
             // iterate over all window starts i1 (seq1) and i2 (seq23)
             // TODO PARALLELIZE THIS DOUBLE LOOP ?!
             if (allowES == ES_both) {
-            LOG(DEBUG) << "Calculate next hybridO entries!";
+//            LOG(DEBUG) << "Calculate next hybridO entries!";
             for (i1 = 0; i1 + w1 < hybridO.size1(); i1++) {
                 for (i2 = 0; i2 + w2 < hybridO.size2(); i2++) {
                     //LOG(DEBUG) << "Start HybridO";
@@ -178,10 +178,10 @@ fillHybridE( ) {
                         continue;
                     }
 
-                    LOG(DEBUG) << "\n"
-                            << "w1, w2: " << w1 << " " << w2 << "\n"
-                            << "i1, i2: " << i1 << " " << i2 << "\n"
-                            << "j1, j2: " << j1 << " " << j2;
+//                    LOG(DEBUG) << "\n"
+//                            << "w1, w2: " << w1 << " " << w2 << "\n"
+//                            << "i1, i2: " << i1 << " " << i2 << "\n"
+//                            << "j1, j2: " << j1 << " " << j2;
 
                     // fill hybridO matrix
 
@@ -189,17 +189,22 @@ fillHybridE( ) {
                     curMinO = E_INF;
 
                     for (k2 = j2; k2 > i2 + InteractionEnergy::minDistES; k2--) {
-                        curMinO = std::min(curMinO,
-                                           energy.getE_multiRight(j1, i2, k2, InteractionEnergy::ES_multi_2only)
-                                           + (*hybridE(i1, k2))(j1 - i1, j2 - k2));
+                        if (hybridE(i1, k2) != NULL
+                            && hybridE(i1, k2)->size1() > (w1)
+                            && hybridE(i1, k2)->size2() > (j2 - k2))
+                        {
+                            curMinO = std::min(curMinO,
+                                               energy.getE_multiRight(j1, i2, k2, InteractionEnergy::ES_multi_2only)
+                                               + (*hybridE(i1, k2))(w1, j2 - k2));
+                        }
                     }
-                    LOG(DEBUG) << "PASSED! \n";
+//                    LOG(DEBUG) << "PASSED! \n";
                     (*hybridO(i1, i2))(w1, w2) = curMinO;
                     continue;
                 }
             }
             }
-            LOG(DEBUG) << "Calculate next HybridE entries!";
+//            LOG(DEBUG) << "Calculate next HybridE entries!";
             for (i1 = 0; i1 + w1 < hybridE.size1(); i1++) {
                 for (i2 = 0; i2 + w2 < hybridE.size2(); i2++) {
                     // check if left boundary is complementary
@@ -264,12 +269,12 @@ fillHybridE( ) {
                                 for (k1 = j1; k1 > i1 + InteractionEnergy::minDistES; k1--) {
                                     if (hybridO(k1, i2) != NULL
                                         && hybridO(k1, i2)->size1() > (j1 - k1)
-                                        && hybridO(k1, i2)->size2() > (j2 - i2))
+                                        && hybridO(k1, i2)->size2() > (w2))
                                     {
                                         // update minE
                                         curMinE = std::min(curMinE,
                                                            (energy.getE_multiLeft(i1, k1, i2, InteractionEnergy::ES_multi_mode::ES_multi_1only)
-                                                            + (*hybridO(k1, i2))(j1 - k1, j2 - i2)
+                                                            + (*hybridO(k1, i2))(j1 - k1, w2)
                                                            ));
                                     }
                                 }
@@ -316,14 +321,17 @@ fillHybridE( ) {
 
                         // store value
                         (*hybridE(i1, i2))(w1, w2) = curMinE;
-
+//                        LOG(DEBUG) << "Calculated entry for hybridE!\n"
+//                                << "w1, w2: " << w1 << ", " << w2 << "\n"
+//                                << "i1, i2: " << i1 << ", " << i2 << "\n"
+//                                << "value: " << curMinE << "\n";
                         // update mfe if needed
                         updateOptima(i1, j1, i2, j2, (*hybridE(i1, i2))(w1, w2), true);
                         continue;
                     }
                 }
             }
-            LOG(DEBUG) << "Done!";
+//            LOG(DEBUG) << "Done!";
         }
     }
 }
