@@ -190,12 +190,12 @@ fillHybridE( ) {
 
                     for (k2 = j2; k2 > i2 + InteractionEnergy::minDistES; k2--) {
                         if (hybridE(i1, k2) != NULL
-                            && hybridE(i1, k2)->size1() > (w1)
+                            && hybridE(i1, k2)->size1() > (j1 - i1)
                             && hybridE(i1, k2)->size2() > (j2 - k2))
                         {
                             curMinO = std::min(curMinO,
                                                energy.getE_multiRight(j1, i2, k2, InteractionEnergy::ES_multi_2only)
-                                               + (*hybridE(i1, k2))(w1, j2 - k2));
+                                               + (*hybridE(i1, k2))(j1 - i1, j2 - k2));
                         }
                     }
 //                    LOG(DEBUG) << "PASSED! \n";
@@ -269,12 +269,12 @@ fillHybridE( ) {
                                 for (k1 = j1; k1 > i1 + InteractionEnergy::minDistES; k1--) {
                                     if (hybridO(k1, i2) != NULL
                                         && hybridO(k1, i2)->size1() > (j1 - k1)
-                                        && hybridO(k1, i2)->size2() > (w2))
+                                        && hybridO(k1, i2)->size2() > (j2 - i2))
                                     {
                                         // update minE
                                         curMinE = std::min(curMinE,
                                                            (energy.getE_multiLeft(i1, k1, i2, InteractionEnergy::ES_multi_mode::ES_multi_1only)
-                                                            + (*hybridO(k1, i2))(j1 - k1, w2)
+                                                            + (*hybridO(k1, i2))(j1 - k1, j2 - i2)
                                                            ));
                                     }
                                 }
@@ -413,30 +413,28 @@ throw std::runtime_error("PredictorMfe4d::traceBack() : given interaction does n
         // Structure in both
         if (traceNotFound && allowES == ES_both) {
             for (k1 = j1; traceNotFound && k1 > i1 + InteractionEnergy::minDistES; k1--) {
-                for (k2 = j2; traceNotFound && k2 > i2 + InteractionEnergy::minDistES; k2--) {
-                    if (hybridE(k1, k2) != NULL
-                        && hybridE(k1, k2)->size1() > (j1 - k1)
-                        && hybridE(k1, k2)->size2() > (j2 - k2))
-                    {
-                        if (E_equal(curE,
-                                    (energy.getE_multi(i1, k1, i2, k2, InteractionEnergy::ES_multi_mode::ES_multi_both)
-                                     + (*hybridE(k1, k2))(j1 - k1, j2 - k2)
-                                    ))) {
-                            // stop searching
-                            traceNotFound = false;
-                            // store splitting base pair
-                            interaction.basePairs.push_back(energy.getBasePair(k1, k2));
-                            // store gap information
-                            if (interaction.gap == NULL) { interaction.gap = new Interaction::Gap(); }
-                            interaction.gap->energy += energy.getE_multi(i1, k1, i2, k2, InteractionEnergy::ES_multi_mode::ES_multi_both);
-                            Interaction::BasePair bpLeft = energy.getBasePair(i1,i2);
-                            interaction.gap->gaps1.push_back( IndexRange(bpLeft.first,interaction.basePairs.rbegin()->first) );
-                            interaction.gap->gaps2.push_back( IndexRange(interaction.basePairs.rbegin()->second,bpLeft.second) );
-                            // trace right part of split
-                            i1 = k1;
-                            i2 = k2;
-                            curE = (*hybridE(i1, i2))(j1 - i1, j2 - i2);
-                        }
+                if (hybridO(k1, i2) != NULL
+                    && hybridO(k1, i2)->size1() > (j1 - k1)
+                    && hybridO(k1, i2)->size2() > (j2 - i2))
+                {
+                    if (E_equal(curE,
+                                (energy.getE_multiLeft(i1, k1, i2, InteractionEnergy::ES_multi_mode::ES_multi_1only)
+                                 + (*hybridO(k1, i2))(j1 - k1, j2 - i2)
+                                ))) {
+                        // stop searching
+                        traceNotFound = false;
+                        // store splitting base pair
+                        interaction.basePairs.push_back(energy.getBasePair(k1, k2));
+                        // store gap information
+                        if (interaction.gap == NULL) { interaction.gap = new Interaction::Gap(); }
+                        interaction.gap->energy += energy.getE_multiLeft(i1, k1, i2, InteractionEnergy::ES_multi_mode::ES_multi_1only);
+                        Interaction::BasePair bpLeft = energy.getBasePair(i1,i2);
+                        interaction.gap->gaps1.push_back( IndexRange(bpLeft.first,interaction.basePairs.rbegin()->first) );
+                        interaction.gap->gaps2.push_back( IndexRange(interaction.basePairs.rbegin()->second,bpLeft.second) );
+                        // trace right part of split
+                        i1 = k1;
+                        i2 = k2;
+                        curE = (*hybridE(i1, i2))(j1 - i1, j2 - i2);
                     }
                 }
             }
