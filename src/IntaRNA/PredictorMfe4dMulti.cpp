@@ -200,6 +200,12 @@ fillHybridE( ) {
                                             && hybridE(k1, k2)->size1() > (j1 - k1)
                                             && hybridE(k1, k2)->size2() > (j2 - k2))
                                         {
+//											E_type tmpE = energy.getE_multi(i1, k1, i2, k2, InteractionEnergy::ES_multi_mode::ES_multi_both) + (*hybridE(k1, k2))(j1 - k1, j2 - k2);
+////											LOG_IF(tmpE != E_INF, DEBUG) << "energy both: " << tmpE;
+//											LOG_IF(tmpE != E_INF, DEBUG) << "\n"
+//													<< "(w1, w2): " << w1 << ", " << w2 << "\n"
+//													   << "(i1, i2): " << i1 << ", " << i2 << "\n"
+//													   << "(j1, j2): " << j1 << ", " << j2 << "\n";
                                             // update minE
                                             curMinE = std::min(curMinE,
                                                                (energy.getE_multi(i1, k1, i2, k2, InteractionEnergy::ES_multi_mode::ES_multi_both)
