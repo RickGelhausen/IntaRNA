@@ -21,7 +21,6 @@ PredictorMfe4dMultiPlus( const InteractionEnergy & energy
 PredictorMfe4dMultiPlus::
 ~PredictorMfe4dMultiPlus()
 {
-    LOG(DEBUG) <<"cleanup multi plus";
     // clean up
     this->clear();
 }
@@ -97,7 +96,6 @@ throw std::runtime_error("PredictorMfe4d::predict("+toString(r1)+","+toString(r2
         }
     }
 
-    LOG(DEBUG) <<"init multi plus done";
     // initialize mfe interaction for updates
     initOptima( outConstraint );
 
@@ -269,13 +267,6 @@ fillHybridE( ) {
                                         && hybridO(k1, i2)->size1() > (j1 - k1)
                                         && hybridO(k1, i2)->size2() > (j2 - i2))
 									{
-//										E_type tmpE = energy.getE_multiLeft(i1, k1, i2, j2, InteractionEnergy::ES_multi_mode::ES_multi_both)
-//													  + (*hybridO(k1, i2))(j1 - k1, j2 - i2);
-////										LOG_IF(tmpE != E_INF, DEBUG) << "energy both: " << tmpE;
-//										LOG_IF(tmpE != E_INF, DEBUG) << "\n"
-//												   << "(w1, w2): " << w1 << ", " << w2 << "\n"
-//												   << "(i1, i2): " << i1 << ", " << i2 << "\n"
-//												   << "(j1, j2): " << j1 << ", " << j2 << "\n";
 										// update minE
                                         curMinE = std::min(curMinE,
                                                            (energy.getE_multiLeft(i1, k1, i2, InteractionEnergy::ES_multi_mode::ES_multi_both)
@@ -337,6 +328,29 @@ fillHybridE( ) {
     }
 }
 
+// TODO: There might be a better way to return the energy contribution
+////////////////////////////////////////////////////////////////////////////
+std::pair<size_t, E_type>
+PredictorMfe4dMultiPlus::
+recurseHybridO( const size_t i1, const size_t j1
+				, const size_t i2, const size_t j2 ) const
+{
+	E_type curE = (*hybridO(i1,i2))(j1-i1, j2-i2);
+
+	size_t k2;
+	for (k2 = j2; k2 > i2 + InteractionEnergy::minDistES; k2--) {
+		if (hybridE(i1, k2) != NULL
+			&& hybridE(i1, k2)->size1() > (j1 - i1)
+			&& hybridE(i1, k2)->size2() > (j2 - k2))
+		{
+			if ( E_equal(curE, energy.getE_multiRight(i1, i2, k2)
+							   + (*hybridE(i1, k2))(j1 - i1, j2 - k2)))
+			{
+				return std::make_pair(k2, energy.getE_multiRight(i1, i2, k2));
+			}
+		}
+	}
+}
 
 ////////////////////////////////////////////////////////////////////////////
 
@@ -394,10 +408,6 @@ throw std::runtime_error("PredictorMfe4d::traceBack() : given interaction does n
                     && hybridE(k1,k2)->size1() > (j1 - k1)
                     && hybridE(k1,k2)->size2() > (j2 - k2))
                 {
-//                    LOG(DEBUG) << "Found IL";
-//                    LOG(DEBUG) << "(i1, i2): " << i1 << ", " << i2 << "\n"
-//                               << "          (j1, j2): " << j1 << ", " << j2 << "\n"
-//                               << "          (k1, k2): " << k1 << ", " << k2 << "\n";
                     if ( E_equal( curE,
                                   (energy.getE_interLeft(i1,k1,i2,k2)
                                    + (*hybridE(k1,k2))(j1-k1,j2-k2)
@@ -423,27 +433,26 @@ throw std::runtime_error("PredictorMfe4d::traceBack() : given interaction does n
                     && hybridO(k1, i2)->size1() > (j1 - k1)
                     && hybridO(k1, i2)->size2() > (j2 - i2))
                 {
-//                    LOG(DEBUG) << "Found Both";
-//                    LOG(DEBUG) << "(i1, i2): " << i1 << ", " << i2 << "\n"
-//                               << "          (j1, j2): " << j1 << ", " << j2 << "\n"
-//                               << "          (k1): " << k1 << "\n";
                     if (E_equal(curE,
                                 (energy.getE_multiLeft(i1, k1, i2, InteractionEnergy::ES_multi_mode::ES_multi_both)
                                  + (*hybridO(k1, i2))(j1 - k1, j2 - i2)
                                 ))) {
                         // stop searching
-						//TODO IDENTIFY k2 recurseO --> return k2 find the k2 that caused the energy contribution used here (hybrid0)
                         traceNotFound = false;
+						// Determine k2 based on k1
+						std::pair<size_t, E_type> tmpR = recurseHybridO(k1, j1, i2, j2);
+						k2 = tmpR.first;
                         // store splitting base pair
                         interaction.basePairs.push_back(energy.getBasePair(k1, k2));
                         // store gap information
                         if (interaction.gap == NULL) { interaction.gap = new Interaction::Gap(); }
-                        interaction.gap->energy += energy.getE_multiLeft(i1, k1, i2, InteractionEnergy::ES_multi_mode::ES_multi_both);
+                        interaction.gap->energy += energy.getE_multiLeft(i1, k1, i2, InteractionEnergy::ES_multi_mode::ES_multi_both) +tmpR.second;
                         Interaction::BasePair bpLeft = energy.getBasePair(i1,i2);
                         interaction.gap->gaps1.push_back( IndexRange(bpLeft.first,interaction.basePairs.rbegin()->first) );
                         interaction.gap->gaps2.push_back( IndexRange(interaction.basePairs.rbegin()->second,bpLeft.second) );
                         // trace right part of split
                         i1 = k1;
+						i2 = k2;
                         curE = (*hybridE(i1, i2))(j1 - i1, j2 - i2);
                     }
                 }
