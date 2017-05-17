@@ -936,8 +936,8 @@ getE_multi(  const size_t i1, const size_t j1
 			  (ES_mode != ES_multi_2only ? getES1(i1,j1) : 0)
 			+ (ES_mode != ES_multi_1only ? getES2(i2,j2) : 0)
 			// dangling end treatments (including helix closure penalty)
-//			+ getE_danglingRight(i1,i2)
-//			+ getE_danglingLeft(j1,j2)
+			+ getE_danglingRight(i1,i2)
+			+ getE_danglingLeft(j1,j2)
 			// multiloop unpaired contributions
 			+ getE_multiUnpaired(
 					(ES_mode == ES_multi_2only ? j1-i1-1 : 0 )
@@ -966,7 +966,7 @@ getE_multiLeft(  const size_t i1, const size_t j1
 			(ES_mode == ES_multi_both ? getES1(i1, j1) : 0)
 
             // multiloop unpaired contributions
-            + getE_multiUnpaired(ES_mode == ES_multi_1only ? j1-i1-1 : 0)
+            + getE_multiUnpaired(ES_mode == ES_multi_2only ? j1-i1-1 : 0)
 
             // dangling end treatments (including helix closure penalty)
 //            + getE_danglingLeft( j1, j2 )
