@@ -202,6 +202,38 @@ public:
 
 
 	/**
+	 * Computes the dangling end energy penalties for the subsequences
+	 * BETWEEN positions i1 and j1 of sequence 1, i.e. the dangling
+	 * contributions for the positions (i1+1) and (j1-1) if these are
+	 * neither i1 nor j1.
+	 *
+	 * @param i1 the smaller index of the subsequence's boundaries
+	 * @param j1 the larger index of the subsequence's boundaries (>= i1)
+	 *
+	 * @return the dangling end penalty for the enclosed positions
+	 */
+	virtual
+	E_type
+	getE_danglingEnclosed1( const size_t i1, const size_t j1 ) const;
+
+
+	/**
+	 * Computes the dangling end energy penalties for the subsequences
+	 * BETWEEN positions i2 and j2 of sequence 2, i.e. the dangling
+	 * contributions for the positions (i2+1) and (j2-1) if these are
+	 * neither i2 nor j2.
+	 *
+	 * @param i2 the smaller index of the subsequence's boundaries
+	 * @param j2 the larger index of the subsequence's boundaries (>= i2)
+	 *
+	 * @return the dangling end penalty for the enclosed positions
+	 */
+	virtual
+	E_type
+	getE_danglingEnclosed2( const size_t i2, const size_t j2 ) const;
+
+
+	/**
 	 * Provides the penalty for closing an interaction with the given
 	 * base pair on the "left side" (i1 = 5' end of seq1 of the interaction)
 	 *
@@ -434,6 +466,68 @@ getE_danglingRight( const size_t j1, const size_t j2 ) const
 							  /(E_type)100.0
 			// substract closing penalty
 			- getE_endRight(j1,j2);
+}
+
+////////////////////////////////////////////////////////////////////////////
+
+inline
+E_type
+InteractionEnergyVrna::
+getE_danglingEnclosed1( const size_t i1, const size_t j1 ) const
+{
+#if INTARNA_IN_DEBUG_MODE
+	// sanity check
+	if (i1>j1) throw std::runtime_error("InteractionEnergy::getE_danglingEnclosed1(i1="+toString(i1)+" > j1="+toString(j1));
+	if (j1>=size1()) throw std::runtime_error("InteractionEnergy::getE_danglingEnclosed1() : j1="+toString(j1)+" >= size1()="+toString(size1()));
+#endif
+
+	// check if nothing enclosed
+	if (i1 == j1) {
+		return (E_type)0.0;
+	}
+
+	// Vienna RNA : dangling end contribution (reverse base pair to be sequence end conform)
+	return (E_type) E_Stem( BP_pair[accS1.getSequence().asCodes().at(j1)][accS1.getSequence().asCodes().at(i1)]
+							  , accS1.getSequence().asCodes().at(j1-1)
+							  , accS1.getSequence().asCodes().at(i1+1)
+							  , 1 // is an external loop
+							  , foldParams
+							  )
+					// correct from dcal/mol to kcal/mol
+							  /(E_type)100.0
+			// substract closing penalty
+			- getE_endRight(i1,j1);
+}
+
+////////////////////////////////////////////////////////////////////////////
+
+inline
+E_type
+InteractionEnergyVrna::
+getE_danglingEnclosed2( const size_t i2, const size_t j2 ) const
+{
+#if INTARNA_IN_DEBUG_MODE
+	// sanity check
+	if (i2>j2) throw std::runtime_error("InteractionEnergy::getE_danglingEnclosed2(i2="+toString(i2)+" > j2="+toString(j2));
+	if (j2>=size2()) throw std::runtime_error("InteractionEnergy::getE_danglingEnclosed2() : j2="+toString(j2)+" >= size2()="+toString(size2()));
+#endif
+
+	// check if nothing enclosed
+	if (i2 == j2) {
+		return (E_type)0.0;
+	}
+
+	// Vienna RNA : dangling end contribution (reverse base pair to be sequence end conform)
+	return (E_type) E_Stem( BP_pair[accS2.getSequence().asCodes().at(j2)][accS2.getSequence().asCodes().at(i2)]
+							  , accS2.getSequence().asCodes().at(j2-1)
+							  , accS2.getSequence().asCodes().at(i2+1)
+							  , 1 // is an external loop
+							  , foldParams
+							  )
+					// correct from dcal/mol to kcal/mol
+							  /(E_type)100.0
+			// substract closing penalty
+			- getE_endRight(i2,j2);
 }
 
 ////////////////////////////////////////////////////////////////////////////
