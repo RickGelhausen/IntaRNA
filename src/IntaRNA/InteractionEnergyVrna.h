@@ -486,8 +486,10 @@ getE_danglingEnclosed1( const size_t i1, const size_t j1 ) const
 		return (E_type)0.0;
 	}
 
+	const int bpType = BP_pair[accS1.getSequence().asCodes().at(j1)][accS1.getSequence().asCodes().at(i1)];
+
 	// Vienna RNA : dangling end contribution (reverse base pair to be sequence end conform)
-	return (E_type) E_Stem( BP_pair[accS1.getSequence().asCodes().at(j1)][accS1.getSequence().asCodes().at(i1)]
+	return (E_type) E_Stem( bpType
 							  , accS1.getSequence().asCodes().at(j1-1)
 							  , accS1.getSequence().asCodes().at(i1+1)
 							  , 1 // is an external loop
@@ -496,7 +498,7 @@ getE_danglingEnclosed1( const size_t i1, const size_t j1 ) const
 					// correct from dcal/mol to kcal/mol
 							  /(E_type)100.0
 			// substract closing penalty
-			- getE_endRight(i1,j1);
+			- ( (bpType==bpCG || bpType==bpGC) ? 0.0 : (E_type)foldParams->TerminalAU/(E_type)100.0 );
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -517,17 +519,19 @@ getE_danglingEnclosed2( const size_t i2, const size_t j2 ) const
 		return (E_type)0.0;
 	}
 
+	const int bpType = BP_pair[accS2.getSequence().asCodes().at(i2)][accS2.getSequence().asCodes().at(j2)];
+
 	// Vienna RNA : dangling end contribution (reverse base pair to be sequence end conform)
-	return (E_type) E_Stem( BP_pair[accS2.getSequence().asCodes().at(j2)][accS2.getSequence().asCodes().at(i2)]
-							  , accS2.getSequence().asCodes().at(j2-1)
+	return (E_type) E_Stem( bpType
 							  , accS2.getSequence().asCodes().at(i2+1)
+							  , accS2.getSequence().asCodes().at(j2-1)
 							  , 1 // is an external loop
 							  , foldParams
 							  )
 					// correct from dcal/mol to kcal/mol
 							  /(E_type)100.0
 			// substract closing penalty
-			- getE_endRight(i2,j2);
+			- ( (bpType==bpCG || bpType==bpGC) ? 0.0 : (E_type)foldParams->TerminalAU/(E_type)100.0 );
 }
 
 ////////////////////////////////////////////////////////////////////////////
