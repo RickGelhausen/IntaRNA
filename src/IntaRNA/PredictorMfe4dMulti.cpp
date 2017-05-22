@@ -34,7 +34,6 @@ predict( const IndexRange & r1
         , const OutputConstraint & outConstraint
 )
 {
-
     VLOG(2) <<"predicting mfe interactions in O(n^4) space and O(n^5) time...";
     // measure timing
     TIMED_FUNC_IF(timerObj,VLOG_IS_ON(9));
@@ -84,7 +83,6 @@ predict( const IndexRange & r1
             }
         }
     }
-
     // initialize mfe interaction for updates
     initOptima( outConstraint );
 
@@ -118,7 +116,6 @@ clear()
 void
 PredictorMfe4dMulti::
 fillHybridE( ) {
-
     // global vars to avoid reallocation
     size_t i1, i2, j1, j2, w1, w2, k1, k2;
 
@@ -229,7 +226,6 @@ fillHybridE( ) {
                                 }
                             }
 
-
                             // Structure in S2
                             if (allowES == ES_query || allowES == ES_xorQueryTarget) {
                                 for (k1 = std::min(j1, i1 + energy.getMaxInternalLoopSize1() + 1); k1 > i1; k1--) {
@@ -248,7 +244,6 @@ fillHybridE( ) {
                                 }
                             }
                         }
-
                         // store value
                         (*hybridE(i1, i2))(w1, w2) = curMinE;
 
@@ -268,7 +263,6 @@ void
 PredictorMfe4dMulti::
 traceBack( Interaction & interaction )
 {
-
     // check if something to trace
     if (interaction.basePairs.size() < 2) {
         return;

@@ -997,12 +997,11 @@ getE_multiLeft(  const size_t i1, const size_t j1
     return
         	// intramolecular structure contributions
 			(ES_mode == ES_multi_both ? getES1(i1, j1) : 0)
-
             // multiloop unpaired contributions
             + getE_multiUnpaired(ES_mode == ES_multi_2only ? j1-i1-1 : 0)
-
-            // dangling end treatments (including helix closure penalty)
-//            + getE_danglingLeft( j1, j2 )
+            // dangling end treatments
+			+ getE_danglingEnclosed1(i1,j1)
+			// helix closure penalty
 			+ getE_endRight(i1, i2)
             // multiloop closure
             + getE_multiClosing()
@@ -1019,12 +1018,12 @@ getE_multiRight(const size_t j1
 {
 
     return
-        // intramolecular structure contributions
+        	// intramolecular structure contributions
             getES2(i2, j2)
-
-            // dangling end treatments (including helix closure penalty)
-//            + getE_danglingRight( i1, i2 )
-			+getE_endLeft(j1, j2)
+            // dangling end treatments
+			+ getE_danglingEnclosed2(i2,j2)
+			// helix closure penalty
+			+ getE_endLeft(j1, j2)
             // multiloop helix contribution (right side interaction site)
             + getE_multiHelix( j1, j2 )
             ;
