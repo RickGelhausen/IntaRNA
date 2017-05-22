@@ -1,4 +1,12 @@
 
+170521 Martin Mann :
+ * InteractionEnergy* :
+   + getE_danglingEnclosed*() : dangling end contributions of the enclosed
+     subsequence
+   * getE_multi() :
+     * uses now getE_danglingEnclosed*() instead of getE_danglingLeft/Right()
+     + bugfix : getE_endLeft/Right() was missing
+
 170328 Martin Mann :
  * PredictorHeuristic* :
    * predict() :

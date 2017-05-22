@@ -280,6 +280,38 @@ public:
 	E_type
 	getE_danglingRight( const size_t j1, const size_t j2 ) const;
 
+
+	/**
+	 * Computes the dangling end energy penalties for the subsequences
+	 * BETWEEN positions i1 and j1 of sequence 1, i.e. the dangling
+	 * contributions for the positions (i1+1) and (j1-1) if these are
+	 * neither i1 nor j1.
+	 *
+	 * @param i1 the smaller index of the subsequence's boundaries
+	 * @param j1 the larger index of the subsequence's boundaries (>= i1)
+	 *
+	 * @return the dangling end penalty for the enclosed positions
+	 */
+	virtual
+	E_type
+	getE_danglingEnclosed1( const size_t i1, const size_t j1 ) const;
+
+
+	/**
+	 * Computes the dangling end energy penalties for the subsequences
+	 * BETWEEN positions i2 and j2 of sequence 2, i.e. the dangling
+	 * contributions for the positions (i2+1) and (j2-1) if these are
+	 * neither i2 nor j2.
+	 *
+	 * @param i2 the smaller index of the subsequence's boundaries
+	 * @param j2 the larger index of the subsequence's boundaries (>= i2)
+	 *
+	 * @return the dangling end penalty for the enclosed positions
+	 */
+	virtual
+	E_type
+	getE_danglingEnclosed2( const size_t i2, const size_t j2 ) const;
+
 	/**
 	 * Provides the penalty for closing an interaction with the given
 	 * base pair on the "left side" (i1 = 5' end of seq1 of the interaction)
@@ -714,6 +746,26 @@ InteractionEnergyIdxOffset::
 getPr_danglingRight( const size_t i1, const size_t j1, const size_t i2, const size_t j2 ) const
 {
 	return energyOriginal.getPr_danglingRight(i1+offset1, j1+offset1, i2+offset2, j2+offset2);
+}
+
+//////////////////////////////////////////////////////////////////////////
+
+inline
+E_type
+InteractionEnergyIdxOffset::
+getE_danglingEnclosed1( const size_t i1, const size_t j1 ) const
+{
+	return energyOriginal.getE_danglingEnclosed1(i1+offset1, j1+offset1);
+}
+
+//////////////////////////////////////////////////////////////////////////
+
+inline
+E_type
+InteractionEnergyIdxOffset::
+getE_danglingEnclosed2( const size_t i2, const size_t j2 ) const
+{
+	return energyOriginal.getE_danglingEnclosed2(i2+offset2, j2+offset2);
 }
 
 //////////////////////////////////////////////////////////////////////////

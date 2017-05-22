@@ -35,7 +35,7 @@ predict( const IndexRange & r1
 )
 {
 
-    VLOG(2) <<"predicting mfe interactions in O(n^4) space and time...";
+    VLOG(2) <<"predicting mfe interactions in O(n^4) space and O(n^5) time...";
     // measure timing
     TIMED_FUNC_IF(timerObj,VLOG_IS_ON(9));
 
@@ -243,7 +243,7 @@ fillHybridE( ) {
                                                                (energy.getE_multi(i1, k1, i2, k2, InteractionEnergy::ES_multi_mode::ES_multi_2only)
                                                                 + (*hybridE(k1, k2))(j1 - k1, j2 - k2)
                                                                ));
-                                    }
+                                        }
                                     }
                                 }
                             }
