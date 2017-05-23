@@ -996,7 +996,7 @@ getE_multiLeft(  const size_t i1, const size_t j1
 
     return
         	// intramolecular structure contributions
-			(ES_mode == ES_multi_both ? getES1(i1, j1) : 0)
+			(ES_mode == ES_multi_2only ? 0 : getES1(i1, j1))
             // multiloop unpaired contributions
             + getE_multiUnpaired(ES_mode == ES_multi_2only ? j1-i1-1 : 0)
             // dangling end treatments

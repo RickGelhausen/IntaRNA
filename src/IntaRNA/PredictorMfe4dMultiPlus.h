@@ -95,7 +95,7 @@ protected:
      * Recurse into HybridO to find the index k2 for which k1 returns the minimal energy contribution.
      * @return std::pair<size_t, E_type> index k2 and energy contribution
      */
-	std::pair<size_t, E_type> recurseHybridO(const size_t i1, const size_t j1,
+	size_t traceHybridO(const size_t i1, const size_t j1,
 						  const size_t i2, const size_t j2) const;
 
     /**

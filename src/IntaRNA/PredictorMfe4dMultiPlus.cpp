@@ -327,9 +327,9 @@ fillHybridE( ) {
 
 // TODO: There might be a better way to return the energy contribution
 ////////////////////////////////////////////////////////////////////////////
-std::pair<size_t, E_type>
+size_t
 PredictorMfe4dMultiPlus::
-recurseHybridO( const size_t i1, const size_t j1
+traceHybridO( const size_t i1, const size_t j1
 				, const size_t i2, const size_t j2 ) const
 {
 	E_type curE = (*hybridO(i1,i2))(j1-i1, j2-i2);
@@ -343,7 +343,7 @@ recurseHybridO( const size_t i1, const size_t j1
 			if ( E_equal(curE, energy.getE_multiRight(i1, i2, k2)
 							   + (*hybridE(i1, k2))(j1 - i1, j2 - k2)))
 			{
-				return std::make_pair(k2, energy.getE_multiRight(i1, i2, k2));
+				return k2;
 			}
 		}
 	}
@@ -437,13 +437,13 @@ throw std::runtime_error("PredictorMfe4d::traceBack() : given interaction does n
                         // stop searching
                         traceNotFound = false;
 						// Determine k2 based on k1
-						std::pair<size_t, E_type> tmpR = recurseHybridO(k1, j1, i2, j2);
-						k2 = tmpR.first;
+						k2 = traceHybridO(k1, j1, i2, j2);
+						E_type E_multiRight = energy.getE_multiRight(i1, i2, k2);
                         // store splitting base pair
                         interaction.basePairs.push_back(energy.getBasePair(k1, k2));
                         // store gap information
                         if (interaction.gap == NULL) { interaction.gap = new Interaction::Gap(); }
-                        interaction.gap->energy += energy.getE_multiLeft(i1, k1, i2, InteractionEnergy::ES_multi_mode::ES_multi_both) +tmpR.second;
+                        interaction.gap->energy += energy.getE_multiLeft(i1, k1, i2, InteractionEnergy::ES_multi_mode::ES_multi_both) + E_multiRight;
                         Interaction::BasePair bpLeft = energy.getBasePair(i1,i2);
                         interaction.gap->gaps1.push_back( IndexRange(bpLeft.first,interaction.basePairs.rbegin()->first) );
                         interaction.gap->gaps2.push_back( IndexRange(interaction.basePairs.rbegin()->second,bpLeft.second) );
@@ -501,13 +501,13 @@ throw std::runtime_error("PredictorMfe4d::traceBack() : given interaction does n
 								))) {
 						// stop searching
 						traceNotFound = false;
-						std::pair<size_t, E_type> tmpR = recurseHybridO(k1, j1, i2, j2);
-						k2 = tmpR.first;
+						k2 = traceHybridO(k1, j1, i2, j2);
+						E_type E_multiRight = energy.getE_multiRight(i1, i2, k2);
 						// store splitting base pair
 						interaction.basePairs.push_back(energy.getBasePair(k1, k2));
 						// store gap information
 						if (interaction.gap == NULL) { interaction.gap = new Interaction::Gap(); }
-						interaction.gap->energy += energy.getE_multiLeft(i1, k1, i2, InteractionEnergy::ES_multi_mode::ES_multi_2only) + tmpR.second;
+						interaction.gap->energy += energy.getE_multiLeft(i1, k1, i2, InteractionEnergy::ES_multi_mode::ES_multi_2only) + E_multiRight;
 						Interaction::BasePair bpLeft = energy.getBasePair(i1,i2);
 						interaction.gap->gaps2.push_back( IndexRange(interaction.basePairs.rbegin()->second,bpLeft.second) );
 						// trace right part of split
