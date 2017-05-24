@@ -17,7 +17,7 @@ namespace IntaRNA {
  * @author Martin Mann
  *
  */
-class PredictorMfe4dMultiSeed: public PredictorMfe4d {
+class PredictorMfe4dMultiSeedSimple: public PredictorMfe4d {
 
 
 public:
@@ -33,7 +33,7 @@ public:
 	 * @param allowES where ES-terms are to be considered
 	 * @param seedConstraint the seed constraint to be used for seed identification
 	 */
-	PredictorMfe4dMultiSeed( const InteractionEnergy & energy
+	PredictorMfe4dMultiSeedSimple( const InteractionEnergy & energy
 						, OutputHandler & output
 						, PredictionTracker * predTracker
 						, const AllowES allowES
@@ -43,7 +43,7 @@ public:
 	/**
 	 * destruction
 	 */
-	virtual ~PredictorMfe4dMultiSeed();
+	virtual ~PredictorMfe4dMultiSeedSimple();
 
 	/**
 	 * Computes the mfe for the given sequence ranges (i1-j1) in the first

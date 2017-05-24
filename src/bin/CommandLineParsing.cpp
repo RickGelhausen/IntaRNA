@@ -1532,10 +1532,10 @@ getPredictor( const InteractionEnergy & energy, OutputHandler & output ) const
 			switch ( predMode.val ) {
 			case 'E' : {
 				switch ( predMulti.val ) {
-                case 'Q': return new PredictorMfe4dMultiSeed( energy, output, predTracker, Predictor::AllowES ::ES_query, getSeedConstraint( energy ));
-                case 'T': return new PredictorMfe4dMultiSeed( energy, output, predTracker, Predictor::AllowES ::ES_target, getSeedConstraint( energy ));
-                case 'X': return new PredictorMfe4dMultiSeed( energy, output, predTracker, Predictor::AllowES ::ES_xorQueryTarget, getSeedConstraint( energy ));
-                case 'B': return new PredictorMfe4dMultiSeed( energy, output, predTracker, Predictor::AllowES ::ES_both, getSeedConstraint( energy ));
+                case 'Q': return new PredictorMfe4dMultiSeedSimple( energy, output, predTracker, Predictor::AllowES ::ES_query, getSeedConstraint( energy ));
+                case 'T': return new PredictorMfe4dMultiSeedSimple( energy, output, predTracker, Predictor::AllowES ::ES_target, getSeedConstraint( energy ));
+                case 'X': return new PredictorMfe4dMultiSeedSimple( energy, output, predTracker, Predictor::AllowES ::ES_xorQueryTarget, getSeedConstraint( energy ));
+                case 'B': return new PredictorMfe4dMultiSeedSimple( energy, output, predTracker, Predictor::AllowES ::ES_both, getSeedConstraint( energy ));
                 default: INTARNA_NOT_IMPLEMENTED("mode "+toString(predMode.val)+" not implemented for prediction target "+toString(pred.val));
 				}
 

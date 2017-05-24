@@ -8,8 +8,8 @@ namespace IntaRNA {
 
 ////////////////////////////////////////////////////////////////////////////
 
-PredictorMfe4dMultiSeed::
-PredictorMfe4dMultiSeed( const InteractionEnergy & energy
+PredictorMfe4dMultiSeedSimple::
+PredictorMfe4dMultiSeedSimple( const InteractionEnergy & energy
 					, OutputHandler & output
 					, PredictionTracker * predTracker
 					, const AllowES allowES_
@@ -26,8 +26,8 @@ PredictorMfe4dMultiSeed( const InteractionEnergy & energy
 
 ////////////////////////////////////////////////////////////////////////////
 
-PredictorMfe4dMultiSeed::
-~PredictorMfe4dMultiSeed()
+PredictorMfe4dMultiSeedSimple::
+~PredictorMfe4dMultiSeedSimple()
 {
 	// clean up
 	this->clear();
@@ -37,7 +37,7 @@ PredictorMfe4dMultiSeed::
 ////////////////////////////////////////////////////////////////////////////
 
 void
-PredictorMfe4dMultiSeed::
+PredictorMfe4dMultiSeedSimple::
 predict( const IndexRange & r1
 		, const IndexRange & r2
 		, const OutputConstraint & outConstraint
@@ -53,7 +53,7 @@ predict( const IndexRange & r1
 #if IN_DEBUG_MODE
 	// check indices
 	if (!(r1.isAscending() && r2.isAscending()) )
-		throw std::runtime_error("PredictorMfe4dMultiSeed::predict("+toString(r1)+","+toString(r2)+") is not sane");
+		throw std::runtime_error("PredictorMfe4dMultiSeedSimple::predict("+toString(r1)+","+toString(r2)+") is not sane");
 #endif
 
 	// clear data
@@ -147,7 +147,7 @@ predict( const IndexRange & r1
 ////////////////////////////////////////////////////////////////////////////
 
 void
-PredictorMfe4dMultiSeed::
+PredictorMfe4dMultiSeedSimple::
 clear()
 {
 	// delete 3rd and 4th dimension of the matrix
@@ -177,7 +177,7 @@ clear()
 ////////////////////////////////////////////////////////////////////////////
 
 void
-PredictorMfe4dMultiSeed::
+PredictorMfe4dMultiSeedSimple::
 fillHybridE_seed( )
 {
 
@@ -366,7 +366,7 @@ fillHybridE_seed( )
 ////////////////////////////////////////////////////////////////////////////
 
 void
-PredictorMfe4dMultiSeed::
+PredictorMfe4dMultiSeedSimple::
 traceBack( Interaction & interaction )
 {
 	// check if something to trace
@@ -377,10 +377,10 @@ traceBack( Interaction & interaction )
 #if IN_DEBUG_MODE
 	// sanity checks
 	if ( ! interaction.isValid() ) {
-		throw std::runtime_error("PredictorMfe4dMultiSeed::traceBack() : given interaction not valid");
+		throw std::runtime_error("PredictorMfe4dMultiSeedSimple::traceBack() : given interaction not valid");
 	}
 	if ( interaction.basePairs.size() != 2 ) {
-		throw std::runtime_error("PredictorMfe4dMultiSeed::traceBack() : given interaction does not contain boundaries only");
+		throw std::runtime_error("PredictorMfe4dMultiSeedSimple::traceBack() : given interaction does not contain boundaries only");
 	}
 #endif
 
