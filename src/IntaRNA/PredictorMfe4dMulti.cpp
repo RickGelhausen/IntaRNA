@@ -1,11 +1,11 @@
-#include "IntaRNA/PredictorMfe4dMultiPlus.h"
+#include "IntaRNA/PredictorMfe4dMulti.h"
 
 namespace IntaRNA {
 
 //////////////////////////////////////////////////////////
 
-PredictorMfe4dMultiPlus::
-PredictorMfe4dMultiPlus( const InteractionEnergy & energy
+PredictorMfe4dMulti::
+PredictorMfe4dMulti( const InteractionEnergy & energy
         , OutputHandler & output
         , PredictionTracker * predTracker
         , const AllowES allowES_)
@@ -18,8 +18,8 @@ PredictorMfe4dMultiPlus( const InteractionEnergy & energy
 
 ////////////////////////////////////////////////////////////////////////////
 
-PredictorMfe4dMultiPlus::
-~PredictorMfe4dMultiPlus()
+PredictorMfe4dMulti::
+~PredictorMfe4dMulti()
 {
     // clean up
     this->clear();
@@ -29,7 +29,7 @@ PredictorMfe4dMultiPlus::
 ////////////////////////////////////////////////////////////////////////////
 
 void
-PredictorMfe4dMultiPlus::
+PredictorMfe4dMulti::
 predict( const IndexRange & r1
         , const IndexRange & r2
         , const OutputConstraint & outConstraint
@@ -109,7 +109,7 @@ throw std::runtime_error("PredictorMfe4d::predict("+toString(r1)+","+toString(r2
 ////////////////////////////////////////////////////////////////////////////
 
 void
-PredictorMfe4dMultiPlus::
+PredictorMfe4dMulti::
 clear()
 {
     // delete 3rd and 4th dimension of the matrix
@@ -138,7 +138,7 @@ clear()
 ////////////////////////////////////////////////////////////////////////////
 
 void
-PredictorMfe4dMultiPlus::
+PredictorMfe4dMulti::
 fillHybridE( ) {
 
     // global vars to avoid reallocation
@@ -328,7 +328,7 @@ fillHybridE( ) {
 // TODO: There might be a better way to return the energy contribution
 ////////////////////////////////////////////////////////////////////////////
 size_t
-PredictorMfe4dMultiPlus::
+PredictorMfe4dMulti::
 traceHybridO( const size_t i1, const size_t j1
 				, const size_t i2, const size_t j2 ) const
 {
@@ -352,7 +352,7 @@ traceHybridO( const size_t i1, const size_t j1
 ////////////////////////////////////////////////////////////////////////////
 
 void
-PredictorMfe4dMultiPlus::
+PredictorMfe4dMulti::
 traceBack( Interaction & interaction )
 {
 

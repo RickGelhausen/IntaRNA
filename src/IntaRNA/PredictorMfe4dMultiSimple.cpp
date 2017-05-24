@@ -1,11 +1,11 @@
-#include "IntaRNA/PredictorMfe4dMulti.h"
+#include "IntaRNA/PredictorMfe4dMultiSimple.h"
 
 namespace IntaRNA {
 
 //////////////////////////////////////////////////////////
 
-PredictorMfe4dMulti::
-PredictorMfe4dMulti( const InteractionEnergy & energy
+PredictorMfe4dMultiSimple::
+PredictorMfe4dMultiSimple( const InteractionEnergy & energy
         , OutputHandler & output
         , PredictionTracker * predTracker
         , const AllowES allowES_)
@@ -17,8 +17,8 @@ PredictorMfe4dMulti( const InteractionEnergy & energy
 
 ////////////////////////////////////////////////////////////////////////////
 
-PredictorMfe4dMulti::
-~PredictorMfe4dMulti()
+PredictorMfe4dMultiSimple::
+~PredictorMfe4dMultiSimple()
 {
     // clean up
     this->clear();
@@ -28,7 +28,7 @@ PredictorMfe4dMulti::
 ////////////////////////////////////////////////////////////////////////////
 
 void
-PredictorMfe4dMulti::
+PredictorMfe4dMultiSimple::
 predict( const IndexRange & r1
         , const IndexRange & r2
         , const OutputConstraint & outConstraint
@@ -96,7 +96,7 @@ predict( const IndexRange & r1
 ////////////////////////////////////////////////////////////////////////////
 
 void
-PredictorMfe4dMulti::
+PredictorMfe4dMultiSimple::
 clear()
 {
     // delete 3rd and 4th dimension of the matrix
@@ -114,7 +114,7 @@ clear()
 ////////////////////////////////////////////////////////////////////////////
 
 void
-PredictorMfe4dMulti::
+PredictorMfe4dMultiSimple::
 fillHybridE( ) {
     // global vars to avoid reallocation
     size_t i1, i2, j1, j2, w1, w2, k1, k2;
@@ -260,7 +260,7 @@ fillHybridE( ) {
 ////////////////////////////////////////////////////////////////////////////
 
 void
-PredictorMfe4dMulti::
+PredictorMfe4dMultiSimple::
 traceBack( Interaction & interaction )
 {
     // check if something to trace

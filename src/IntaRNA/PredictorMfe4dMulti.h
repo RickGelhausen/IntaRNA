@@ -13,7 +13,7 @@ namespace IntaRNA {
  * @author Martin Mann & Rick Gelhausen
  *
  */
-class PredictorMfe4dMultiPlus: public PredictorMfe4d {
+class PredictorMfe4dMulti: public PredictorMfe4d {
 
 public:
 
@@ -27,12 +27,12 @@ public:
      *         on this->destruction.
      * @param allowES where ES-terms are to be considered
      */
-    PredictorMfe4dMultiPlus( const InteractionEnergy & energy
+    PredictorMfe4dMulti( const InteractionEnergy & energy
             , OutputHandler & output
             , PredictionTracker * predTracker
             , const AllowES allowES);
 
-    virtual ~PredictorMfe4dMultiPlus();
+    virtual ~PredictorMfe4dMulti();
 
     /**
      * Computes the mfe for the given sequence ranges (i1-j1) in the first

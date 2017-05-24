@@ -38,7 +38,7 @@
 #include "IntaRNA/PredictorMfe4dSeed.h"
 
 #include "IntaRNA/PredictorMfe4dMulti.h"
-#include "IntaRNA/PredictorMfe4dMultiPlus.h"
+#include "IntaRNA/PredictorMfe4dMultiSimple.h"
 #include "IntaRNA/PredictorMfe4dMultiSeed.h"
 
 #include "IntaRNA/PredictionTracker.h"
@@ -1497,10 +1497,10 @@ getPredictor( const InteractionEnergy & energy, OutputHandler & output ) const
 			switch ( predMode.val ) {
             case 'E' : {
                 switch ( predMulti.val ) {
-                case 'Q': return new PredictorMfe4dMultiPlus( energy, output, predTracker, Predictor::AllowES ::ES_query);
-                case 'T': return new PredictorMfe4dMultiPlus( energy, output, predTracker, Predictor::AllowES ::ES_target);
-                case 'X': return new PredictorMfe4dMultiPlus( energy, output, predTracker, Predictor::AllowES ::ES_xorQueryTarget);
-                case 'B': return new PredictorMfe4dMultiPlus( energy, output, predTracker, Predictor::AllowES ::ES_both);
+                case 'Q': return new PredictorMfe4dMultiSimple( energy, output, predTracker, Predictor::AllowES ::ES_query);
+                case 'T': return new PredictorMfe4dMultiSimple( energy, output, predTracker, Predictor::AllowES ::ES_target);
+                case 'X': return new PredictorMfe4dMultiSimple( energy, output, predTracker, Predictor::AllowES ::ES_xorQueryTarget);
+                case 'B': return new PredictorMfe4dMultiSimple( energy, output, predTracker, Predictor::AllowES ::ES_both);
                 default: INTARNA_NOT_IMPLEMENTED("mode "+toString(predMode.val)+" not implemented for prediction target "+toString(pred.val));
                 }
             }
