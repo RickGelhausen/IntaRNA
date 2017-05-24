@@ -39,7 +39,7 @@
 
 #include "IntaRNA/PredictorMfe4dMulti.h"
 #include "IntaRNA/PredictorMfe4dMultiSimple.h"
-#include "IntaRNA/PredictorMfe4dMultiSeed.h"
+#include "IntaRNA/PredictorMfe4dMultiSeedSimple.h"
 
 #include "IntaRNA/PredictionTracker.h"
 #include "IntaRNA/PredictionTrackerHub.h"

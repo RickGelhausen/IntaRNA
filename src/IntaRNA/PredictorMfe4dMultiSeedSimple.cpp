@@ -1,5 +1,5 @@
 
-#include "IntaRNA/PredictorMfe4dMultiSeed.h"
+#include "IntaRNA/PredictorMfe4dMultiSeedSimple.h"
 
 #include <stdexcept>
 #include <algorithm>
