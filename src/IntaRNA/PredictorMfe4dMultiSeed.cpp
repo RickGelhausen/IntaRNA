@@ -689,9 +689,9 @@ if ( interaction.basePairs.size() != 2 ) {
 				if (!traceInESeed && traceNotFound && (allowES == ES_query || allowES == ES_xorQueryTarget)) {
 					for (k1 = std::min(j1, i1 + energy.getMaxInternalLoopSize1() + 1); traceNotFound && k1 > i1; k1--) {
 						for (k2 = j2; traceNotFound && k2 > i2 + InteractionEnergy::minDistES; k2--) {
-							if (hybridE_seed(k1, k2) != NULL
-								&& hybridE_seed(k1, k2)->size1() > (j1 - k1)
-								&& hybridE_seed(k1, k2)->size2() > (j2 - k2))
+							if (hybridO(k1, k2) != NULL
+								&& hybridO(k1, k2)->size1() > (j1 - k1)
+								&& hybridO(k1, k2)->size2() > (j2 - k2))
 							{
 								if (E_equal(curE,
 											(energy.getE_multiLeft(i1, k1, i2, InteractionEnergy::ES_multi_mode::ES_multi_2only)
