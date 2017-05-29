@@ -90,6 +90,10 @@ namespace IntaRNA {
 		//! NOTE: hybridE_seed(i1,i2)==NULL if not complementary(seq1[i1],seq2[i2])
 		E4dMatrix hybridE_seed;
 
+		//! Auxillary Matrix
+		//! Composed of the ES2 values for a fixed value in S1 and hybridE of the remaining part.
+		E4dMatrix hybridO;
+
 		//! defines where ES-terms are considered
 		AllowES allowES;
 
@@ -115,6 +119,13 @@ namespace IntaRNA {
 		 */
 		void
 		fillHybridE_seed( );
+
+		/**
+		 * Recurse into HybridO to find the index k2 for which k1 returns the minimal energy contribution.
+		 * @return index k2
+		 */
+		size_t traceHybridO(const size_t i1, const size_t j1,
+							const size_t i2, const size_t j2) const;
 
 		/**
 		 * Fills a given interaction (boundaries given) with the according

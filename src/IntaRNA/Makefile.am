@@ -58,6 +58,7 @@ libIntaRNA_a_HEADERS =    \
 					PredictorMfe4d.h \
 					PredictorMfe4dSeed.h \
 					PredictorMfe4dMulti.h \
+					PredictorMfe4dMultiSeed.h \
 					PredictorMfe4dMultiSimple.h \
 					PredictorMfe4dMultiSeedSimple.h \
 					ReverseAccessibility.h \
@@ -101,6 +102,7 @@ libIntaRNA_a_SOURCES =    \
 					PredictorMfe4d.cpp \
 					PredictorMfe4dSeed.cpp \
 					PredictorMfe4dMulti.cpp \
+					PredictorMfe4dMultiSeed.cpp \
 					PredictorMfe4dMultiSimple.cpp \
 					PredictorMfe4dMultiSeedSimple.cpp \
 					ReverseAccessibility.cpp \

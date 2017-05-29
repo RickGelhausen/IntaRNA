@@ -299,9 +299,9 @@ fillHybridE( ) {
                             // Structure in S2
                             if (allowES == ES_query || allowES == ES_xorQueryTarget) {
 								for (k1 = std::min(j1, i1 + energy.getMaxInternalLoopSize1() + 1); k1 > i1; k1--) {
-									if (hybridE(k1, i2) != NULL
-										&& hybridE(k1, i2)->size1() > (j1 - k1)
-										&& hybridE(k1, i2)->size2() > (j2 - i2)) {
+									if (hybridO(k1, i2) != NULL
+										&& hybridO(k1, i2)->size1() > (j1 - k1)
+										&& hybridO(k1, i2)->size2() > (j2 - i2)) {
 										// update minE
 										curMinE = std::min(curMinE,
 														   (energy.getE_multiLeft(i1, k1, i2, InteractionEnergy::ES_multi_mode::ES_multi_2only)
@@ -325,7 +325,7 @@ fillHybridE( ) {
     }
 }
 
-// TODO: There might be a better way to return the energy contribution
+
 ////////////////////////////////////////////////////////////////////////////
 size_t
 PredictorMfe4dMulti::
@@ -491,9 +491,9 @@ throw std::runtime_error("PredictorMfe4d::traceBack() : given interaction does n
         // Structure in S2
         if (traceNotFound && (allowES == ES_query || allowES == ES_xorQueryTarget)) {
             for (k1 = std::min(j1, i1 + energy.getMaxInternalLoopSize1() + 1); traceNotFound && k1 > i1; k1--) {
-				if (hybridE(k1, i2) != NULL
-					&& hybridE(k1, i2)->size1() > (j1 - k1)
-					&& hybridE(k1, i2)->size2() > (j2 - i2))
+				if (hybridO(k1, i2) != NULL
+					&& hybridO(k1, i2)->size1() > (j1 - k1)
+					&& hybridO(k1, i2)->size2() > (j2 - i2))
 				{
 					if (E_equal(curE,
 								(energy.getE_multiLeft(i1, k1, i2, InteractionEnergy::ES_multi_mode::ES_multi_2only)
@@ -501,6 +501,7 @@ throw std::runtime_error("PredictorMfe4d::traceBack() : given interaction does n
 								))) {
 						// stop searching
 						traceNotFound = false;
+						// Determine k2 based on k1
 						k2 = traceHybridO(k1, j1, i2, j2);
 						E_type E_multiRight = energy.getE_multiRight(i1, i2, k2);
 						// store splitting base pair
