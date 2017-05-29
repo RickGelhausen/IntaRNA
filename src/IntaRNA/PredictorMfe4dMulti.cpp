@@ -501,7 +501,6 @@ throw std::runtime_error("PredictorMfe4d::traceBack() : given interaction does n
 								))) {
 						// stop searching
 						traceNotFound = false;
-						// Determine k2 based on k1
 						k2 = traceHybridO(k1, j1, i2, j2);
 						E_type E_multiRight = energy.getE_multiRight(i1, i2, k2);
 						// store splitting base pair

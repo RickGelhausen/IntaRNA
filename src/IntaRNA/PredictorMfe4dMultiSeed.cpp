@@ -87,6 +87,7 @@ if (!(r1.isAscending() && r2.isAscending()) )
 	hybridE.resize( hybridEsize1, hybridEsize2 );
 	hybridE_seed.resize( hybridEsize1, hybridEsize2 );
 	hybridE_multi.resize( hybridEsize1, hybridEsize2 );
+	hybridO.resize( hybridEsize1, hybridEsize2 );
 
 	size_t w1, w2;
 
@@ -120,6 +121,13 @@ if (!(r1.isAscending() && r2.isAscending()) )
 		}
 	}
 
+	for (size_t i1=0; i1<hybridO.size1(); i1++) {
+		for (size_t i2=0; i2<hybridO.size2(); i2++) {
+			hybridO(i1,i2) = new E2dMatrix(
+					/*w1 = */ std::min(energy.getAccessibility1().getMaxLength(), hybridO.size1()-i1 ),
+					/*w2 = */ std::min(energy.getAccessibility2().getMaxLength(), hybridO.size2()-i2 ));
+		}
+	}
 	// init mfe without seed condition
 	OutputConstraint tmpOutConstraint(1, outConstraint.reportOverlap, outConstraint.maxE, outConstraint.deltaE);
 	initOptima( tmpOutConstraint );
