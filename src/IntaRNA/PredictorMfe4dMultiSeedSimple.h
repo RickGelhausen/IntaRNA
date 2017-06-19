@@ -93,7 +93,7 @@ protected:
 	//! defines where ES-terms are considered
     AllowES allowES;
 
-	//! energy of all multi-sode interaction hybrids that contain a seeded
+	//! energy of all multi-mode interaction hybrids that contain a seeded
 	//! interaction right of the gap and no seed left of it.
 	//! they are computed by the recursion with indices
 	//! hybridE_seed(i1,i2)->(w1,w2), with interaction start i1 (seq1) and i2 (seq2) and

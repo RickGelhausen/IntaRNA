@@ -29,6 +29,7 @@
 #include "IntaRNA/InteractionEnergyVrna.h"
 
 #include "IntaRNA/PredictorMfe2dHeuristic.h"
+#include "IntaRNA/PredictorMfe2dMultiHeuristic.h"
 #include "IntaRNA/PredictorMfe2d.h"
 #include "IntaRNA/PredictorMfe4d.h"
 #include "IntaRNA/PredictorMaxProb.h"
@@ -112,7 +113,7 @@ CommandLineParsing::CommandLineParsing()
 
 	temperature(0,100,37),
 
-	pred( "SPMO", 'S'),
+	pred( "SPMm", 'S'),
 	predMode( "HME", 'H'),
 	predMulti("QTXB", 'Q'),
 #if INTARNA_MULITHREADING
@@ -1489,12 +1490,21 @@ getPredictor( const InteractionEnergy & energy, OutputHandler & output ) const
                 case 'B': return new PredictorMfe4dMulti( energy, output, predTracker, Predictor::AllowES ::ES_both);
                 default: INTARNA_NOT_IMPLEMENTED("mode "+toString(predMode.val)+" not implemented for prediction target "+toString(pred.val));
 				}
-			}
+			} break;
+			case 'H' : {
+				switch ( predMulti.val ) {
+				case 'Q': return new PredictorMfe2dMultiHeuristic( energy, output, predTracker, Predictor::AllowES ::ES_query);
+				case 'T': return new PredictorMfe2dMultiHeuristic( energy, output, predTracker, Predictor::AllowES ::ES_target);
+				case 'X': return new PredictorMfe2dMultiHeuristic( energy, output, predTracker, Predictor::AllowES ::ES_xorQueryTarget);
+				case 'B': return new PredictorMfe2dMultiHeuristic( energy, output, predTracker, Predictor::AllowES ::ES_both);
+				default: INTARNA_NOT_IMPLEMENTED("mode "+toString(predMode.val)+" not implemented for prediction target "+toString(pred.val));
+				}
+			} break;
 			default :  INTARNA_NOT_IMPLEMENTED("mode "+toString(predMode.val)+" not implemented for prediction target "+toString(pred.val));
 			}
 		} break;
 		// multi-site mfe interactions (contain interior and multi-loops loops)
-		case 'O' : {
+		case 'm' : {
 			switch ( predMode.val ) {
             case 'E' : {
                 switch ( predMulti.val ) {
@@ -1544,7 +1554,7 @@ getPredictor( const InteractionEnergy & energy, OutputHandler & output ) const
 			}
 		} break;
 		// multi-site mfe interactions (contain interior and multi-loops loops)
-		case 'O' : {
+		case 'm' : {
 			switch ( predMode.val ) {
 			case 'E' : {
 				switch ( predMulti.val ) {

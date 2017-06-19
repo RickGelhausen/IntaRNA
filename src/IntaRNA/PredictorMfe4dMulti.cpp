@@ -279,19 +279,19 @@ fillHybridE( ) {
                             // Structure in S1
                             if (allowES == ES_target || allowES == ES_xorQueryTarget) {
                                 for (k1 = j1; k1 > i1 + InteractionEnergy::minDistES; k1--) {
-                                    for (k2 = std::min(j2, i2 + energy.getMaxInternalLoopSize2() + 1);
-                                         k2 > i2; k2--) {
-                                        if (hybridE(k1, k2) != NULL
-                                            && hybridE(k1, k2)->size1() > (j1 - k1)
-                                            && hybridE(k1, k2)->size2() > (j2 - k2))
-                                        {
-                                            // update minE
-                                            curMinE = std::min(curMinE,
-                                                               (energy.getE_multi(i1, k1, i2, k2, InteractionEnergy::ES_multi_mode::ES_multi_1only)
-                                                                + (*hybridE(k1, k2))(j1 - k1, j2 - k2)
-                                                               ));
-                                        }
-                                    }
+								for (k2 = std::min(j2, i2 + energy.getMaxInternalLoopSize2() + 1);
+									 k2 > i2; k2--) {
+									if (hybridE(k1, k2) != NULL
+										&& hybridE(k1, k2)->size1() > (j1 - k1)
+										&& hybridE(k1, k2)->size2() > (j2 - k2))
+									{
+										// update minE
+										curMinE = std::min(curMinE,
+														   (energy.getE_multi(i1, k1, i2, k2, InteractionEnergy::ES_multi_mode::ES_multi_1only)
+															+ (*hybridE(k1, k2))(j1 - k1, j2 - k2)
+														   ));
+									}
+								}
                                 }
                             }
 
