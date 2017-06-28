@@ -1,5 +1,5 @@
-#ifndef INTARNA_PredictorMfe4dMultiPlus_H_
-#define INTARNA_PredictorMfe4dMultiPlus_H_
+#ifndef INTARNA_PREDICTORMFE4DMULTI_H_
+#define INTARNA_PREDICTORMFE4DMULTI_H_
 
 #include "IntaRNA/PredictorMfe4d.h"
 
@@ -13,7 +13,7 @@ namespace IntaRNA {
  * @author Martin Mann & Rick Gelhausen
  *
  */
-class PredictorMfe4dMultiPlus: public PredictorMfe4d {
+class PredictorMfe4dMultiSimple: public PredictorMfe4d {
 
 public:
 
@@ -27,12 +27,12 @@ public:
      *         on this->destruction.
      * @param allowES where ES-terms are to be considered
      */
-    PredictorMfe4dMultiPlus( const InteractionEnergy & energy
+    PredictorMfe4dMultiSimple( const InteractionEnergy & energy
             , OutputHandler & output
             , PredictionTracker * predTracker
             , const AllowES allowES);
 
-    virtual ~PredictorMfe4dMultiPlus();
+    virtual ~PredictorMfe4dMultiSimple();
 
     /**
      * Computes the mfe for the given sequence ranges (i1-j1) in the first
@@ -69,10 +69,6 @@ protected:
     //! NOTE: hybridE(i1,i2)==NULL if not complementary(seq1[i1],seq2[i2])
     using PredictorMfe4d::hybridE;
 
-    //! Auxillary Matrix
-    //! Composed of the ES2 values for a fixed value in S1 and hybridE of remaining part.
-    E4dMatrix hybridO;
-
 
     //! defines where ES-terms are considered
     AllowES allowES;
@@ -82,6 +78,7 @@ protected:
     /**
      * Removes all temporary data structures and resets the predictor
      */
+
     void
     clear();
 
@@ -90,13 +87,6 @@ protected:
      */
     void
     fillHybridE( );
-
-    /**
-     * Recurse into HybridO to find the index k2 for which k1 returns the minimal energy contribution.
-     * @return std::pair<size_t, E_type> index k2 and energy contribution
-     */
-	std::pair<size_t, E_type> recurseHybridO(const size_t i1, const size_t j1,
-						  const size_t i2, const size_t j2) const;
 
     /**
      * Fills a given interaction (boundaries given) with the according
@@ -109,4 +99,4 @@ protected:
 };
 
 } // namespace
-#endif /* INTARNA_PredictorMfe4dMultiPlus_H_ */
+#endif /* INTARNA_PREDICTORMFE4DMULTI_H_ */

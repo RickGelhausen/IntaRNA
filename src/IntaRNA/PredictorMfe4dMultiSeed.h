@@ -1,6 +1,6 @@
 
-#ifndef INTARNA_PREDICTORMFE4DMULTISEED_H_
-#define INTARNA_PREDICTORMFE4DMULTISEED_H_
+#ifndef INTARNA_PREDICTORMFE4DMULTISEED_H
+#define INTARNA_PREDICTORMFE4DMULTISEED_H
 
 #include "IntaRNA/PredictorMfe4d.h"
 #include "IntaRNA/SeedConstraint.h"
@@ -17,114 +17,125 @@ namespace IntaRNA {
  * @author Martin Mann
  *
  */
-class PredictorMfe4dMultiSeed: public PredictorMfe4d {
+	class PredictorMfe4dMultiSeed: public PredictorMfe4d {
 
 
-public:
+	public:
 
-	/**
-	 * Constructs a predictor and stores the energy and output handler
-	 *
-	 * @param energy the interaction energy handler
-	 * @param output the output handler to report mfe interactions to
-	 * @param predTracker the prediction tracker to be used or NULL if no
-	 *         tracking is to be done; if non-NULL, the tracker gets deleted
-	 *         on this->destruction.
-	 * @param allowES where ES-terms are to be considered
-	 * @param seedConstraint the seed constraint to be used for seed identification
-	 */
-	PredictorMfe4dMultiSeed( const InteractionEnergy & energy
-						, OutputHandler & output
-						, PredictionTracker * predTracker
-						, const AllowES allowES
-						, const SeedConstraint & seedConstraint
-						);
+		/**
+		 * Constructs a predictor and stores the energy and output handler
+		 *
+		 * @param energy the interaction energy handler
+		 * @param output the output handler to report mfe interactions to
+		 * @param predTracker the prediction tracker to be used or NULL if no
+		 *         tracking is to be done; if non-NULL, the tracker gets deleted
+		 *         on this->destruction.
+		 * @param allowES where ES-terms are to be considered
+		 * @param seedConstraint the seed constraint to be used for seed identification
+		 */
+		PredictorMfe4dMultiSeed( const InteractionEnergy & energy
+				, OutputHandler & output
+				, PredictionTracker * predTracker
+				, const AllowES allowES
+				, const SeedConstraint & seedConstraint
+		);
 
-	/**
-	 * destruction
-	 */
-	virtual ~PredictorMfe4dMultiSeed();
+		/**
+		 * destruction
+		 */
+		virtual ~PredictorMfe4dMultiSeed();
 
-	/**
-	 * Computes the mfe for the given sequence ranges (i1-j1) in the first
-	 * sequence and (i2-j2) in the second sequence and reports it to the output
-	 * handler.
-	 *
-	 * @param r1 the index range of the first sequence interacting with r2
-	 * @param r2 the index range of the second sequence interacting with r1
-	 * @param outConstraint constrains the interactions reported to the output handler
-	 *
-	 */
-	virtual
-	void
-	predict( const IndexRange & r1 = IndexRange(0,RnaSequence::lastPos)
-			, const IndexRange & r2 = IndexRange(0,RnaSequence::lastPos)
-			, const OutputConstraint & outConstraint = OutputConstraint() );
+		/**
+		 * Computes the mfe for the given sequence ranges (i1-j1) in the first
+		 * sequence and (i2-j2) in the second sequence and reports it to the output
+		 * handler.
+		 *
+		 * @param r1 the index range of the first sequence interacting with r2
+		 * @param r2 the index range of the second sequence interacting with r1
+		 * @param outConstraint constrains the interactions reported to the output handler
+		 *
+		 */
+		virtual
+		void
+		predict( const IndexRange & r1 = IndexRange(0,RnaSequence::lastPos)
+				, const IndexRange & r2 = IndexRange(0,RnaSequence::lastPos)
+				, const OutputConstraint & outConstraint = OutputConstraint() );
 
-protected:
+	protected:
 
-	//! access to the interaction energy handler of the super class
-	using PredictorMfe4d::energy;
+		//! access to the interaction energy handler of the super class
+		using PredictorMfe4d::energy;
 
-	//! access to the output handler of the super class
-	using PredictorMfe4d::output;
+		//! access to the output handler of the super class
+		using PredictorMfe4d::output;
 
-	//! access to the list of reported interaction ranges of the super class
-	using PredictorMfe4d::reportedInteractions;
+		//! access to the list of reported interaction ranges of the super class
+		using PredictorMfe4d::reportedInteractions;
 
-	//! energy of all interaction hybrids computed by the recursion with indices
-	//! hybridE(i1,i2)->(w1,w2), with interaction start i1 (seq1) and i2 (seq2) and
-	//! interaction end j1=i1+w1 and j2=j2+w2. Interactions do not necessarily
-	//! contain a seed interaction.
-	//! NOTE: hybridE(i1,i2)==NULL if not complementary(seq1[i1],seq2[i2])
-	using PredictorMfe4d::hybridE;
-
-
-	//! the seed handler (with idx offset)
-	SeedHandlerIdxOffset seedHandler;
-
-	//! energy of all interaction hybrids that contain a seed interaction.
-	//! they are computed by the recursion with indices
-	//! hybridE_seed(i1,i2)->(w1,w2), with interaction start i1 (seq1) and i2 (seq2) and
-	//! interaction end j1=i1+w1 and j2=j2+w2.
-	//! NOTE: hybridE_seed(i1,i2)==NULL if not complementary(seq1[i1],seq2[i2])
-	E4dMatrix hybridE_seed;
-
-	//! defines where ES-terms are considered
-    AllowES allowES;
-
-	//! energy of all multi-sode interaction hybrids that contain a seeded
-	//! interaction right of the gap and no seed left of it.
-	//! they are computed by the recursion with indices
-	//! hybridE_seed(i1,i2)->(w1,w2), with interaction start i1 (seq1) and i2 (seq2) and
-	//! interaction end j1=i1+w1 and j2=j2+w2.
-	//! NOTE: hybridE_seed(i1,i2)==NULL if not complementary(seq1[i1],seq2[i2])
-	E4dMatrix hybridE_multi;
+		//! energy of all interaction hybrids computed by the recursion with indices
+		//! hybridE(i1,i2)->(w1,w2), with interaction start i1 (seq1) and i2 (seq2) and
+		//! interaction end j1=i1+w1 and j2=j2+w2. Interactions do not necessarily
+		//! contain a seed interaction.
+		//! NOTE: hybridE(i1,i2)==NULL if not complementary(seq1[i1],seq2[i2])
+		using PredictorMfe4d::hybridE;
 
 
-protected:
+		//! the seed handler (with idx offset)
+		SeedHandlerIdxOffset seedHandler;
 
-	/**
-	 * Removes all temporary data structures and resets the predictor
-	 */
-	void
-	clear();
+		//! energy of all interaction hybrids that contain a seed interaction.
+		//! they are computed by the recursion with indices
+		//! hybridE_seed(i1,i2)->(w1,w2), with interaction start i1 (seq1) and i2 (seq2) and
+		//! interaction end j1=i1+w1 and j2=j2+w2.
+		//! NOTE: hybridE_seed(i1,i2)==NULL if not complementary(seq1[i1],seq2[i2])
+		E4dMatrix hybridE_seed;
 
-	/**
-	 * computes all entries of the hybridE matrix
-	 */
-	void
-	fillHybridE_seed( );
+		//! Auxillary Matrix
+		//! Composed of the ES2 values for a fixed value in S1 and hybridE of the remaining part.
+		E4dMatrix hybridO;
 
-	/**
-	 * Fills a given interaction (boundaries given) with the according
-	 * hybridizing base pairs.
-	 * @param interaction IN/OUT the interaction to fill
-	 */
-	void
-	traceBack( Interaction & interaction );
+		//! defines where ES-terms are considered
+		AllowES allowES;
 
-};
+		//! energy of all multi-sode interaction hybrids that contain a seeded
+		//! interaction right of the gap and no seed left of it.
+		//! they are computed by the recursion with indices
+		//! hybridE_seed(i1,i2)->(w1,w2), with interaction start i1 (seq1) and i2 (seq2) and
+		//! interaction end j1=i1+w1 and j2=j2+w2.
+		//! NOTE: hybridE_seed(i1,i2)==NULL if not complementary(seq1[i1],seq2[i2])
+		E4dMatrix hybridE_multi;
+
+
+	protected:
+
+		/**
+		 * Removes all temporary data structures and resets the predictor
+		 */
+		void
+		clear();
+
+		/**
+		 * computes all entries of the hybridE matrix
+		 */
+		void
+		fillHybridE_seed( );
+
+		/**
+		 * Recurse into HybridO to find the index k2 for which k1 returns the minimal energy contribution.
+		 * @return index k2
+		 */
+		size_t traceHybridO(const size_t i1, const size_t j1,
+							const size_t i2, const size_t j2) const;
+
+		/**
+		 * Fills a given interaction (boundaries given) with the according
+		 * hybridizing base pairs.
+		 * @param interaction IN/OUT the interaction to fill
+		 */
+		void
+		traceBack( Interaction & interaction );
+
+	};
 
 } // namespace
-#endif /* INTARNA_PREDICTORMFE4DMULTISEED_H_ */
+#endif //INTARNA_PREDICTORMFE4DMULTISEED_H
