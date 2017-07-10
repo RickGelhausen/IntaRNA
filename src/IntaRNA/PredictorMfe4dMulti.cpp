@@ -245,17 +245,17 @@ fillHybridE( ) {
                             // interior loop case
                             // check all combinations of decompositions into (i1,i2)..(k1,k2)-(j1,j2)
                             for (k1 = std::min(j1, i1 + energy.getMaxInternalLoopSize1() + 1); k1 > i1; k1--) {
-                                for (k2 = std::min(j2, i2 + energy.getMaxInternalLoopSize2() + 1); k2 > i2; k2--) {
-                                    // check if (k1,k2) are complementary
-                                    if (hybridE(k1, k2) != NULL && hybridE(k1, k2)->size1() > (j1 - k1) &&
-                                        hybridE(k1, k2)->size2() > (j2 - k2))
-                                    {
-                                        // update minE
-                                        curMinE = std::min(curMinE,
-                                                           (energy.getE_interLeft(i1, k1, i2, k2)
-                                                            + (*hybridE(k1, k2))(j1 - k1, j2 - k2)));
-                                    }
-                                }
+							for (k2 = std::min(j2, i2 + energy.getMaxInternalLoopSize2() + 1); k2 > i2; k2--) {
+								// check if (k1,k2) are complementary
+								if (hybridE(k1, k2) != NULL && hybridE(k1, k2)->size1() > (j1 - k1) &&
+									hybridE(k1, k2)->size2() > (j2 - k2))
+								{
+									// update minE
+									curMinE = std::min(curMinE,
+													   (energy.getE_interLeft(i1, k1, i2, k2)
+														+ (*hybridE(k1, k2))(j1 - k1, j2 - k2)));
+								}
+							}
                             }
 
                             // Multiloop cases = ES-gap
@@ -399,28 +399,28 @@ throw std::runtime_error("PredictorMfe4d::traceBack() : given interaction does n
 
         // check all combinations of decompositions into (i1,i2)..(k1,k2)-(j1,j2)
         for (k1=std::min(j1,i1+energy.getMaxInternalLoopSize1()+1); traceNotFound && k1>i1; k1--) {
-            for (k2=std::min(j2,i2+energy.getMaxInternalLoopSize2()+1); traceNotFound && k2>i2; k2--) {
-                // check if (k1, k2) are complementary
-                if (hybridE(k1, k2) != NULL
-                    && hybridE(k1,k2)->size1() > (j1 - k1)
-                    && hybridE(k1,k2)->size2() > (j2 - k2))
-                {
-                    if ( E_equal( curE,
-                                  (energy.getE_interLeft(i1,k1,i2,k2)
-                                   + (*hybridE(k1,k2))(j1-k1,j2-k2)
-                                  ) ) )
-                    {
-                        // stop searching
-                        traceNotFound = false;
-                        // store splitting base pair
-                        interaction.basePairs.push_back( energy.getBasePair(k1,k2) );
-                        // trace right part of split
-                        i1=k1;
-                        i2=k2;
-                        curE = (*hybridE(i1,i2))(j1-i1,j2-i2);
-                    }
-                }
-            }
+		for (k2=std::min(j2,i2+energy.getMaxInternalLoopSize2()+1); traceNotFound && k2>i2; k2--) {
+			// check if (k1, k2) are complementary
+			if (hybridE(k1, k2) != NULL
+				&& hybridE(k1,k2)->size1() > (j1 - k1)
+				&& hybridE(k1,k2)->size2() > (j2 - k2))
+			{
+				if ( E_equal( curE,
+							  (energy.getE_interLeft(i1,k1,i2,k2)
+							   + (*hybridE(k1,k2))(j1-k1,j2-k2)
+							  ) ) )
+				{
+					// stop searching
+					traceNotFound = false;
+					// store splitting base pair
+					interaction.basePairs.push_back( energy.getBasePair(k1,k2) );
+					// trace right part of split
+					i1=k1;
+					i2=k2;
+					curE = (*hybridE(i1,i2))(j1-i1,j2-i2);
+				}
+			}
+		}
         }
 
         // Structure in both
