@@ -35,6 +35,7 @@
 #include "IntaRNA/PredictorMaxProb.h"
 
 #include "IntaRNA/PredictorMfe2dHeuristicSeed.h"
+#include "IntaRNA/PredictorMfe2dMultiHeuristicSeed.h"
 #include "IntaRNA/PredictorMfe2dSeed.h"
 #include "IntaRNA/PredictorMfe4dSeed.h"
 
@@ -1550,6 +1551,15 @@ getPredictor( const InteractionEnergy & energy, OutputHandler & output ) const
                 default: INTARNA_NOT_IMPLEMENTED("mode "+toString(predMode.val)+" not implemented for prediction target "+toString(pred.val));
 				}
 			}
+			case 'H' : {
+				switch ( predMulti.val ) {
+				case 'Q': return new PredictorMfe2dMultiHeuristicSeed( energy, output, predTracker, Predictor::AllowES ::ES_query, getSeedConstraint( energy ));
+				case 'T': return new PredictorMfe2dMultiHeuristicSeed( energy, output, predTracker, Predictor::AllowES ::ES_target, getSeedConstraint( energy ));
+				case 'X': return new PredictorMfe2dMultiHeuristicSeed( energy, output, predTracker, Predictor::AllowES ::ES_xorQueryTarget, getSeedConstraint( energy ));
+				case 'B': return new PredictorMfe2dMultiHeuristicSeed( energy, output, predTracker, Predictor::AllowES ::ES_both, getSeedConstraint( energy ));
+				default: INTARNA_NOT_IMPLEMENTED("mode "+toString(predMode.val)+" not implemented for prediction target "+toString(pred.val));
+				}
+			} break;
 			default :  INTARNA_NOT_IMPLEMENTED("mode "+toString(predMode.val)+" not implemented for prediction target "+toString(pred.val));
 			}
 		} break;
