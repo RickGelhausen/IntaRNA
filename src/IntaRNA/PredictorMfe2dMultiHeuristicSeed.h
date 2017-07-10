@@ -89,13 +89,6 @@ protected:
 	//! handler to generate and access seed information with idx offset
 	SeedHandlerIdxOffset seedHandler;
 
-	//! defines where ES-terms are considered
-	AllowES allowES;
-
-	//! energy of all multi-sode interaction hybrids that contain a seeded
-	//! interaction right of the gap and no seed left of it.
-	E2dMatrix hybridE_multi;
-
 protected:
 
 	/**

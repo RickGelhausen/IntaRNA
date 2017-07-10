@@ -16,9 +16,6 @@ PredictorMfe2dMultiHeuristicSeed( const InteractionEnergy & energy
 		: PredictorMfe2dMultiHeuristic(energy,output,predTracker, allowES_)
 		, seedHandler( energy, seedConstraint )
 		, hybridE_seed(0,0)
-		, allowES( allowES_ )
-		, hybridE_multi(0,0)
-		, hybridO()
 {
 }
 

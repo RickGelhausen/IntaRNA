@@ -55,6 +55,7 @@ libIntaRNA_a_HEADERS =    \
 					PredictorMfe2dSeed.h \
 					PredictorMfe2dHeuristic.h \
 					PredictorMfe2dMultiHeuristic.h \
+                    PredictorMfe2dMultiHeuristicSeed.h \
 					PredictorMfe2dHeuristicSeed.h \
 					PredictorMfe4d.h \
 					PredictorMfe4dSeed.h \
@@ -101,6 +102,7 @@ libIntaRNA_a_SOURCES =    \
 					PredictorMfe2dHeuristic.cpp \
 					PredictorMfe2dMultiHeuristic.cpp \
 					PredictorMfe2dHeuristicSeed.cpp \
+					PredictorMfe2dMultiHeuristicSeed.cpp \
 					PredictorMfe4d.cpp \
 					PredictorMfe4dSeed.cpp \
 					PredictorMfe4dMulti.cpp \
