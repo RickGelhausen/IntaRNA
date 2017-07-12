@@ -151,7 +151,7 @@ predict( const IndexRange & r1
 
 		// HybridO computation
 		if (allowES != ES_target) {
-			for (w2 = 1; i2 + InteractionEnergy::minDistES + w2 < hybridE.size2(); w2++) {
+			for (w2 = 1; i2 + InteractionEnergy::minDistES + w2 < hybridE_seed.size2(); w2++) {
 				// direct cell access (const)
 				rightExt = &(hybridE_seed(i1, i2 + w2));
 				// check if right side can pair
@@ -218,7 +218,7 @@ predict( const IndexRange & r1
 
 		// Both-sided structure
 		if (allowES == ES_both) {
-			for (w1 = 1; i1 + InteractionEnergy::minDistES + w1 < hybridE.size1(); w1++) {
+			for (w1 = 1; i1 + InteractionEnergy::minDistES + w1 < hybridE_seed.size1(); w1++) {
 				// direct cell access (const)
 				rightExt = &(hybridO(i1 + w1, i2));
 				// check if right side can pair
@@ -250,10 +250,10 @@ predict( const IndexRange & r1
 
 		// Structure in S1
 		if (allowES == ES_target || allowES == ES_xorQueryTarget) {
-			for (w1 = 1; i1 + InteractionEnergy::minDistES + w1 < hybridE.size1(); w1++) {
-			for (w2 = 1; w2 - 1 <= energy.getMaxInternalLoopSize2() && i2 + w2 < hybridE.size2(); w2++) {
+			for (w1 = 1; i1 + InteractionEnergy::minDistES + w1 < hybridE_seed.size1(); w1++) {
+			for (w2 = 1; w2 - 1 <= energy.getMaxInternalLoopSize2() && i2 + w2 < hybridE_seed.size2(); w2++) {
 				// direct cell access (const)
-				rightExt = &(hybridE(i1 + w1, i2 + w2));
+				rightExt = &(hybridE_seed(i1 + w1, i2 + w2));
 				// check if right side can pair
 				if (E_isINF(rightExt->E)) {
 					continue;
@@ -362,7 +362,7 @@ traceHybridO( const size_t i1, const size_t j1
 
 	size_t k2;
 	for (k2 = j2; k2 > i2 + InteractionEnergy::minDistES; k2--) {
-		curCell = &(hybridE(i1,k2));
+		curCell = &(hybridE_seed(i1,k2));
 		if (curCell->j1 == j1 && curCell->j2 == j2 &&
 			E_equal(curE, energy.getE_multiRight(i1, i2, k2)
 						  + curCell->E))
@@ -479,7 +479,7 @@ traceBack( Interaction & interaction )
 		for (k1=j1; traceNotFound && k1>i1 + InteractionEnergy::minDistES ; k1--) {
 			for (k2=std::min(j2,i2+energy.getMaxInternalLoopSize2()+1); traceNotFound && k2>i2; k2--) {
 				// temp access to current cell
-				curCell = &(hybridE(k1,k2));
+				curCell = &(hybridE_seed(k1,k2));
 				// check if right boundary is equal (part of the heuristic)
 				if ( curCell->j1 == j1 && curCell->j2 == j2 &&
 					 // and energy is the source of curE
