@@ -143,10 +143,9 @@ predict( const IndexRange & r1
 			continue;
 		}
 		// direct cell access
-		curCell = &(hybridE_seed(i1,i2));
+		curCell  = &(hybridE_seed(i1,i2));
 		curCellO = &(hybridO(i1, i2));
 		// reset temporary variables
-		curEtotal = E_INF;
 		curCellEtotal = E_INF;
 
 		// HybridO computation
@@ -471,7 +470,7 @@ traceBack( Interaction & interaction )
 				// trace right part of split
 				i1=k1;
 				i2=k2;
-				curE = hybridE(k1,k2).E;
+				curE = hybridE_seed(k1,k2).E;
 			}
 		}
 
@@ -521,7 +520,7 @@ traceBack( Interaction & interaction )
 				// trace right part of split
 				i1=k1;
 				i2=k2;
-				curE = hybridE(k1,k2).E;
+				curE = hybridE_seed(k1,k2).E;
 			}
 		}
 

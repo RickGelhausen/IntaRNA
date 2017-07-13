@@ -300,6 +300,7 @@ traceHybridO( const size_t i1, const size_t j1
 
 	size_t k2;
 	for (k2 = j2; k2 > i2 + InteractionEnergy::minDistES; k2--) {
+		// direct cell access (const)
 		curCell = &(hybridE(i1,k2));
 		if (curCell->j1 == j1 && curCell->j2 == j2 &&
 			E_equal(curE, energy.getE_multiRight(i1, i2, k2)
