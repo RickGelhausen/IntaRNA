@@ -181,7 +181,5 @@ updateOptima( const size_t i1, const size_t j1
 
 } // namespace
 
-#endif /* PREDICTORMFE2DSEED_H_ */
-
 
 #endif //INTARNA_PREDICTORMFE2DMULTISEED_H
