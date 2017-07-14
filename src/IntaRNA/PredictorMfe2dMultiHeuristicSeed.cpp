@@ -40,7 +40,7 @@ predict( const IndexRange & r1
 #if INTARNA_MULITHREADING
 #pragma omp critical(intarna_omp_logOutput)
 #endif
-	{ VLOG(2) <<"predicting mfe interactions with seed heuristically in O(n^2) space and time..."; }
+	{ VLOG(2) <<"predicting mfe multi-side interactions with seed heuristically in O(n^2) space and O(n^3) time..."; }
 	// measure timing
 	TIMED_FUNC_IF(timerObj,VLOG_IS_ON(9));
 
