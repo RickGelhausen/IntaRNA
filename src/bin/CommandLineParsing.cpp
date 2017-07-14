@@ -1207,8 +1207,8 @@ getEnergyHandler( const Accessibility& accTarget, const ReverseAccessibility& ac
 {
 	checkIfParsed();
 
-	// check whether to compute ES values (for multi-site predictions
-	const bool initES = std::string("M").find(pred.val) != std::string::npos;
+	// check whether to compute ES values (for multi-site predictions)
+	const bool initES = std::string("Mm").find(pred.val) != std::string::npos;
 
 	switch( energy.val ) {
 	case 'B' : return new InteractionEnergyBasePair( accTarget, accQuery, tIntLoopMax.val, qIntLoopMax.val, initES );
