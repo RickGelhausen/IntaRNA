@@ -36,7 +36,7 @@ predict( const IndexRange & r1
 )
 {
 
-    VLOG(2) <<"predicting mfe interactions in O(n^4) space and time...";
+    VLOG(2) <<"predicting mfe multi-side interactions in O(n^4) space and O(n^5) time...";
     // measure timing
     TIMED_FUNC_IF(timerObj,VLOG_IS_ON(9));
 
@@ -144,184 +144,184 @@ fillHybridE( ) {
     // global vars to avoid reallocation
     size_t i1, i2, j1, j2, w1, w2, k1, k2;
 
-    //////////  COMPUTE HYBRIDIZATION ENERGIES ONLY INCLUDING ES-TERMS  ////////////
+    //////////  COMPUTE HYBRIDIZATION ENERGIES ONLY, INCLUDING ES-TERMS  ////////////
 
     // current minimal value
     E_type curMinE = E_INF;
     E_type curMinO = E_INF;
     // iterate increasingly over all window sizes w1 (seq1) and w2 (seq2)
     for (w1 = 0; w1 < energy.getAccessibility1().getMaxLength(); w1++) {
-        for (w2 = 0; w2 < energy.getAccessibility2().getMaxLength(); w2++) {
-            // iterate over all window starts i1 (seq1) and i2 (seq23)
-            // TODO PARALLELIZE THIS DOUBLE LOOP ?!
-            if (allowES != ES_target) {
-            for (i1 = 0; i1 + w1 < hybridO.size1(); i1++) {
-                for (i2 = 0; i2 + w2 < hybridO.size2(); i2++) {
-                    // and widths are possible (ie available within data structure)
-                    if (hybridO(i1, i2)->size1() <= w1 || hybridO(i1, i2)->size2() <= w2) {
-                        // interaction not possible: nothing to do, since no storage reserved
-                        continue;
-                    }
+	for (w2 = 0; w2 < energy.getAccessibility2().getMaxLength(); w2++) {
+		// iterate over all window starts i1 (seq1) and i2 (seq23)
+		// TODO PARALLELIZE THIS DOUBLE LOOP ?!
+		if (allowES != ES_target) {
+		for (i1 = 0; i1 + w1 < hybridO.size1(); i1++) {
+		for (i2 = 0; i2 + w2 < hybridO.size2(); i2++) {
+			// and widths are possible (ie available within data structure)
+			if (hybridO(i1, i2)->size1() <= w1 || hybridO(i1, i2)->size2() <= w2) {
+				// interaction not possible: nothing to do, since no storage reserved
+				continue;
+			}
 
-                    // get window ends j1 (seq1) and j2 (seq2)
-                    j1 = i1 + w1;
-                    j2 = i2 + w2;
+			// get window ends j1 (seq1) and j2 (seq2)
+			j1 = i1 + w1;
+			j2 = i2 + w2;
 
-                    // check if right boundary is complementary
-                    if (hybridO(j1, j2) == NULL) {
-                        // not complementary -> ignore this entry
-                        (*hybridO(i1, i2))(w1, w2) = E_INF;
-                        continue;
-                    }
-
-
-                    // fill hybridO matrix
-
-                    // compute entry, since (i1,i2) complementary
-                    {
-                        // init
-                        curMinO = E_INF;
+			// check if right boundary is complementary
+			if (hybridO(j1, j2) == NULL) {
+				// not complementary -> ignore this entry
+				(*hybridO(i1, i2))(w1, w2) = E_INF;
+				continue;
+			}
 
 
-                        for (k2 = j2; k2 > i2 + InteractionEnergy::minDistES; k2--) {
-                            if (hybridE(i1, k2) != NULL
-                                && hybridE(i1, k2)->size1() > (j1 - i1)
-                                && hybridE(i1, k2)->size2() > (j2 - k2))
-                            {
-                                curMinO = std::min(curMinO,
-                                                   energy.getE_multiRight(i1, i2, k2)
-                                                   + (*hybridE(i1, k2))(j1 - i1, j2 - k2));
-                            }
-                        }
+			// fill hybridO matrix
 
-                        (*hybridO(i1, i2))(w1, w2) = curMinO;
-                        continue;
-                    }
-                }
-            }
-            }
-
-            for (i1 = 0; i1 + w1 < hybridE.size1(); i1++) {
-                for (i2 = 0; i2 + w2 < hybridE.size2(); i2++) {
-                    // check if left boundary is complementary
-                    if (hybridE(i1, i2) == NULL) {
-                        // interaction not possible: nothing to do, since no storage reserved
-                        continue;
-                    }
-
-                    // and widths are possible (ie available within data structure)
-                    if (hybridE(i1, i2)->size1() <= w1 || hybridE(i1, i2)->size2() <= w2) {
-                        // interaction not possible: nothing to do, since no storage reserved
-                        continue;
-                    }
+			// compute entry, since (i1,i2) complementary
+			{
+				// init
+				curMinO = E_INF;
 
 
-                    // get window ends j (seq1) and l (seq2)
-                    j1 = i1 + w1;
-                    j2 = i2 + w2;
+				for (k2 = j2; k2 > i2 + InteractionEnergy::minDistES; k2--) {
+					if (hybridE(i1, k2) != NULL
+						&& hybridE(i1, k2)->size1() > (j1 - i1)
+						&& hybridE(i1, k2)->size2() > (j2 - k2))
+					{
+						curMinO = std::min(curMinO,
+										   energy.getE_multiRight(i1, i2, k2)
+										   + (*hybridE(i1, k2))(j1 - i1, j2 - k2));
+					}
+				}
 
-                    // check if right boundary is complementary
-                    if (hybridE(j1, j2) == NULL) {
-                        // not complementary -> ignore this entry
-                        (*hybridE(i1, i2))(w1, w2) = E_INF;
-                        continue;
-                    }
+				(*hybridO(i1, i2))(w1, w2) = curMinO;
+				continue;
+			}
+			}
+		}
+		}
 
-                    // compute entry, since (i1,i2) complementary
-                    {
-                        // init
-                        curMinE = E_INF;
+		for (i1 = 0; i1 + w1 < hybridE.size1(); i1++) {
+		for (i2 = 0; i2 + w2 < hybridE.size2(); i2++) {
+			// check if left boundary is complementary
+			if (hybridE(i1, i2) == NULL) {
+				// interaction not possible: nothing to do, since no storage reserved
+				continue;
+			}
 
-                        // either interaction initiation
-                        if (w1 == 0 && w2 == 0) {
-                            // interaction initiation
-                            curMinE = energy.getE_init();
-                        }
-                        else
-                            // or loop
-                            // or ES-gap
-                        if (w1 > 0 && w2 > 0)
-                        {
-                            // interior loop case
-                            // check all combinations of decompositions into (i1,i2)..(k1,k2)-(j1,j2)
-                            for (k1 = std::min(j1, i1 + energy.getMaxInternalLoopSize1() + 1); k1 > i1; k1--) {
-                                for (k2 = std::min(j2, i2 + energy.getMaxInternalLoopSize2() + 1); k2 > i2; k2--) {
-                                    // check if (k1,k2) are complementary
-                                    if (hybridE(k1, k2) != NULL && hybridE(k1, k2)->size1() > (j1 - k1) &&
-                                        hybridE(k1, k2)->size2() > (j2 - k2))
-                                    {
-                                        // update minE
-                                        curMinE = std::min(curMinE,
-                                                           (energy.getE_interLeft(i1, k1, i2, k2)
-                                                            + (*hybridE(k1, k2))(j1 - k1, j2 - k2)));
-                                    }
-                                }
-                            }
-
-                            // Multiloop cases = ES-gap
-
-                            // Both-sided structure
-                            if (allowES == ES_both) {
-                                for (k1 = j1; k1 > i1 + InteractionEnergy::minDistES; k1--) {
-                                    if (hybridO(k1, i2) != NULL
-                                        && hybridO(k1, i2)->size1() > (j1 - k1)
-                                        && hybridO(k1, i2)->size2() > (j2 - i2))
-									{
-										// update minE
-                                        curMinE = std::min(curMinE,
-                                                           (energy.getE_multiLeft(i1, k1, i2, InteractionEnergy::ES_multi_mode::ES_multi_both)
-                                                            + (*hybridO(k1, i2))(j1 - k1, j2 - i2)
-                                                           ));
-                                    }
-                                }
-                            }
-
-                            // Structure in S1
-                            if (allowES == ES_target || allowES == ES_xorQueryTarget) {
-                                for (k1 = j1; k1 > i1 + InteractionEnergy::minDistES; k1--) {
-								for (k2 = std::min(j2, i2 + energy.getMaxInternalLoopSize2() + 1);
-									 k2 > i2; k2--) {
-									if (hybridE(k1, k2) != NULL
-										&& hybridE(k1, k2)->size1() > (j1 - k1)
-										&& hybridE(k1, k2)->size2() > (j2 - k2))
-									{
-										// update minE
-										curMinE = std::min(curMinE,
-														   (energy.getE_multi(i1, k1, i2, k2, InteractionEnergy::ES_multi_mode::ES_multi_1only)
-															+ (*hybridE(k1, k2))(j1 - k1, j2 - k2)
-														   ));
-									}
-								}
-                                }
-                            }
+			// and widths are possible (ie available within data structure)
+			if (hybridE(i1, i2)->size1() <= w1 || hybridE(i1, i2)->size2() <= w2) {
+				// interaction not possible: nothing to do, since no storage reserved
+				continue;
+			}
 
 
-                            // Structure in S2
-                            if (allowES == ES_query || allowES == ES_xorQueryTarget) {
-								for (k1 = std::min(j1, i1 + energy.getMaxInternalLoopSize1() + 1); k1 > i1; k1--) {
-									if (hybridO(k1, i2) != NULL
-										&& hybridO(k1, i2)->size1() > (j1 - k1)
-										&& hybridO(k1, i2)->size2() > (j2 - i2)) {
-										// update minE
-										curMinE = std::min(curMinE,
-														   (energy.getE_multiLeft(i1, k1, i2, InteractionEnergy::ES_multi_mode::ES_multi_2only)
-															+ (*hybridO(k1, i2))(j1 - k1, j2 - i2)
-														   ));
-									}
-								}
+			// get window ends j (seq1) and l (seq2)
+			j1 = i1 + w1;
+			j2 = i2 + w2;
+
+			// check if right boundary is complementary
+			if (hybridE(j1, j2) == NULL) {
+				// not complementary -> ignore this entry
+				(*hybridE(i1, i2))(w1, w2) = E_INF;
+				continue;
+			}
+
+			// compute entry, since (i1,i2) complementary
+			{
+				// init
+				curMinE = E_INF;
+
+				// either interaction initiation
+				if (w1 == 0 && w2 == 0) {
+					// interaction initiation
+					curMinE = energy.getE_init();
+				}
+				else
+					// or loop
+					// or ES-gap
+				if (w1 > 0 && w2 > 0)
+				{
+					// interior loop case
+					// check all combinations of decompositions into (i1,i2)..(k1,k2)-(j1,j2)
+					for (k1 = std::min(j1, i1 + energy.getMaxInternalLoopSize1() + 1); k1 > i1; k1--) {
+					for (k2 = std::min(j2, i2 + energy.getMaxInternalLoopSize2() + 1); k2 > i2; k2--) {
+						// check if (k1,k2) are complementary
+						if (hybridE(k1, k2) != NULL && hybridE(k1, k2)->size1() > (j1 - k1) &&
+							hybridE(k1, k2)->size2() > (j2 - k2))
+						{
+							// update minE
+							curMinE = std::min(curMinE,
+											   (energy.getE_interLeft(i1, k1, i2, k2)
+												+ (*hybridE(k1, k2))(j1 - k1, j2 - k2)));
+						}
+					}
+					}
+
+					// Multiloop cases = ES-gap
+
+					// Both-sided structure
+					if (allowES == ES_both) {
+						for (k1 = j1; k1 > i1 + InteractionEnergy::minDistES; k1--) {
+							if (hybridO(k1, i2) != NULL
+								&& hybridO(k1, i2)->size1() > (j1 - k1)
+								&& hybridO(k1, i2)->size2() > (j2 - i2))
+							{
+								// update minE
+								curMinE = std::min(curMinE,
+												   (energy.getE_multiLeft(i1, k1, i2, InteractionEnergy::ES_multi_mode::ES_multi_both)
+													+ (*hybridO(k1, i2))(j1 - k1, j2 - i2)
+												   ));
 							}
-                        }
+						}
+					}
 
-                        // store value
-                        (*hybridE(i1, i2))(w1, w2) = curMinE;
+					// Structure in S1
+					if (allowES == ES_target || allowES == ES_xorQueryTarget) {
+						for (k1 = j1; k1 > i1 + InteractionEnergy::minDistES; k1--) {
+						for (k2 = std::min(j2, i2 + energy.getMaxInternalLoopSize2() + 1);
+							 k2 > i2; k2--) {
+							if (hybridE(k1, k2) != NULL
+								&& hybridE(k1, k2)->size1() > (j1 - k1)
+								&& hybridE(k1, k2)->size2() > (j2 - k2))
+							{
+								// update minE
+								curMinE = std::min(curMinE,
+												   (energy.getE_multi(i1, k1, i2, k2, InteractionEnergy::ES_multi_mode::ES_multi_1only)
+													+ (*hybridE(k1, k2))(j1 - k1, j2 - k2)
+												   ));
+							}
+						}
+						}
+					}
 
-                        // update mfe if needed
-                        updateOptima(i1, j1, i2, j2, (*hybridE(i1, i2))(w1, w2), true);
-                        continue;
-                    }
-                }
-            }
-        }
+
+					// Structure in S2
+					if (allowES == ES_query || allowES == ES_xorQueryTarget) {
+						for (k1 = std::min(j1, i1 + energy.getMaxInternalLoopSize1() + 1); k1 > i1; k1--) {
+							if (hybridO(k1, i2) != NULL
+								&& hybridO(k1, i2)->size1() > (j1 - k1)
+								&& hybridO(k1, i2)->size2() > (j2 - i2)) {
+								// update minE
+								curMinE = std::min(curMinE,
+												   (energy.getE_multiLeft(i1, k1, i2, InteractionEnergy::ES_multi_mode::ES_multi_2only)
+													+ (*hybridO(k1, i2))(j1 - k1, j2 - i2)
+												   ));
+							}
+						}
+					}
+				}
+
+				// store value
+				(*hybridE(i1, i2))(w1, w2) = curMinE;
+
+				// update mfe if needed
+				updateOptima(i1, j1, i2, j2, (*hybridE(i1, i2))(w1, w2), true);
+				continue;
+			}
+		}
+		}
+	}
     }
 }
 
@@ -399,28 +399,28 @@ throw std::runtime_error("PredictorMfe4d::traceBack() : given interaction does n
 
         // check all combinations of decompositions into (i1,i2)..(k1,k2)-(j1,j2)
         for (k1=std::min(j1,i1+energy.getMaxInternalLoopSize1()+1); traceNotFound && k1>i1; k1--) {
-            for (k2=std::min(j2,i2+energy.getMaxInternalLoopSize2()+1); traceNotFound && k2>i2; k2--) {
-                // check if (k1, k2) are complementary
-                if (hybridE(k1, k2) != NULL
-                    && hybridE(k1,k2)->size1() > (j1 - k1)
-                    && hybridE(k1,k2)->size2() > (j2 - k2))
-                {
-                    if ( E_equal( curE,
-                                  (energy.getE_interLeft(i1,k1,i2,k2)
-                                   + (*hybridE(k1,k2))(j1-k1,j2-k2)
-                                  ) ) )
-                    {
-                        // stop searching
-                        traceNotFound = false;
-                        // store splitting base pair
-                        interaction.basePairs.push_back( energy.getBasePair(k1,k2) );
-                        // trace right part of split
-                        i1=k1;
-                        i2=k2;
-                        curE = (*hybridE(i1,i2))(j1-i1,j2-i2);
-                    }
-                }
-            }
+		for (k2=std::min(j2,i2+energy.getMaxInternalLoopSize2()+1); traceNotFound && k2>i2; k2--) {
+			// check if (k1, k2) are complementary
+			if (hybridE(k1, k2) != NULL
+				&& hybridE(k1,k2)->size1() > (j1 - k1)
+				&& hybridE(k1,k2)->size2() > (j2 - k2))
+			{
+				if ( E_equal( curE,
+							  (energy.getE_interLeft(i1,k1,i2,k2)
+							   + (*hybridE(k1,k2))(j1-k1,j2-k2)
+							  ) ) )
+				{
+					// stop searching
+					traceNotFound = false;
+					// store splitting base pair
+					interaction.basePairs.push_back( energy.getBasePair(k1,k2) );
+					// trace right part of split
+					i1=k1;
+					i2=k2;
+					curE = (*hybridE(i1,i2))(j1-i1,j2-i2);
+				}
+			}
+		}
         }
 
         // Structure in both

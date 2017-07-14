@@ -192,17 +192,17 @@ fillHybridE( ) {
                             // Both-sided structure
                             if (allowES == ES_both) {
                                 for (k1 = j1; k1 > i1 + InteractionEnergy::minDistES; k1--) {
-                                    for (k2 = j2; k2 > i2 + InteractionEnergy::minDistES; k2--) {
-                                        if (hybridE(k1, k2) != NULL
-                                            && hybridE(k1, k2)->size1() > (j1 - k1)
-                                            && hybridE(k1, k2)->size2() > (j2 - k2))
-                                        {
-                                            // update minE
-                                            curMinE = std::min(curMinE,
-                                                               (energy.getE_multi(i1, k1, i2, k2, InteractionEnergy::ES_multi_mode::ES_multi_both)
-                                                                + (*hybridE(k1, k2))(j1 - k1, j2 - k2)
-                                                               ));
-                                        }
+                                for (k2 = j2; k2 > i2 + InteractionEnergy::minDistES; k2--) {
+                                    if (hybridE(k1, k2) != NULL
+                                        && hybridE(k1, k2)->size1() > (j1 - k1)
+                                        && hybridE(k1, k2)->size2() > (j2 - k2))
+                                    {
+                                        // update minE
+                                        curMinE = std::min(curMinE,
+                                                           (energy.getE_multi(i1, k1, i2, k2, InteractionEnergy::ES_multi_mode::ES_multi_both)
+                                                            + (*hybridE(k1, k2))(j1 - k1, j2 - k2)
+                                                           ));
+                                    }
                                     }
                                 }
                             }
@@ -210,18 +210,18 @@ fillHybridE( ) {
                             // Structure in S1
                             if (allowES == ES_target || allowES == ES_xorQueryTarget) {
                                 for (k1 = j1; k1 > i1 + InteractionEnergy::minDistES; k1--) {
-                                    for (k2 = std::min(j2, i2 + energy.getMaxInternalLoopSize2() + 1);
-                                         k2 > i2; k2--) {
-                                        if (hybridE(k1, k2) != NULL
-                                            && hybridE(k1, k2)->size1() > (j1 - k1)
-                                            && hybridE(k1, k2)->size2() > (j2 - k2))
-                                        {
-                                            // update minE
-                                            curMinE = std::min(curMinE,
-                                                               (energy.getE_multi(i1, k1, i2, k2, InteractionEnergy::ES_multi_mode::ES_multi_1only)
-                                                                + (*hybridE(k1, k2))(j1 - k1, j2 - k2)
-                                                               ));
-                                        }
+                                for (k2 = std::min(j2, i2 + energy.getMaxInternalLoopSize2() + 1);
+                                     k2 > i2; k2--) {
+                                    if (hybridE(k1, k2) != NULL
+                                        && hybridE(k1, k2)->size1() > (j1 - k1)
+                                        && hybridE(k1, k2)->size2() > (j2 - k2))
+                                    {
+                                        // update minE
+                                        curMinE = std::min(curMinE,
+                                                           (energy.getE_multi(i1, k1, i2, k2, InteractionEnergy::ES_multi_mode::ES_multi_1only)
+                                                            + (*hybridE(k1, k2))(j1 - k1, j2 - k2)
+                                                           ));
+                                    }
                                     }
                                 }
                             }
@@ -229,18 +229,18 @@ fillHybridE( ) {
                             // Structure in S2
                             if (allowES == ES_query || allowES == ES_xorQueryTarget) {
                                 for (k1 = std::min(j1, i1 + energy.getMaxInternalLoopSize1() + 1); k1 > i1; k1--) {
-                                    for (k2 = j2; k2 > i2 + InteractionEnergy::minDistES; k2--) {
-                                        if (hybridE(k1, k2) != NULL
-                                            && hybridE(k1, k2)->size1() > (j1 - k1)
-                                            && hybridE(k1, k2)->size2() > (j2 - k2))
-                                        {
-                                            // update minE
-                                            curMinE = std::min(curMinE,
-                                                               (energy.getE_multi(i1, k1, i2, k2, InteractionEnergy::ES_multi_mode::ES_multi_2only)
-                                                                + (*hybridE(k1, k2))(j1 - k1, j2 - k2)
-                                                               ));
-                                        }
+                                for (k2 = j2; k2 > i2 + InteractionEnergy::minDistES; k2--) {
+                                    if (hybridE(k1, k2) != NULL
+                                        && hybridE(k1, k2)->size1() > (j1 - k1)
+                                        && hybridE(k1, k2)->size2() > (j2 - k2))
+                                    {
+                                        // update minE
+                                        curMinE = std::min(curMinE,
+                                                           (energy.getE_multi(i1, k1, i2, k2, InteractionEnergy::ES_multi_mode::ES_multi_2only)
+                                                            + (*hybridE(k1, k2))(j1 - k1, j2 - k2)
+                                                           ));
                                     }
+                                }
                                 }
                             }
                         }

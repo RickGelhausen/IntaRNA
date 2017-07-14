@@ -31,10 +31,13 @@
 #include "IntaRNA/PredictorMfe2dHeuristic.h"
 #include "IntaRNA/PredictorMfe2dMultiHeuristic.h"
 #include "IntaRNA/PredictorMfe2d.h"
+#include "IntaRNA/PredictorMfe2dMulti.h"
+#include "IntaRNA/PredictorMfe2dMultiSeed.h"
 #include "IntaRNA/PredictorMfe4d.h"
 #include "IntaRNA/PredictorMaxProb.h"
 
 #include "IntaRNA/PredictorMfe2dHeuristicSeed.h"
+#include "IntaRNA/PredictorMfe2dMultiHeuristicSeed.h"
 #include "IntaRNA/PredictorMfe2dSeed.h"
 #include "IntaRNA/PredictorMfe4dSeed.h"
 
@@ -1482,21 +1485,30 @@ getPredictor( const InteractionEnergy & energy, OutputHandler & output ) const
 		// multi-site mfe interactions using hybridO matrix
 		case 'M' : {
 			switch ( predMode.val ) {
-			case 'E' : {
-				switch ( predMulti.val ) {
-                case 'Q': return new PredictorMfe4dMulti( energy, output, predTracker, Predictor::AllowES ::ES_query);
-                case 'T': return new PredictorMfe4dMulti( energy, output, predTracker, Predictor::AllowES ::ES_target);
-                case 'X': return new PredictorMfe4dMulti( energy, output, predTracker, Predictor::AllowES ::ES_xorQueryTarget);
-                case 'B': return new PredictorMfe4dMulti( energy, output, predTracker, Predictor::AllowES ::ES_both);
-                default: INTARNA_NOT_IMPLEMENTED("mode "+toString(predMode.val)+" not implemented for prediction target "+toString(pred.val));
-				}
-			} break;
 			case 'H' : {
 				switch ( predMulti.val ) {
 				case 'Q': return new PredictorMfe2dMultiHeuristic( energy, output, predTracker, Predictor::AllowES ::ES_query);
 				case 'T': return new PredictorMfe2dMultiHeuristic( energy, output, predTracker, Predictor::AllowES ::ES_target);
 				case 'X': return new PredictorMfe2dMultiHeuristic( energy, output, predTracker, Predictor::AllowES ::ES_xorQueryTarget);
 				case 'B': return new PredictorMfe2dMultiHeuristic( energy, output, predTracker, Predictor::AllowES ::ES_both);
+				default: INTARNA_NOT_IMPLEMENTED("mode "+toString(predMode.val)+" not implemented for prediction target "+toString(pred.val));
+				}
+			} break;
+			case 'M' : {
+				switch ( predMulti.val ) {
+				case 'Q': return new PredictorMfe2dMulti( energy, output, predTracker, Predictor::AllowES ::ES_query);
+				case 'T': return new PredictorMfe2dMulti( energy, output, predTracker, Predictor::AllowES ::ES_target);
+				case 'X': return new PredictorMfe2dMulti( energy, output, predTracker, Predictor::AllowES ::ES_xorQueryTarget);
+				case 'B': return new PredictorMfe2dMulti( energy, output, predTracker, Predictor::AllowES ::ES_both);
+				default: INTARNA_NOT_IMPLEMENTED("mode "+toString(predMode.val)+" not implemented for prediction target "+toString(pred.val));
+				}
+			} break;
+			case 'E' : {
+				switch ( predMulti.val ) {
+				case 'Q': return new PredictorMfe4dMulti( energy, output, predTracker, Predictor::AllowES ::ES_query);
+				case 'T': return new PredictorMfe4dMulti( energy, output, predTracker, Predictor::AllowES ::ES_target);
+				case 'X': return new PredictorMfe4dMulti( energy, output, predTracker, Predictor::AllowES ::ES_xorQueryTarget);
+				case 'B': return new PredictorMfe4dMulti( energy, output, predTracker, Predictor::AllowES ::ES_both);
 				default: INTARNA_NOT_IMPLEMENTED("mode "+toString(predMode.val)+" not implemented for prediction target "+toString(pred.val));
 				}
 			} break;
@@ -1541,6 +1553,24 @@ getPredictor( const InteractionEnergy & energy, OutputHandler & output ) const
 		// multi-site mfe interactions using hybridO matrix
 		case 'M' : {
 			switch ( predMode.val ) {
+			case 'H' : {
+				switch ( predMulti.val ) {
+				case 'Q': return new PredictorMfe2dMultiHeuristicSeed( energy, output, predTracker, Predictor::AllowES ::ES_query, getSeedConstraint( energy ));
+				case 'T': return new PredictorMfe2dMultiHeuristicSeed( energy, output, predTracker, Predictor::AllowES ::ES_target, getSeedConstraint( energy ));
+				case 'X': return new PredictorMfe2dMultiHeuristicSeed( energy, output, predTracker, Predictor::AllowES ::ES_xorQueryTarget, getSeedConstraint( energy ));
+				case 'B': return new PredictorMfe2dMultiHeuristicSeed( energy, output, predTracker, Predictor::AllowES ::ES_both, getSeedConstraint( energy ));
+				default: INTARNA_NOT_IMPLEMENTED("mode "+toString(predMode.val)+" not implemented for prediction target "+toString(pred.val));
+				}
+			}
+			case 'M' : {
+				switch ( predMulti.val ) {
+				case 'Q': return new PredictorMfe2dMultiSeed( energy, output, predTracker, Predictor::AllowES ::ES_query, getSeedConstraint( energy ));
+				case 'T': return new PredictorMfe2dMultiSeed( energy, output, predTracker, Predictor::AllowES ::ES_target, getSeedConstraint( energy ));
+				case 'X': return new PredictorMfe2dMultiSeed( energy, output, predTracker, Predictor::AllowES ::ES_xorQueryTarget, getSeedConstraint( energy ));
+				case 'B': return new PredictorMfe2dMultiSeed( energy, output, predTracker, Predictor::AllowES ::ES_both, getSeedConstraint( energy ));
+				default: INTARNA_NOT_IMPLEMENTED("mode "+toString(predMode.val)+" not implemented for prediction target "+toString(pred.val));
+				}
+			} break;
 			case 'E' : {
 				switch ( predMulti.val ) {
                 case 'Q': return new PredictorMfe4dMultiSeed( energy, output, predTracker, Predictor::AllowES ::ES_query, getSeedConstraint( energy ));
@@ -1549,7 +1579,7 @@ getPredictor( const InteractionEnergy & energy, OutputHandler & output ) const
                 case 'B': return new PredictorMfe4dMultiSeed( energy, output, predTracker, Predictor::AllowES ::ES_both, getSeedConstraint( energy ));
                 default: INTARNA_NOT_IMPLEMENTED("mode "+toString(predMode.val)+" not implemented for prediction target "+toString(pred.val));
 				}
-			}
+			} break;
 			default :  INTARNA_NOT_IMPLEMENTED("mode "+toString(predMode.val)+" not implemented for prediction target "+toString(pred.val));
 			}
 		} break;
