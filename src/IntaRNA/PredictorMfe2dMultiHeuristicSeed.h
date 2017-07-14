@@ -83,6 +83,7 @@ protected:
 
 	// Auxillary matrix to improve runtime
 	using PredictorMfe2dMultiHeuristic::hybridO;
+
 	//! the best hybridization energy including a seed for start i1,i2
 	E2dMatrix hybridE_seed;
 

@@ -121,6 +121,7 @@ protected:
 	 * Recurse into HybridO to find the index k2 for which k1 returns the minimal energy contribution.
 	 * @return index k2
 	 */
+	virtual
 	size_t traceHybridO(const size_t i1, const size_t j1,
 						const size_t i2, const size_t j2) const;
 
