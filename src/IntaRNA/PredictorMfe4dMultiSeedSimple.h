@@ -124,6 +124,18 @@ protected:
 	void
 	traceBack( Interaction & interaction );
 
+	/**
+	* Identifies the next best interaction with an energy equal to or higher
+	* than the given interaction. The new interaction will not overlap any
+	* index range stored in reportedInteractions.
+	*
+	* @param curBest IN/OUT the current best interaction to be replaced with one
+	*        of equal or higher energy not overlapping with any reported
+	*        interaction so far; an interaction with energy E_INF is set, if
+	*        there is no better interaction left
+	*/
+	void
+	getNextBest( Interaction & curBest );
 };
 
 } // namespace

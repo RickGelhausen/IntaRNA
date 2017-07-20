@@ -765,6 +765,89 @@ if ( interaction.basePairs.size() != 2 ) {
 
 }
 
+////////////////////////////////////////////////////////////////////////////
+
+void
+PredictorMfe4dMultiSeed::
+getNextBest( Interaction & curBest )
+{
+
+	// store current best energy.second
+	const E_type curBestE = curBest.energy;
+
+	// overwrite energy for update
+	curBest.energy = E_INF;
+	curBest.basePairs.resize(2);
+
+	// TODO replace index iteration with something based on ranges from reportedInteractions
+
+	// identify cell with next best non-overlapping interaction site
+	// iterate (decreasingly) over all left interaction starts
+	E2dMatrix * curTable = NULL;
+	IndexRange r1,r2;
+	E_type curE = E_INF;
+	for (r1.from=hybridE_seed.size1(); r1.from-- > 0;) {
+
+		// ensure interaction site start is not covered
+		if (reportedInteractions.first.covers(r1.from)) {
+			continue;
+		}
+
+		for (r2.from=hybridE_seed.size2(); r2.from-- > 0;) {
+
+			// ensure interaction site start is not covered
+			if (reportedInteractions.second.covers(r2.from)) {
+				continue;
+			}
+			// check if left boundary is complementary
+			if (hybridE_seed(r1.from,r2.from) == NULL) {
+				// interaction not possible: nothing to do, since no storage reserved
+				continue;
+			}
+
+			curTable = hybridE_seed(r1.from,r2.from);
+
+			for (r1.to=r1.from; r1.to<curTable->size1(); r1.to++) {
+
+				// check of overlapping
+				if (reportedInteractions.first.overlaps(r1)) {
+					// stop since all larger sites will overlap as well
+					break;;
+				}
+
+				for (r2.to=r2.from; r2.to<curTable->size2(); r2.to++) {
+
+					// check of overlapping
+					if (reportedInteractions.second.overlaps(r2)) {
+						// stop since all larger sites will overlap as well
+						break;;
+					}
+
+					// get overall energy of entry
+					curE = energy.getE( r1.from, r1.to, r2.from, r2.to, (*curTable)(r1.to,r2.to));
+
+					// skip sites with energy too low
+					// or higher than current best found so far
+					if (  curE< curBestE || curE >= curBest.energy ) {
+						continue;
+					}
+
+					//// FOUND THE NEXT BETTER SOLUTION
+					// overwrite current best found so far
+					curBest.energy = curE;
+					curBest.basePairs[0] = energy.getBasePair( r1.from, r2.from );
+					curBest.basePairs[1] = energy.getBasePair( r1.to, r2.to );
+
+				} // j2
+			} // j1
+
+
+		} // i2
+	} // i1
+
+}
+
+
 } // namespace
 
 ////////////////////////////////////////////////////////////////////////////
