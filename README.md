@@ -37,12 +37,16 @@ with feature requests, bug reports, or just contact messages.
 
 ## Citation
 If you use IntaRNA, please cite our articles
+
+- [IntaRNA 2.0: enhanced and customizable prediction of RNA–RNA interactions](http://dx.doi.org/10.1093/nar/gkx279)
+  Martin Mann, Patrick R. Wright, and Rolf Backofen, 
+  Nucleic Acids Research, 45 (W1), W435–W439, 2017, DOI(10.1093/nar/gkx279).
+- [CopraRNA and IntaRNA: predicting small RNA targets, networks and interaction domains](http://dx.doi.org/10.1093/nar/gku359)
+  Patrick R. Wright, Jens Georg, Martin Mann, Dragos A. Sorescu, Andreas S. Richter, Steffen Lott, Robert Kleinkauf, Wolfgang R. Hess, and Rolf Backofen,
+  Nucleic Acids Research, 42 (W1), W119-W123, 2014, DOI(10.1093/nar/gku359).
 - [IntaRNA: efficient prediction of bacterial sRNA targets incorporating target site accessibility and seed regions](http://dx.doi.org/10.1093/bioinformatics/btn544)
   Anke Busch, Andreas S. Richter, and Rolf Backofen, 
   Bioinformatics, 24 no. 24 pp. 2849-56, 2008, DOI(10.1093/bioinformatics/btn544).
-- [CopraRNA and IntaRNA: predicting small RNA targets, networks and interaction domains](http://dx.doi.org/10.1093/nar/gku359)
-  Patrick R. Wright, Jens Georg, Martin Mann, Dragos A. Sorescu, Andreas S. Richter, Steffen Lott, Robert Kleinkauf, Wolfgang R. Hess, and Rolf Backofen
-  Nucleic Acids Research, 42 (W1), W119-W123, 2014, DOI(10.1093/nar/gku359).
 
 
 
@@ -61,6 +65,7 @@ The following topics are covered by this documentation:
   - [Cloning from github](#instgithub)
   - [Source code distribution](#instsource)
   - [Microsoft Windows installation](#instwin)
+  - [OS X installation with homebrew](#instosx)
 - [Usage and Parameters](#usage)
   - [Just run ...](#defaultRun)
   - [Prediction modes, their features and emulated tools](#predModes)
@@ -120,10 +125,10 @@ dependencies:
 - compiler supporting C++11 standard and OpenMP
 - [boost C++ library](http://www.boost.org/) version >= 1.50.0 
   (ensure the following libraries are installed; or install all e.g. in Ubuntu via package `libboost-all-dev`)
-  - libboost_regex
-  - libboost_program_options
-  - libboost_filesystem
-  - libboost_system
+    - libboost_regex
+    - libboost_program_options
+    - libboost_filesystem
+    - libboost_system
 - [Vienna RNA package](http://www.tbi.univie.ac.at/RNA/) version >= 2.3.0
 - if [cloning from github](#instgithub): GNU autotools (automake, autoconf, ..)
 
@@ -191,15 +196,15 @@ e.g. using [Cygwin](https://www.cygwin.com/) as 'linux emulator'. Just install
 Cygwin with the following packages:
 
 - *Devel*:
- - make
- - gcc-g++
- - autoconf
- - automake
- - pkg-config
+   - make
+   - gcc-g++
+   - autoconf
+   - automake
+   - pkg-config
 - *Libs*:
- - libboost-devel
+   - libboost-devel
 - *Perl*:
- - perl
+   - perl
 
 and follow either [install from github](#instgithub) or 
 [install from package](#instsource).
@@ -221,6 +226,61 @@ If you do not want to work within the IntaRNA directory or don't want to provide
 the full installation path with every IntaRNA call, you should add the installation
 directory to your [`Path` System variable](http://www.computerhope.com/issues/ch000549.htm)
 (using a semicolon `;` separator).
+
+
+
+<br /><br />
+<a name="instosx" />
+## OS X installation with homebrew (thanks to Lars Barquist)
+
+If you do not want to or can use the pre-compiled binaries for OS X available from 
+[bioconda](https://anaconda.org/bioconda/intarna), you can compile `IntaRNA` 
+locally.
+
+The following wraps up how to build `IntaRNA-2.0.2` under OS X (Sierra 10.12.4) using homebrew.
+
+First, install homebrew! :)
+
+```[bash]
+brew install gcc --without-multilib
+```
+
+`--without-multilib` is necessary for OpenMP multithreading support -- note 
+OS X default `gcc`/`clang` doesn't support OpenMP, so we need to install standard 
+`gcc`/`g++`
+
+```[bash]
+brew install boost --cc=gcc-6
+```
+
+`--cc=gcc-6` is necessary to build `boost` with standard `gcc`, rather than the 
+default bottle which appears to have been built with the system `clang`. 
+Brew installs `gcc`/`g++` as `/usr/local/bin/gcc-VERSION` by default to avoid 
+clashing with the system's `gcc`/`clang`. `6` is the current version as of 
+writing, but may change.
+
+```[bash]
+brew install viennarna
+brew install doxygen
+```
+
+Download and extract the IntaRNA source code package (e.g. `intaRNA-2.0.2.tar.gz`) from the [release page](releases/).
+
+```[bash]
+./configure CC=gcc-6 CXX=g++-6
+```
+
+This sets up makefiles to use standard `gcc`/`g++` from brew, which will 
+need an update to the appropriate compiler version if not still `6`. 
+You might also want to
+set `--prefix=INSTALLPATH` if you dont want to install IntaRNA globally.
+
+
+```[bash]
+Make
+make tests
+make install
+```
 
 
 
@@ -542,6 +602,9 @@ are
 - `E_dangleR` : dangling end contribution of base pair (end1,start2)
 - `E_endL` : penalty of closing base pair (start1,end2)
 - `E_endR` : penalty of closing base pair (end1,start2)
+- `E_hybrid` : energy of hybridization only = E - ED1 - ED2
+- `E_norm` : length normalized energy = E / ln(length(seq1)*length(seq2))
+- `E_hybridNorm` : length normalized energy of hybridization only = E_hybrid / ln(length(seq1)*length(seq2))
 - `seedStart1` : start index of the seed in seq1
 - `seedEnd1` : end index of the seed in seq1
 - `seedStart2` : start index of the seed in seq2
@@ -684,8 +747,11 @@ targeted file/stream name:
 - `qPu:`|`tPu:` the [query/target's unpaired probabilities](#accessibility) (RNAplfold format), respectively
 
 Note, for *multiple sequences* in FASTA input, the provided file names
-are prefixed with with `s` and the according sequence's number (where indexing
+are suffixed with with `-s` and the according sequence's number (where indexing
 starts with 1) within the FASTA input to generate an individual file for each sequence.
+For `pMinE` output, if multiple query-target combinations are to be reported, the
+file name is suffixed with `-q#t#` (where `#` denotes the according sequence number
+within the input.
 
 
 <br />
@@ -919,6 +985,37 @@ processed using doxygen to generate html/pdf versions.
 
 When IntaRNA is build while `pkg-config` is present, according pkg-config
 information is generated and installed too.
+
+## Mandatory `Easylogging++` initalization !
+
+Since IntaRNA makes heavy use of the `Easylogging++` library, you have to add (and adapt) 
+the following code to your central code that includes the `main()` function:
+```[c++]
+// get central IntaRNA-lib definitions and includes
+#include <IntaRNA/RnaSequence.h>
+// initialize logging for binary
+INITIALIZE_EASYLOGGINGPP
+
+[...]
+
+int main(int argc, char **argv){
+
+[...]
+		// set overall logging style
+		el::Loggers::reconfigureAllLoggers(el::ConfigurationType::Format, std::string("# %level : %msg"));
+		// no log file output
+		el::Loggers::reconfigureAllLoggers(el::ConfigurationType::ToFile, std::string("false"));
+		// set additional logging flags
+		el::Loggers::addFlag(el::LoggingFlag::ColoredTerminalOutput);
+		el::Loggers::addFlag(el::LoggingFlag::DisableApplicationAbortOnFatalLog);
+		el::Loggers::addFlag(el::LoggingFlag::LogDetailedCrashReason);
+		el::Loggers::addFlag(el::LoggingFlag::AllowVerboseIfModuleNotSpecified);
+
+		// setup logging with given parameters
+		START_EASYLOGGINGPP(argc, argv);
+[...]
+}
+```
 
 
 

@@ -74,6 +74,7 @@ predict( const IndexRange & r1
 
 	// resize matrix
 	hybridE.resize( hybridEsize1, hybridEsize2 );
+	hybridE_seed.resize( hybridE.size1(), hybridE.size2() );
 
 	// temp vars
 	size_t i1,i2,w1,w2;
@@ -94,6 +95,8 @@ predict( const IndexRange & r1
 			// set to infinity, ie not used
 			hybridE(i1,i2) = BestInteraction(E_INF, RnaSequence::lastPos, RnaSequence::lastPos);
 		}
+		// init seed data
+		hybridE_seed(i1,i2) = BestInteraction(E_INF, RnaSequence::lastPos, RnaSequence::lastPos);
 
 	} // i2
 	} // i1
@@ -104,7 +107,7 @@ predict( const IndexRange & r1
 
 	// compute hybridization energies WITHOUT seed condition
 	// sets also -energy -hybridE
-	// -> no hybrid update since updateOptima overwritten
+	// -> no tracker update since updateOptima overwritten
 	PredictorMfe2dHeuristic::fillHybridE();
 
 	// check if any interaction possible
@@ -115,7 +118,7 @@ predict( const IndexRange & r1
 		return;
 	}
 
-	// init mfe for later updates
+	// reinit mfe for later updates with final information
 	initOptima( outConstraint );
 
 	// compute entries
@@ -125,7 +128,6 @@ predict( const IndexRange & r1
 	const BestInteraction * rightExt = NULL;
 
 	// iterate (decreasingly) over all left interaction starts
-	hybridE_seed.resize( hybridE.size1(), hybridE.size2() );
 	for (i1=hybridE_seed.size1(); i1-- > 0;) {
 	for (i2=hybridE_seed.size2(); i2-- > 0;) {
 
