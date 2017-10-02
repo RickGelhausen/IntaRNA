@@ -454,87 +454,88 @@ void
 PredictorMfe4dMultiSimple::
 getNextBest( Interaction & curBest )
 {
+    // store current best energy.second
+    const E_type curBestE = curBest.energy;
 
-	// store current best energy.second
-	const E_type curBestE = curBest.energy;
+    // overwrite energy for update
+    curBest.energy = E_INF;
+    curBest.basePairs.resize(2);
 
-	// overwrite energy for update
-	curBest.energy = E_INF;
-	curBest.basePairs.resize(2);
+    // TODO replace index iteration with something based on ranges from reportedInteractions
 
-	// TODO replace index iteration with something based on ranges from reportedInteractions
-
-	// identify cell with next best non-overlapping interaction site
-	// iterate (decreasingly) over all left interaction starts
-	E2dMatrix * curTable = NULL;
-	IndexRange r1,r2;
+    // identify cell with next best non-overlapping interaction site
+    // iterate (decreasingly) over all left interaction starts
+    E2dMatrix * curTable = NULL;
+    IndexRange r1,r2;
 	size_t d1 = 0, d2 = 0;  // temp vars to deals with possible interaction lengths
-	E_type curE = E_INF;
-	for (r1.from=hybridE.size1(); r1.from-- > 0;) {
+    E_type curE = E_INF;
+    for (r1.from=hybridE.size1(); r1.from-- > 0;) {
 
-		// ensure interaction site start is not covered
-		if (reportedInteractions.first.covers(r1.from)) {
-			continue;
-		}
+        // ensure interaction site start is not covered
+        if (reportedInteractions.first.covers(r1.from)) {
+            continue;
+        }
 
-		for (r2.from=hybridE.size2(); r2.from-- > 0;) {
+        for (r2.from=hybridE.size2(); r2.from-- > 0;) {
 
-			// ensure interaction site start is not covered
-			if (reportedInteractions.second.covers(r2.from)) {
-				continue;
-			}
-			// check if left boundary is complementary
-			if (hybridE(r1.from,r2.from) == NULL) {
-				// interaction not possible: nothing to do, since no storage reserved
-				continue;
-			}
+            // ensure interaction site start is not covered
+            if (reportedInteractions.second.covers(r2.from)) {
+                continue;
+            }
+            // check if left boundary is complementary
+            if (hybridE(r1.from,r2.from) == NULL) {
+                // interaction not possible: nothing to do, since no storage reserved
+                continue;
+            }
 
 			// access energy table for left-most interaction base pair
-			curTable = hybridE(r1.from,r2.from);
+            curTable = hybridE(r1.from,r2.from);
 
 			// iterate over all available interaction site lengths in seq1
 			for (d1 = 0; d1<curTable->size1(); d1++) {
 
 				// set according right interaction boundary in seq1
 				r1.to = r1.from + d1;
-				// check of overlapping
-				if (reportedInteractions.first.overlaps(r1)) {
-					// stop since all larger sites will overlap as well
-					break;;
-				}
+
+                // check of overlapping
+                if (reportedInteractions.first.overlaps(r1)) {
+                    // stop since all larger sites will overlap as well
+                    break;;
+                }
 
 				// iterate over all available interaction site lengths in seq2
 				for (d2=0; d2<curTable->size2(); d2++) {
 
 					// set according right interaction boundary in seq2
 					r2.to = r2.from + d2;
-					// check of overlapping
-					if (reportedInteractions.second.overlaps(r2)) {
-						// stop since all larger sites will overlap as well
-						break;;
-					}
 
-					// get overall energy of entry
+                    // check of overlapping
+                    if (reportedInteractions.second.overlaps(r2)) {
+                        // stop since all larger sites will overlap as well
+                        break;;
+                    }
+
+                    // get overall energy of entry
 					curE = energy.getE( r1.from, r1.to, r2.from, r2.to, (*curTable)(d1,d2));
 
-					// skip sites with energy too low
-					// or higher than current best found so far
-					if (  curE< curBestE || curE >= curBest.energy ) {
-						continue;
-					}
+                    // skip sites with energy too low
+                    // or higher than current best found so far
+                    if (  curE< curBestE || curE >= curBest.energy ) {
+                        continue;
+                    }
 
-					//// FOUND THE NEXT BETTER SOLUTION
-					// overwrite current best found so far
-					curBest.energy = curE;
-					curBest.basePairs[0] = energy.getBasePair( r1.from, r2.from );
-					curBest.basePairs[1] = energy.getBasePair( r1.to, r2.to );
+                    //// FOUND THE NEXT BETTER SOLUTION
+                    // overwrite current best found so far
+                    curBest.energy = curE;
+                    curBest.basePairs[0] = energy.getBasePair( r1.from, r2.from );
+                    curBest.basePairs[1] = energy.getBasePair( r1.to, r2.to );
 
-				} // j2
-			} // j1
+                } // j2
+            } // j1
 
 
-		} // i2
-	} // i1
+        } // i2
+    } // i1
 
 }
 

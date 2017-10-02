@@ -133,7 +133,10 @@ if (!(r1.isAscending() && r2.isAscending()) )
 	initOptima( tmpOutConstraint );
 
 	// fill matrix
-	fillHybridE( );
+	// compute hybridization energies WITHOUT seed condition
+	// sets also -energy -hybridE
+	// -> no tracker update since updateOptima overwritten
+	PredictorMfe4d::fillHybridE( );
 
 	// check if any interaction possible
 	// if not no seed-containing interaction is possible neither
@@ -419,7 +422,8 @@ fillHybridE_seed( )
 
 					// update mfe if needed (call super class)
 					if (E_isNotINF(curMinE)) {
-						updateOptima( i1,j1,i2,j2, curMinE, true );
+						// call superclass function to do final reporting
+						PredictorMfe4d::updateOptima( i1,j1,i2,j2, curMinE, true );
 					}
 
 				}
@@ -451,6 +455,7 @@ traceHybridO( const size_t i1, const size_t j1
 			}
 		}
 	}
+	throw std::runtime_error("PredictorMfe4dMultiSeed::traceHybridO() : could not trace k2 in hybridO");
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -806,6 +811,7 @@ getNextBest( Interaction & curBest )
 				continue;
 			}
 
+			// access energy table for left-most interaction base pair
 			curTable = hybridE_seed(r1.from,r2.from);
 
 			// iterate over all available interaction site lengths in seq1
