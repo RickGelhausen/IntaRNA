@@ -306,125 +306,127 @@ traceBack( Interaction & interaction )
 
         // check all combinations of decompositions into (i1,i2)..(k1,k2)-(j1,j2)
         for (k1=std::min(j1,i1+energy.getMaxInternalLoopSize1()+1); traceNotFound && k1>i1; k1--) {
-            for (k2=std::min(j2,i2+energy.getMaxInternalLoopSize2()+1); traceNotFound && k2>i2; k2--) {
-                // check if (k1, k2) are complementary
-                if (hybridE(k1,k2) != NULL
-                    && hybridE(k1,k2)->size1() > (j1-k1)
-                    && hybridE(k1,k2)->size2() > (j2-k2))
-                {
+		for (k2=std::min(j2,i2+energy.getMaxInternalLoopSize2()+1); traceNotFound && k2>i2; k2--) {
+			// check if (k1, k2) are complementary
+			if (hybridE(k1,k2) != NULL
+				&& hybridE(k1,k2)->size1() > (j1-k1)
+				&& hybridE(k1,k2)->size2() > (j2-k2))
+			{
 
-                    if ( E_equal( curE,
-                                  (energy.getE_interLeft(i1,k1,i2,k2)
-                                   + (*hybridE(k1,k2))(j1-k1,j2-k2)
-                                  ) ) )
-                    {
-                        // stop searching
-                        traceNotFound = false;
-                        // store splitting base pair
-                        interaction.basePairs.push_back( energy.getBasePair(k1,k2) );
-                        // trace right part of split
-                        i1=k1;
-                        i2=k2;
-                        curE = (*hybridE(i1,i2))(j1-i1,j2-i2);
-                    }
-                }
-            }
+				if ( E_equal( curE,
+							  (energy.getE_interLeft(i1,k1,i2,k2)
+							   + (*hybridE(k1,k2))(j1-k1,j2-k2)
+							  ) ) )
+				{
+					// stop searching
+					traceNotFound = false;
+					// store splitting base pair
+					interaction.basePairs.push_back( energy.getBasePair(k1,k2) );
+					// trace right part of split
+					i1=k1;
+					i2=k2;
+					curE = (*hybridE(i1,i2))(j1-i1,j2-i2);
+				}
+			}
+		}
         }
 
         // Structure in both
         if (traceNotFound && allowES == ES_both) {
             for (k1 = j1; traceNotFound && k1 > i1 + InteractionEnergy::minDistES; k1--) {
-                for (k2 = j2; traceNotFound && k2 > i2 + InteractionEnergy::minDistES; k2--) {
-                    if (hybridE(k1, k2) != NULL
-                        && hybridE(k1, k2)->size1() > (j1 - k1)
-                        && hybridE(k1, k2)->size2() > (j2 - k2))
-                    {
-                        if (E_equal(curE,
-                                    (energy.getE_multi(i1, k1, i2, k2, InteractionEnergy::ES_multi_mode::ES_multi_both)
-                                     + (*hybridE(k1, k2))(j1 - k1, j2 - k2)
-                                    ))) {
-                            // stop searching
-                            traceNotFound = false;
-                            // store splitting base pair
-                            interaction.basePairs.push_back(energy.getBasePair(k1, k2));
-                            // store gap information
-                            if (interaction.gap == NULL) { interaction.gap = new Interaction::Gap(); }
-                            interaction.gap->energy += energy.getE_multi(i1, k1, i2, k2, InteractionEnergy::ES_multi_mode::ES_multi_both);
-                            Interaction::BasePair bpLeft = energy.getBasePair(i1,i2);
-                            interaction.gap->gaps1.push_back( IndexRange(bpLeft.first,interaction.basePairs.rbegin()->first) );
-                            interaction.gap->gaps2.push_back( IndexRange(interaction.basePairs.rbegin()->second,bpLeft.second) );
-                            // trace right part of split
-                            i1 = k1;
-                            i2 = k2;
-                            curE = (*hybridE(i1, i2))(j1 - i1, j2 - i2);
-                        }
-                    }
-                }
+			for (k2 = j2; traceNotFound && k2 > i2 + InteractionEnergy::minDistES; k2--) {
+				if (hybridE(k1, k2) != NULL
+					&& hybridE(k1, k2)->size1() > (j1 - k1)
+					&& hybridE(k1, k2)->size2() > (j2 - k2))
+				{
+					if (E_equal(curE,
+								(energy.getE_multi(i1, k1, i2, k2, InteractionEnergy::ES_multi_mode::ES_multi_both)
+								 + (*hybridE(k1, k2))(j1 - k1, j2 - k2)
+								))) {
+						// stop searching
+						traceNotFound = false;
+						// store splitting base pair
+						interaction.basePairs.push_back(energy.getBasePair(k1, k2));
+						// store gap information
+						if (interaction.gap == NULL) { interaction.gap = new Interaction::Gap(); }
+						interaction.gap->energy += energy.getE_multi(i1, k1, i2, k2, InteractionEnergy::ES_multi_mode::ES_multi_both);
+						Interaction::BasePair bpLeft = energy.getBasePair(i1,i2);
+						interaction.gap->gaps1.push_back( IndexRange(bpLeft.first,interaction.basePairs.rbegin()->first) );
+						interaction.gap->gaps2.push_back( IndexRange(interaction.basePairs.rbegin()->second,bpLeft.second) );
+						// trace right part of split
+						i1 = k1;
+						i2 = k2;
+						curE = (*hybridE(i1, i2))(j1 - i1, j2 - i2);
+					}
+				}
+			}
             }
         }
 
         // Structure in S1
         if (traceNotFound && (allowES == ES_target || allowES == ES_xorQueryTarget)) {
             for (k1 = j1; traceNotFound && k1 > i1 + InteractionEnergy::minDistES; k1--) {
-                for (k2 = std::min(j2, i2 + energy.getMaxInternalLoopSize2() + 1); traceNotFound && k2 > i2; k2--) {
-                    if (hybridE(k1, k2) != NULL
-                        && hybridE(k1, k2)->size1() > (j1 - k1)
-                        && hybridE(k1, k2)->size2() > (j2 - k2))
-                    {
-                        if (E_equal(curE,
-                                    (energy.getE_multi(i1, k1, i2, k2, InteractionEnergy::ES_multi_mode::ES_multi_1only)
-                                     + (*hybridE(k1, k2))(j1 - k1, j2 - k2)
-                                    ))) {
-                            // stop searching
-                            traceNotFound = false;
-                            // store splitting base pair
-                            interaction.basePairs.push_back(energy.getBasePair(k1, k2));
-                            // store gap information
-                            if (interaction.gap == NULL) { interaction.gap = new Interaction::Gap(); }
-                            interaction.gap->energy += energy.getE_multi(i1, k1, i2, k2, InteractionEnergy::ES_multi_mode::ES_multi_1only);
-                            Interaction::BasePair bpLeft = energy.getBasePair(i1,i2);
-                            interaction.gap->gaps1.push_back( IndexRange(bpLeft.first,interaction.basePairs.rbegin()->first) );
+			for (k2 = std::min(j2, i2 + energy.getMaxInternalLoopSize2() + 1); traceNotFound && k2 > i2; k2--) {
+				if (hybridE(k1, k2) != NULL
+					&& hybridE(k1, k2)->size1() > (j1 - k1)
+					&& hybridE(k1, k2)->size2() > (j2 - k2))
+				{
+					if (E_equal(curE,
+								(energy.getE_multi(i1, k1, i2, k2, InteractionEnergy::ES_multi_mode::ES_multi_1only)
+								 + (*hybridE(k1, k2))(j1 - k1, j2 - k2)
+								))) {
+						// stop searching
+						traceNotFound = false;
+						// store splitting base pair
+						interaction.basePairs.push_back(energy.getBasePair(k1, k2));
+						// store gap information
+						if (interaction.gap == NULL) { interaction.gap = new Interaction::Gap(); }
+						interaction.gap->energy += energy.getE_multi(i1, k1, i2, k2, InteractionEnergy::ES_multi_mode::ES_multi_1only);
+						Interaction::BasePair bpLeft = energy.getBasePair(i1,i2);
+						interaction.gap->gaps1.push_back( IndexRange(bpLeft.first,interaction.basePairs.rbegin()->first) );
 
-                            // trace right part of split
-                            i1 = k1;
-                            i2 = k2;
-                            curE = (*hybridE(i1, i2))(j1 - i1, j2 - i2);
-                        }
-                    }
-                }
+						// trace right part of split
+						i1 = k1;
+						i2 = k2;
+						curE = (*hybridE(i1, i2))(j1 - i1, j2 - i2);
+					}
+				}
+			}
             }
         }
 
     // Structure in S2
         if (traceNotFound && (allowES == ES_query || allowES == ES_xorQueryTarget)) {
             for (k1 = std::min(j1, i1 + energy.getMaxInternalLoopSize1() + 1); traceNotFound && k1 > i1; k1--) {
-                for (k2 = j2; traceNotFound && k2 > i2 + InteractionEnergy::minDistES; k2--) {
-                    if (hybridE(k1, k2) != NULL
-                        && hybridE(k1, k2)->size1() > (j1 - k1)
-                        && hybridE(k1, k2)->size2() > (j2 - k2))
-                    {
-                        if (E_equal(curE,
-                                    (energy.getE_multi(i1, k1, i2, k2, InteractionEnergy::ES_multi_mode::ES_multi_2only)
-                                     + (*hybridE(k1, k2))(j1 - k1, j2 - k2)
-                                    ))) {
-                            // stop searching
-                            traceNotFound = false;
-                            // store splitting base pair
-                            interaction.basePairs.push_back(energy.getBasePair(k1, k2));
-                            // store gap information
-                            if (interaction.gap == NULL) { interaction.gap = new Interaction::Gap(); }
-                            interaction.gap->energy += energy.getE_multi(i1, k1, i2, k2, InteractionEnergy::ES_multi_mode::ES_multi_2only);
-                            Interaction::BasePair bpLeft = energy.getBasePair(i1,i2);
-                            interaction.gap->gaps2.push_back( IndexRange(interaction.basePairs.rbegin()->second,bpLeft.second) );
-                            // trace right part of split
-                            i1 = k1;
-                            i2 = k2;
-                            curE = (*hybridE(i1, i2))(j1 - i1, j2 - i2);
-                        }
-                    }
-                }
+			for (k2 = j2; traceNotFound && k2 > i2 + InteractionEnergy::minDistES; k2--) {
+				if (hybridE(k1, k2) != NULL
+					&& hybridE(k1, k2)->size1() > (j1 - k1)
+					&& hybridE(k1, k2)->size2() > (j2 - k2))
+				{
+					if (E_equal(curE,
+								(energy.getE_multi(i1, k1, i2, k2, InteractionEnergy::ES_multi_mode::ES_multi_2only)
+								 + (*hybridE(k1, k2))(j1 - k1, j2 - k2)
+								))) {
+						// stop searching
+						traceNotFound = false;
+						// store splitting base pair
+						interaction.basePairs.push_back(energy.getBasePair(k1, k2));
+						// store gap information
+						if (interaction.gap == NULL) { interaction.gap = new Interaction::Gap(); }
+						interaction.gap->energy += energy.getE_multi(i1, k1, i2, k2, InteractionEnergy::ES_multi_mode::ES_multi_2only);
+						Interaction::BasePair bpLeft = energy.getBasePair(i1,i2);
+						interaction.gap->gaps2.push_back( IndexRange(interaction.basePairs.rbegin()->second,bpLeft.second) );
+						// trace right part of split
+						i1 = k1;
+						i2 = k2;
+						curE = (*hybridE(i1, i2))(j1 - i1, j2 - i2);
+					}
+				}
+			}
             }
         }
+		// final sanity check
+		assert(!traceNotFound);
     }
 
     // sort final interaction (to make valid) (faster than calling sort())
@@ -453,78 +455,87 @@ PredictorMfe4dMultiSimple::
 getNextBest( Interaction & curBest )
 {
 
-    // store current best energy.second
-    const E_type curBestE = curBest.energy;
+	// store current best energy.second
+	const E_type curBestE = curBest.energy;
 
-    // overwrite energy for update
-    curBest.energy = E_INF;
-    curBest.basePairs.resize(2);
+	// overwrite energy for update
+	curBest.energy = E_INF;
+	curBest.basePairs.resize(2);
 
-    // TODO replace index iteration with something based on ranges from reportedInteractions
+	// TODO replace index iteration with something based on ranges from reportedInteractions
 
-    // identify cell with next best non-overlapping interaction site
-    // iterate (decreasingly) over all left interaction starts
-    E2dMatrix * curTable = NULL;
-    IndexRange r1,r2;
-    E_type curE = E_INF;
-    for (r1.from=hybridE.size1(); r1.from-- > 0;) {
+	// identify cell with next best non-overlapping interaction site
+	// iterate (decreasingly) over all left interaction starts
+	E2dMatrix * curTable = NULL;
+	IndexRange r1,r2;
+	size_t d1 = 0, d2 = 0;  // temp vars to deals with possible interaction lengths
+	E_type curE = E_INF;
+	for (r1.from=hybridE.size1(); r1.from-- > 0;) {
 
-        // ensure interaction site start is not covered
-        if (reportedInteractions.first.covers(r1.from)) {
-            continue;
-        }
+		// ensure interaction site start is not covered
+		if (reportedInteractions.first.covers(r1.from)) {
+			continue;
+		}
 
-        for (r2.from=hybridE.size2(); r2.from-- > 0;) {
+		for (r2.from=hybridE.size2(); r2.from-- > 0;) {
 
-            // ensure interaction site start is not covered
-            if (reportedInteractions.second.covers(r2.from)) {
-                continue;
-            }
-            // check if left boundary is complementary
-            if (hybridE(r1.from,r2.from) == NULL) {
-                // interaction not possible: nothing to do, since no storage reserved
-                continue;
-            }
+			// ensure interaction site start is not covered
+			if (reportedInteractions.second.covers(r2.from)) {
+				continue;
+			}
+			// check if left boundary is complementary
+			if (hybridE(r1.from,r2.from) == NULL) {
+				// interaction not possible: nothing to do, since no storage reserved
+				continue;
+			}
 
-            curTable = hybridE(r1.from,r2.from);
+			// access energy table for left-most interaction base pair
+			curTable = hybridE(r1.from,r2.from);
 
-            for (r1.to=r1.from; r1.to<curTable->size1(); r1.to++) {
+			// iterate over all available interaction site lengths in seq1
+			for (d1 = 0; d1<curTable->size1(); d1++) {
 
-                // check of overlapping
-                if (reportedInteractions.first.overlaps(r1)) {
-                    // stop since all larger sites will overlap as well
-                    break;;
-                }
+				// set according right interaction boundary in seq1
+				r1.to = r1.from + d1;
+				// check of overlapping
+				if (reportedInteractions.first.overlaps(r1)) {
+					// stop since all larger sites will overlap as well
+					break;;
+				}
 
-                for (r2.to=r2.from; r2.to<curTable->size2(); r2.to++) {
+				// iterate over all available interaction site lengths in seq2
+				for (d2=0; d2<curTable->size2(); d2++) {
 
-                    // check of overlapping
-                    if (reportedInteractions.second.overlaps(r2)) {
-                        // stop since all larger sites will overlap as well
-                        break;;
-                    }
+					// set according right interaction boundary in seq2
+					r2.to = r2.from + d2;
+					// check of overlapping
+					if (reportedInteractions.second.overlaps(r2)) {
+						// stop since all larger sites will overlap as well
+						break;;
+					}
 
-                    // get overall energy of entry
-                    curE = energy.getE( r1.from, r1.to, r2.from, r2.to, (*curTable)(r1.to,r2.to));
+					// get overall energy of entry
+					curE = energy.getE( r1.from, r1.to, r2.from, r2.to, (*curTable)(d1,d2));
 
-                    // skip sites with energy too low
-                    // or higher than current best found so far
-                    if (  curE< curBestE || curE >= curBest.energy ) {
-                        continue;
-                    }
+					// skip sites with energy too low
+					// or higher than current best found so far
+					if (  curE< curBestE || curE >= curBest.energy ) {
+						continue;
+					}
 
-                    //// FOUND THE NEXT BETTER SOLUTION
-                    // overwrite current best found so far
-                    curBest.energy = curE;
-                    curBest.basePairs[0] = energy.getBasePair( r1.from, r2.from );
-                    curBest.basePairs[1] = energy.getBasePair( r1.to, r2.to );
+					//// FOUND THE NEXT BETTER SOLUTION
+					// overwrite current best found so far
+					curBest.energy = curE;
+					curBest.basePairs[0] = energy.getBasePair( r1.from, r2.from );
+					curBest.basePairs[1] = energy.getBasePair( r1.to, r2.to );
 
-                } // j2
-            } // j1
+				} // j2
+			} // j1
 
 
-        } // i2
-    } // i1
+		} // i2
+	} // i1
 
 }
+
 } // namespace
