@@ -1,6 +1,6 @@
 
-#ifndef INTARNA_PREDICTORMFE4DMULTISEED_H_
-#define INTARNA_PREDICTORMFE4DMULTISEED_H_
+#ifndef INTARNA_PREDICTORMFE4DMULTISEEDSIMPLE_H
+#define INTARNA_PREDICTORMFE4DMULTISEEDSIMPLE_H
 
 #include "IntaRNA/PredictorMfe4d.h"
 #include "IntaRNA/SeedConstraint.h"
@@ -9,12 +9,15 @@
 namespace IntaRNA {
 
 /**
- * Predictor for exact interaction prediction with seed constraint using a
+ * Predictor for exact multi-site interaction prediction with seed constraint using a
  * 4D matrix.
+ * 
+ * The recursion is a straight-forward extension with O(n^6) time consumption.
  *
  * This enables non-overlapping suboptimal enumeration.
  *
  * @author Martin Mann
+ * @author Rick Gelhausen
  *
  */
 class PredictorMfe4dMultiSeedSimple: public PredictorMfe4d {
@@ -93,7 +96,7 @@ protected:
 	//! defines where ES-terms are considered
     AllowES allowES;
 
-	//! energy of all multi-mode interaction hybrids that contain a seeded
+	//! energy of all multi-site interaction hybrids that contain a seeded
 	//! interaction right of the gap and no seed left of it.
 	//! they are computed by the recursion with indices
 	//! hybridE_seed(i1,i2)->(w1,w2), with interaction start i1 (seq1) and i2 (seq2) and
@@ -105,6 +108,23 @@ protected:
 protected:
 
 	/**
+		 * disables tracker update for mfe updates
+		 *
+		 * @param i1 the index of the first sequence interacting with i2
+		 * @param j1 the index of the first sequence interacting with j2
+		 * @param i2 the index of the second sequence interacting with i1
+		 * @param j2 the index of the second sequence interacting with j1
+		 * @param energy ignored
+		 * @param isHybridE ignored
+		 */
+		virtual
+		void
+		updateOptima( const size_t i1, const size_t j1
+				, const size_t i2, const size_t j2
+				, const E_type energy
+				, const bool isHybridE );
+
+		/**
 	 * Removes all temporary data structures and resets the predictor
 	 */
 	void
@@ -138,5 +158,30 @@ protected:
 	getNextBest( Interaction & curBest );
 };
 
+
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+
+inline
+void
+PredictorMfe4dMultiSeedSimple::
+updateOptima( const size_t i1, const size_t j1
+		, const size_t i2, const size_t j2
+		, const E_type energy
+		, const bool isHybridE )
+{
+	// temporarily disable tracker
+	PredictionTracker * curPredTracker = this->predTracker;
+	this->predTracker = NULL;
+	// update optimum information
+	PredictorMfe4d::updateOptima(i1,j1,i2,j2,energy,isHybridE);
+	// reenable tracker
+	this->predTracker = curPredTracker;
+}
+
+//////////////////////////////////////////////////////////////////////////
+
+
 } // namespace
-#endif /* INTARNA_PREDICTORMFE4DMULTISEED_H_ */
+#endif /* INTARNA_PREDICTORMFE4DMULTISEEDSIMPLE_H */

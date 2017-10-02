@@ -9,12 +9,15 @@
 namespace IntaRNA {
 
 /**
- * Predictor for exact interaction prediction with seed constraint using a
+ * Predictor for exact multi-site interaction prediction with seed constraint using a
  * 4D matrix.
+ *
+ * The recursion is a sophisticated extension with O(n^5) time consumption.
  *
  * This enables non-overlapping suboptimal enumeration.
  *
  * @author Martin Mann
+ * @author Rick Gelhausen
  *
  */
 	class PredictorMfe4dMultiSeed: public PredictorMfe4d {
@@ -97,7 +100,7 @@ namespace IntaRNA {
 		//! defines where ES-terms are considered
 		AllowES allowES;
 
-		//! energy of all multi-sode interaction hybrids that contain a seeded
+		//! energy of all multi-site interaction hybrids that contain a seeded
 		//! interaction right of the gap and no seed left of it.
 		//! they are computed by the recursion with indices
 		//! hybridE_seed(i1,i2)->(w1,w2), with interaction start i1 (seq1) and i2 (seq2) and
@@ -109,7 +112,7 @@ namespace IntaRNA {
 	protected:
 
 		/**
-		 * does nothing but to ignore the calls from fillHybridE()
+		 * disables tracker update for mfe updates
 		 *
 		 * @param i1 the index of the first sequence interacting with i2
 		 * @param j1 the index of the first sequence interacting with j2

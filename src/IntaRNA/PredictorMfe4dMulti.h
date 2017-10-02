@@ -1,5 +1,5 @@
-#ifndef INTARNA_PredictorMfe4dMultiPlus_H_
-#define INTARNA_PredictorMfe4dMultiPlus_H_
+#ifndef INTARNA_PREDICTORMFE4DMULTI_H
+#define INTARNA_PREDICTORMFE4DMULTI_H
 
 #include "IntaRNA/PredictorMfe4d.h"
 
@@ -7,10 +7,14 @@
 
 namespace IntaRNA {
 /**
- * Predictor for RNAup-like computation, i.e. full DP-implementation without
- * seed-heuristic using a 4D matrix
+ * Predictor for exact multi-site interaction prediction (NO seed constraint) using a
+ * 4D matrix.
  *
- * @author Martin Mann & Rick Gelhausen
+ * The recursion is a sophisticated extension with O(n^5) time consumption.
+ *
+ *
+ * @author Martin Mann
+ * @author Rick Gelhausen
  *
  */
 class PredictorMfe4dMulti: public PredictorMfe4d {
@@ -121,4 +125,4 @@ protected:
 };
 
 } // namespace
-#endif /* INTARNA_PredictorMfe4dMultiPlus_H_ */
+#endif /* INTARNA_PREDICTORMFE4DMULTI_H */
