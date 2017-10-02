@@ -457,7 +457,7 @@ CommandLineParsing::CommandLineParsing()
 				->default_value(outCsvCols,"see text")
 				->notifier(boost::bind(&CommandLineParsing::validate_outCsvCols,this,_1))
 			, std::string("output : comma separated list of CSV column IDs to print if outMode=CSV."
-					" An empty argument prints all possible columns from the following available ID list: "
+					" An empty argument (using '') prints all possible columns from the following available ID list: "
 					+ boost::replace_all_copy(OutputHandlerCsv::list2string(OutputHandlerCsv::string2list("")), ",", ", ")+"."
 					+ "\nDefault = '"+outCsvCols+"'."
 					).c_str())
@@ -1526,7 +1526,7 @@ getPredictor( const InteractionEnergy & energy, OutputHandler & output ) const
                 case 'B': return new PredictorMfe4dMultiSimple( energy, output, predTracker, Predictor::AllowES ::ES_both);
                 default: INTARNA_NOT_IMPLEMENTED("mode "+toString(predMode.val)+" not implemented for prediction target "+toString(pred.val));
                 }
-            }
+            };
             default :  INTARNA_NOT_IMPLEMENTED("mode "+toString(predMode.val)+" not implemented for prediction target "+toString(pred.val));
 			}
 		} break;

@@ -205,12 +205,17 @@ add( const Interaction & i )
 				out <<contr.endRight;
 				break;
 
-			case E_gaps:
-				if (i.gap == NULL) {
-					out <<std::numeric_limits<E_type>::signaling_NaN();
-				} else {
-					out <<i.gap->energy;
-				}
+			case E_hybrid:
+				out <<(i.energy - contr.ED1 - contr.ED2);
+				break;
+
+			case E_norm:
+				out <<(i.energy / std::log( energy.size1() * energy.size2() ) );
+				break;
+
+			case E_hybridNorm:
+				out <<( (i.energy - contr.ED1 - contr.ED2) / std::log( energy.size1() * energy.size2() ) );
+
 				break;
 
 			case seedStart1:
