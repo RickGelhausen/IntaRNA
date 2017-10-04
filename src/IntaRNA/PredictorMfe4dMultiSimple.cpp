@@ -351,8 +351,8 @@ traceBack( Interaction & interaction )
                             if (interaction.gap == NULL) { interaction.gap = new Interaction::Gap(); }
                             interaction.gap->energy += energy.getE_multi(i1, k1, i2, k2, InteractionEnergy::ES_multi_mode::ES_multi_both);
                             Interaction::BasePair bpLeft = energy.getBasePair(i1,i2);
-                            interaction.gap->gaps1.push_back( IndexRange(bpLeft.first,interaction.basePairs.rbegin()->first) );
-                            interaction.gap->gaps2.push_back( IndexRange(interaction.basePairs.rbegin()->second,bpLeft.second) );
+                            interaction.gap->gaps1.insert( IndexRange(bpLeft.first,interaction.basePairs.rbegin()->first) );
+                            interaction.gap->gaps2.insert( IndexRange(interaction.basePairs.rbegin()->second,bpLeft.second) );
                             // trace right part of split
                             i1 = k1;
                             i2 = k2;
@@ -383,7 +383,7 @@ traceBack( Interaction & interaction )
                             if (interaction.gap == NULL) { interaction.gap = new Interaction::Gap(); }
                             interaction.gap->energy += energy.getE_multi(i1, k1, i2, k2, InteractionEnergy::ES_multi_mode::ES_multi_1only);
                             Interaction::BasePair bpLeft = energy.getBasePair(i1,i2);
-                            interaction.gap->gaps1.push_back( IndexRange(bpLeft.first,interaction.basePairs.rbegin()->first) );
+                            interaction.gap->gaps1.insert( IndexRange(bpLeft.first,interaction.basePairs.rbegin()->first) );
 
                             // trace right part of split
                             i1 = k1;
@@ -415,7 +415,7 @@ traceBack( Interaction & interaction )
                             if (interaction.gap == NULL) { interaction.gap = new Interaction::Gap(); }
                             interaction.gap->energy += energy.getE_multi(i1, k1, i2, k2, InteractionEnergy::ES_multi_mode::ES_multi_2only);
                             Interaction::BasePair bpLeft = energy.getBasePair(i1,i2);
-                            interaction.gap->gaps2.push_back( IndexRange(interaction.basePairs.rbegin()->second,bpLeft.second) );
+                            interaction.gap->gaps2.insert( IndexRange(interaction.basePairs.rbegin()->second,bpLeft.second) );
                             // trace right part of split
                             i1 = k1;
                             i2 = k2;
