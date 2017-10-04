@@ -601,6 +601,7 @@ getNextBest( Interaction & curBest )
 
 					// set according right interaction boundary in seq2
 					r2.to = r2.from + d2;
+
 					// check of overlapping
 					if (reportedInteractions.second.overlaps(r2)) {
 						// stop since all larger sites will overlap as well

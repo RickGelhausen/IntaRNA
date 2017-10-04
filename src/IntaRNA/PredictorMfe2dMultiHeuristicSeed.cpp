@@ -369,6 +369,7 @@ traceHybridO( const size_t i1, const size_t j1
 			return k2;
 		}
 	}
+	throw std::runtime_error("PredictorMfe2dMultiHeuristicSeed::traceHybridO() : can not trace k2 ");
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -438,7 +439,7 @@ traceBack( Interaction & interaction )
 				// stop searching
 				traceNotFound = false;
 				// store splitting base pair
-				if (k1 < j1) {
+				if ( k1 < j1 ) {
 					interaction.basePairs.push_back( energy.getBasePair(k1,k2) );
 				}
 				// trace right part of split
@@ -476,27 +477,27 @@ traceBack( Interaction & interaction )
 
 		// Structure in S1
 		for (k1=j1; traceNotFound && k1>i1 + InteractionEnergy::minDistES ; k1--) {
-			for (k2=std::min(j2,i2+energy.getMaxInternalLoopSize2()+1); traceNotFound && k2>i2; k2--) {
-				// temp access to current cell
-				curCell = &(hybridE_seed(k1,k2));
-				// check if right boundary is equal (part of the heuristic)
-				if ( curCell->j1 == j1 && curCell->j2 == j2 &&
-					 // and energy is the source of curE
-					 E_equal( curE, (energy.getE_multi(i1,k1,i2,k2,
-													   InteractionEnergy::ES_multi_mode::ES_multi_1only) + curCell->E ) ) )
-				{
-					// stop searching
-					traceNotFound = false;
-					// store splitting base pair if not last one of interaction range
-					if ( k1 < j1 ) {
-						interaction.basePairs.push_back( energy.getBasePair(k1,k2) );
-					}
-					// trace right part of split
-					i1=k1;
-					i2=k2;
-					curE = curCell->E;
+		for (k2=std::min(j2,i2+energy.getMaxInternalLoopSize2()+1); traceNotFound && k2>i2; k2--) {
+			// temp access to current cell
+			curCell = &(hybridE_seed(k1,k2));
+			// check if right boundary is equal (part of the heuristic)
+			if ( curCell->j1 == j1 && curCell->j2 == j2 &&
+				 // and energy is the source of curE
+				 E_equal( curE, (energy.getE_multi(i1,k1,i2,k2,
+												   InteractionEnergy::ES_multi_mode::ES_multi_1only) + curCell->E ) ) )
+			{
+				// stop searching
+				traceNotFound = false;
+				// store splitting base pair if not last one of interaction range
+				if ( k1 < j1 ) {
+					interaction.basePairs.push_back( energy.getBasePair(k1,k2) );
 				}
+				// trace right part of split
+				i1=k1;
+				i2=k2;
+				curE = curCell->E;
 			}
+		}
 		}
 
 		// Structure in S2
@@ -649,8 +650,8 @@ getNextBest( Interaction & curBest )
 	} // i1
 
 	// overwrite curBest
-	curBest.basePairs.resize(2);
 	curBest.energy = curBestCellE;
+	curBest.basePairs.resize(2);
 	if (E_isNotINF(curBestCellE)) {
 		curBest.basePairs[0] = energy.getBasePair( curBestCellStart.first, curBestCellStart.second );
 		curBest.basePairs[1] = energy.getBasePair( curBestCell->j1, curBestCell->j2 );

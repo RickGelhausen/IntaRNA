@@ -325,10 +325,10 @@ traceBack( Interaction & interaction )
 #if INTARNA_IN_DEBUG_MODE
 	// sanity checks
 	if ( ! interaction.isValid() ) {
-		throw std::runtime_error("PredictorMfe2dHeuristic::traceBack() : given interaction not valid");
+		throw std::runtime_error("PredictorMfe2dMultiHeuristic::traceBack() : given interaction not valid");
 	}
 	if ( interaction.basePairs.size() != 2 ) {
-		throw std::runtime_error("PredictorMfe2dHeuristic::traceBack() : given interaction does not contain boundaries only");
+		throw std::runtime_error("PredictorMfe2dMultiHeuristic::traceBack() : given interaction does not contain boundaries only");
 	}
 #endif
 
@@ -469,7 +469,7 @@ traceBack( Interaction & interaction )
 	}
 #if INTARNA_IN_DEBUG_MODE
 	if ( (j2-i2) > 1 ) {
-		throw std::runtime_error("PredictorMfe2dHeuristic::traceBack() : trace leaves ji<j2 : "+toString(i2)+"<"+toString(j2));
+		throw std::runtime_error("PredictorMfe2dMultiHeuristic::traceBack() : trace leaves ji<j2 : "+toString(i2)+"<"+toString(j2));
 	}
 #endif
 
