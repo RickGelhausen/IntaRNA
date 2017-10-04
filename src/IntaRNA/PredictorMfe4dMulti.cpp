@@ -630,4 +630,5 @@ getNextBest( Interaction & curBest )
 	} // i1
 
 }
+
 } // namespace
