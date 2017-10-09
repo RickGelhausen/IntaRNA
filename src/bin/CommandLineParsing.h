@@ -986,10 +986,10 @@ void CommandLineParsing::validate_qAccConstr(const std::string & value)
 	// forward check to general method
 	validate_structureConstraintArgument("qAccConstr", value);
 	// check if no sliding window computation requested
-	if (qAccW.val > 0 || qAccL.val > 0) {
-		LOG(ERROR) <<"query accessibility constraint not possible for sliding window computation (qAccL/W > 0)";
-		updateParsingCode(ReturnCode::STOP_PARSING_ERROR);
-	}
+//	if (qAccW.val > 0 || qAccL.val > 0) {
+//		LOG(ERROR) <<"query accessibility constraint not possible for sliding window computation (qAccL/W > 0)";
+//		updateParsingCode(ReturnCode::STOP_PARSING_ERROR);
+//	}
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -1100,10 +1100,10 @@ void CommandLineParsing::validate_tAccConstr(const std::string & value)
 	// forward check to general method
 	validate_structureConstraintArgument("tAccConstr", value);
 	// check if no sliding window computation requested
-	if (tAccW.val > 0 || tAccL.val > 0) {
-		LOG(ERROR) <<"query accessibility constraint not possible for sliding window computation (tAccL/W > 0)";
-		updateParsingCode(ReturnCode::STOP_PARSING_ERROR);
-	}
+//	if (tAccW.val > 0 || tAccL.val > 0) {
+//		LOG(ERROR) <<"query accessibility constraint not possible for sliding window computation (tAccL/W > 0)";
+//		updateParsingCode(ReturnCode::STOP_PARSING_ERROR);
+//	}
 }
 
 ////////////////////////////////////////////////////////////////////////////

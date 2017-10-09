@@ -52,10 +52,12 @@ AccessibilityVrna::AccessibilityVrna(
 	// check if constraint given
 	// or sliding window empty
 	// or larger than sequence length
-	if ( (! getAccConstraint().isEmpty()) || (plFoldW==0) || (plFoldW >= getSequence().size()) ) {
-		if (plFoldW > 0 && plFoldW < getSequence().size() ) {
-			throw std::runtime_error("sequence '"+seq.getId()+"': accuracy constraints provided but sliding window enabled (>0), which is currently not supported");
-		}
+	if ( (plFoldW==0) ) {
+//	if ( (! getAccConstraint().isEmpty()) || (plFoldW==0) ) {
+//	if ( (! getAccConstraint().isEmpty()) || (plFoldW==0) || (plFoldW >= getSequence().size()) ) {
+//		if (plFoldW > 0 && plFoldW < getSequence().size() ) {
+//			throw std::runtime_error("sequence '"+seq.getId()+"': accuracy constraints provided but sliding window enabled (>0), which is currently not supported");
+//		}
 #if INTARNA_MULITHREADING
 		#pragma omp critical(intarna_omp_callingVRNA)
 #endif
@@ -320,10 +322,10 @@ fillByRNAplfold( const VrnaHandler &vrnaHandler
 	TIMED_FUNC_IF(timerObj, VLOG_IS_ON(9));
 
 #if INTARNA_IN_DEBUG_MODE
-	// check if structure constraint given
-	if ( ! getAccConstraint().isEmpty() ) {
-		throw std::runtime_error("AccessibilityVrna::fillByRNAplfold() called but structure constraint present for sequence "+getSequence().getId());
-	}
+//	// check if structure constraint given
+//	if ( ! getAccConstraint().isEmpty() ) {
+//		throw std::runtime_error("AccessibilityVrna::fillByRNAplfold() called but structure constraint present for sequence "+getSequence().getId());
+//	}
 	if (plFoldW < 3) {
 		throw std::runtime_error("AccessibilityVrna::fillByRNAplfold() : plFoldW < 3");
 	}
@@ -336,6 +338,7 @@ fillByRNAplfold( const VrnaHandler &vrnaHandler
 
 	// copy sequence into C data structure
 	char * sequence = (char *) vrna_alloc(sizeof(char) * (length + 1));
+//	char * structure = NULL;
 	for (int i=0; i<length; i++) {
 		sequence[i] = getSequence().asString().at(i);
 	}
@@ -343,6 +346,49 @@ fillByRNAplfold( const VrnaHandler &vrnaHandler
 
     // setup folding data
     vrna_fold_compound_t * fold_compound = vrna_fold_compound( sequence, &curModel, VRNA_OPTION_PF | VRNA_OPTION_WINDOW );
+//    vrna_fold_compound_t * fold_compound = vrna_fold_compound( sequence, &curModel, VRNA_OPTION_MFE | VRNA_OPTION_PF | VRNA_OPTION_WINDOW );
+
+    // setup folding constraints
+    if ( ! getAccConstraint().isEmpty() ) {
+//    	// copy structure constraint
+//		structure = (char *) vrna_alloc(sizeof(char) * (length + 1));
+//		for (int i=0; i<length; i++) {
+//			// copy accessibility constraint
+//			structure[i] = '.';
+////			structure[i] = getAccConstraint().getVrnaDotBracket(i);
+//		}
+//		// set array end indicator
+//		structure[length] = '\0';
+//
+//		// Adding hard constraints from pseudo dot-bracket
+//		unsigned int constraint_options = VRNA_CONSTRAINT_DB_DEFAULT;
+////		// enforce constraints
+////		constraint_options |= VRNA_CONSTRAINT_DB_ENFORCE_BP;
+//
+//		LOG( DEBUG ) <<"sequence  = '"<<std::string(sequence) <<"'";
+//		LOG( DEBUG ) <<"structure = '"<<std::string(structure) <<"'";
+//		LOG( DEBUG ) <<"options   = "<<constraint_options;
+//
+//
+//		// add constraint information to the fold compound object
+//		vrna_constraints_add(fold_compound, (const char *)structure, constraint_options);
+
+    	vrna_hc_init_window( fold_compound );
+
+		for (int i=0; i<length; i++) {
+			if (!getAccConstraint().isUnconstrained(i)) {
+		    	vrna_hc_add_up( fold_compound, i, VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS);
+			}
+		}
+// ### batch version via array data structure
+//    	vrna_hc_up_t unpairedConstraints[5];
+//		for (int i=0; i<5; i++) {
+//			unpairedConstraints[i].position = i+5;
+//			unpairedConstraints[i].options = VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
+//		}
+//		vrna_hc_add_up_batch( fold_compound, unpairedConstraints );
+
+    }
 
     // provide access to this object to be filled by the callback
     // and the normalized temperature for the Boltzmann weight computation
@@ -355,6 +401,7 @@ fillByRNAplfold( const VrnaHandler &vrnaHandler
     // garbage collection
     vrna_fold_compound_free(fold_compound);
     free(sequence);
+//    if (structure != NULL) free(structure);
 
 }
 
