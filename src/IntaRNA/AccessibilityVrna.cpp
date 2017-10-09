@@ -278,17 +278,15 @@ callbackForStorage(FLT_OR_DBL   *pr,
 	    const AccessibilityConstraint & accConstr = storageRT.first->getAccConstraint();
 
 	    // copy unpaired data for all available interval lengths
-	    // but ensure interval does not contain blocked positions
-	    bool isBlocked = false;
+	    // but ensure interval does not end in blocked positions
 	    for (int l = std::min(j,std::min(pr_size,max)); l>=1; l--) {
 			// get unpaired probability
 			double prob_unpaired = pr[l];
 			// get left interval boundary index
 			int i = j - l + 1;
-			// check if interval covers a blocked position
-	    	isBlocked &= accConstr.isMarkedBlocked(i);
+			// check if interval boundary is a blocked position
 			// check if zero before computing its log-value
-			if (isBlocked || prob_unpaired == 0.0) {
+			if (accConstr.isMarkedBlocked(i) || prob_unpaired == 0.0) {
 				// ED value = ED_UPPER_BOUND
 				edValues(i-1,j-1) = ED_UPPER_BOUND;
 			} else {
@@ -474,14 +472,11 @@ fillByRNAup( const VrnaHandler &vrnaHandler
 	// check if any constraint present
 	// compute ED values for _all_ regions [i,j]
 	for (int i=(int)seqLength; i>0; i--) {
-		bool regionNotBlocked = !getAccConstraint().isMarkedBlocked(i-1);
 		// compute only for region lengths (j-i+1) <= maxLength
 		for(int j=i; j<=std::min((int)seqLength,unstr_out->w);j++)
 		{
-			// extend knowledge about "unconstrainedness" for the region
-			regionNotBlocked = regionNotBlocked && !(getAccConstraint().isMarkedBlocked(j-1));
-			// check if unconstrained within region (i,j)
-			if (regionNotBlocked) {
+			// check if region end is /not/ blocked
+			if ( ! getAccConstraint().isMarkedBlocked(i-1) ) {
 				// compute overall unpaired probability
 				double prob_unpaired =
 						unstr_out->H[i][j-i]+
@@ -498,7 +493,7 @@ fillByRNAup( const VrnaHandler &vrnaHandler
 				}
 
 			} else {
-				// region covers constrained elements --> set to upper bound
+				// region ends in blocked elements --> set to upper bound
 				edValues(i-1,j-1) = ED_UPPER_BOUND;
 			}
 		}
