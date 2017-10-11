@@ -170,11 +170,7 @@ predict( const IndexRange & r1
 					|| (rightExt->j2 + 1 - i2) > energy.getAccessibility2().getMaxLength()) {
 					continue;
 				}
-//				LOG(DEBUG) << "HybridO computation \n"
-//						   << "i1: " << i1 << "\n"
-//						   << "j1: " << rightExt->j1 << "\n"
-//						   << "i2: " << i2 << "\n"
-//						   << "j1: " << rightExt->j2 << "\n";
+
 				// compute energy for this loop sizes
 				curE = energy.getE_multiRight( i1, i2, i2 + w2) + rightExt->E;
 				// check if this combination yields better energy
@@ -211,11 +207,7 @@ predict( const IndexRange & r1
 					|| (rightExt->j2 + 1 - i2) > energy.getAccessibility2().getMaxLength()) {
 					continue;
 				}
-//				LOG(DEBUG) << "IL case 1 computation \n"
-//						   << "i1: " << i1 << "\n"
-//						   << "j1: " << rightExt->j1 << "\n"
-//						   << "i2: " << i2 << "\n"
-//						   << "j1: " << rightExt->j2 << "\n";
+
 				// compute energy for this loop sizes
 				curE = energy.getE_interLeft(i1, i1 + w1, i2, i2 + w2) + rightExt->E;
 				// check if this combination yields better energy
@@ -245,11 +237,7 @@ predict( const IndexRange & r1
 					|| (rightExt->j2 + 1 - i2) > energy.getAccessibility2().getMaxLength()) {
 					continue;
 				}
-//				LOG(DEBUG) << "IL case 2 computation \n"
-//						   << "i1: " << i1 << "\n"
-//						   << "j1: " << rightExt->j1 << "\n"
-//						   << "i2: " << i2 << "\n"
-//						   << "j1: " << rightExt->j2 << "\n";
+
 				// compute energy for this loop sizes
 				curE = energy.getE_interLeft(i1, i1 + w1, i2, i2 + w2) + rightExt->E;
 				// check if this combination yields better energy
@@ -283,11 +271,7 @@ predict( const IndexRange & r1
 					|| (rightExt->j2 + 1 - i2) > energy.getAccessibility2().getMaxLength()) {
 					continue;
 				}
-//				LOG(DEBUG) << "Both computation \n"
-//						   << "i1: " << i1 << "\n"
-//						   << "j1: " << rightExt->j1 << "\n"
-//						   << "i2: " << i2 << "\n"
-//						   << "j1: " << rightExt->j2 << "\n";
+
 				// compute energy for this loop sizes
 				curE = energy.getE_multiLeft(i1, i1 + w1, i2,
 											 InteractionEnergy::ES_multi_mode::ES_multi_both) + rightExt->E;
@@ -321,11 +305,7 @@ predict( const IndexRange & r1
 					|| (rightExt->j2 + 1 - i2) > energy.getAccessibility2().getMaxLength()) {
 					continue;
 				}
-//				LOG(DEBUG) << "Target computation \n"
-//						   << "i1: " << i1 << "\n"
-//						   << "j1: " << rightExt->j1 << "\n"
-//						   << "i2: " << i2 << "\n"
-//						   << "j1: " << rightExt->j2 << "\n";
+
 				// compute energy for this loop sizes
 				curE = energy.getE_multi(i1, i1 + w1, i2, i2 + w2,
 										 InteractionEnergy::ES_multi_mode::ES_multi_1only) + rightExt->E;
@@ -359,11 +339,7 @@ predict( const IndexRange & r1
 					|| (rightExt->j2 + 1 - i2) > energy.getAccessibility2().getMaxLength()) {
 					continue;
 				}
-//				LOG(DEBUG) << "Query computation \n"
-//						   << "i1: " << i1 << "\n"
-//						   << "j1: " << rightExt->j1 << "\n"
-//						   << "i2: " << i2 << "\n"
-//						   << "j1: " << rightExt->j2 << "\n";
+
 				// compute energy for this loop sizes
 				curE = energy.getE_multiLeft(i1, i1 + w1, i2,
 											 InteractionEnergy::ES_multi_mode::ES_multi_2only) + rightExt->E;
@@ -385,17 +361,16 @@ predict( const IndexRange & r1
 		///////////////////////////////////////////////////////////////////
 		// check if seed is starting here
 		///////////////////////////////////////////////////////////////////
-		// LOG(DEBUG) << "SeedHandler.getSeedE(i1,i2): " << seedHandler.getSeedE(i1,i2);
 		// check if seed is possible for this left boundary
 		if ( E_isNotINF( seedHandler.getSeedE(i1,i2) ) ) {
 			// get right extension
 			w1 = seedHandler.getSeedLength1(i1,i2)-1;
 			w2 = seedHandler.getSeedLength2(i1,i2)-1;
-//			LOG(DEBUG) << "Entered SeedHandling! " << i1 << ", " << i2;
+
 			// compute overall energy of seed+singleside
 			if (  i1+w1 < hybridE.size1()
 				&& i2+w2 < hybridE.size2()) {
-//				LOG(DEBUG) << "Entered SeedHandling case single!";
+
 				rightExt = &(hybridE(i1 + w1, i2 + w2));
 				// check if right side can pair
 				if (E_isINF(rightExt->E)) {
@@ -406,11 +381,7 @@ predict( const IndexRange & r1
 					|| (rightExt->j2 + 1 - i2) > energy.getAccessibility2().getMaxLength()) {
 					continue;
 				}
-//				LOG(DEBUG) << "Seed case 1 computation \n"
-//						   << "i1: " << i1 << "\n"
-//						   << "j1: " << rightExt->j1 << "\n"
-//						   << "i2: " << i2 << "\n"
-//						   << "j1: " << rightExt->j2 << "\n";
+
 				// get energy of seed interaction with best right extension
 				curE = seedHandler.getSeedE(i1, i2) + rightExt->E;
 				// check if this combination yields better energy
@@ -429,7 +400,6 @@ predict( const IndexRange & r1
 			// compute overall energy of seed+multiside
 			if ( i1+w1 < hybridE_multi.size1()
 			    && i2+w2 < hybridE_multi.size2()) {
-//				LOG(DEBUG) << "Entered SeedHandling case Multi!";
 				rightExt = &(hybridE_multi(i1 + w1, i2 + w2));
 				// check if right side can pair
 				if (E_isINF(rightExt->E)) {
@@ -440,11 +410,7 @@ predict( const IndexRange & r1
 					|| (rightExt->j2 + 1 - i2) > energy.getAccessibility2().getMaxLength()) {
 					continue;
 				}
-//				LOG(DEBUG) << "Seed case 2 computation \n"
-//						   << "i1: " << i1 << "\n"
-//						  << "j1: " << rightExt->j1 << "\n"
-//						  << "i2: " << i2 << "\n"
-//						  << "j1: " << rightExt->j2 << "\n";
+
 				// get energy of seed interaction with best right extension
 				curE = seedHandler.getSeedE(i1, i2) + rightExt->E;
 				// check if this combination yields better energy
@@ -462,14 +428,6 @@ predict( const IndexRange & r1
 			}
 		}
 
-//		LOG(DEBUG) << "At updateOptima: \n"
-//				   << "i1 : " << i1 << "\n"
-//				   << "j1 : " << curCell->j1 << "\n"
-//				   << "j1 - Multi : " << curCellMulti->j1 << "\n"
-//				   << "i2 : " << i2 << "\n"
-//				   << "j2 : " << curCell->j2 << "\n"
-//		           << "j2 - Multi : " << curCellMulti->j2 << "\n"
-//				   << "CurCellETotal : " << curCellEtotal << "\n";
 
 		// update mfe if needed (call superclass update routine)
 		PredictorMfe2dMultiHeuristic::updateOptima( i1,curCell->j1, i2,curCell->j2, curCellEtotal, false );
