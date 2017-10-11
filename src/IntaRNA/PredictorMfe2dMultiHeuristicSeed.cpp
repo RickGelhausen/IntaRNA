@@ -51,7 +51,6 @@ predict( const IndexRange & r1
 #endif
 
 
-
 	// set index offset
 	energy.setOffset1(r1.from);
 	energy.setOffset2(r2.from);
@@ -62,6 +61,7 @@ predict( const IndexRange & r1
 			, (r1.to==RnaSequence::lastPos?energy.size1()-1:r1.to)-r1.from+1 );
 	const size_t hybridEsize2 = std::min( energy.size2()
 			, (r2.to==RnaSequence::lastPos?energy.size2()-1:r2.to)-r2.from+1 );
+
 
 	// compute seed interactions for whole range
 	// and check if any seed possible
@@ -128,6 +128,7 @@ predict( const IndexRange & r1
 		return;
 	}
 
+
 	// init mfe for later updates
 	initOptima( outConstraint );
 
@@ -169,6 +170,11 @@ predict( const IndexRange & r1
 					|| (rightExt->j2 + 1 - i2) > energy.getAccessibility2().getMaxLength()) {
 					continue;
 				}
+//				LOG(DEBUG) << "HybridO computation \n"
+//						   << "i1: " << i1 << "\n"
+//						   << "j1: " << rightExt->j1 << "\n"
+//						   << "i2: " << i2 << "\n"
+//						   << "j1: " << rightExt->j2 << "\n";
 				// compute energy for this loop sizes
 				curE = energy.getE_multiRight( i1, i2, i2 + w2) + rightExt->E;
 				// check if this combination yields better energy
@@ -192,9 +198,8 @@ predict( const IndexRange & r1
 		for (w1=1; w1-1 <= energy.getMaxInternalLoopSize1(); w1++) {
 		for (w2=1; w2-1 <= energy.getMaxInternalLoopSize2(); w2++) {
 			//(&(hybridE_seed(i1, i2)) != NULL)
-			if ( (i1+w1 < hybridE_seed.size1())
-			    && (i2+w2 < hybridE_seed.size2())
-				&& (E_isNotINF((&(hybridE_seed(i1+w1, i2+w2)))->E))) {
+			if (  (i1+w1 < hybridE_seed.size1())
+			    && (i2+w2 < hybridE_seed.size2())) {
 				// direct cell access to right side end of loop (seed has to be to the right of it)
 				rightExt = &(hybridE_seed(i1 + w1, i2 + w2));
 				// check if right side of loop can pair
@@ -206,6 +211,11 @@ predict( const IndexRange & r1
 					|| (rightExt->j2 + 1 - i2) > energy.getAccessibility2().getMaxLength()) {
 					continue;
 				}
+//				LOG(DEBUG) << "IL case 1 computation \n"
+//						   << "i1: " << i1 << "\n"
+//						   << "j1: " << rightExt->j1 << "\n"
+//						   << "i2: " << i2 << "\n"
+//						   << "j1: " << rightExt->j2 << "\n";
 				// compute energy for this loop sizes
 				curE = energy.getE_interLeft(i1, i1 + w1, i2, i2 + w2) + rightExt->E;
 				// check if this combination yields better energy
@@ -221,9 +231,8 @@ predict( const IndexRange & r1
 				}
 			}
 			// &(hybridE_multi(i1, i2)) != NULL)
-			if ( (i1+w1 < hybridE_multi.size1())
-				 && (i2+w2 < hybridE_multi.size2())
-				 && (E_isNotINF((&(hybridE_multi(i1+w1, i2+w2)))->E))) {
+			if (  (i1+w1 < hybridE_multi.size1())
+				 && (i2+w2 < hybridE_multi.size2())) {
 
 				// direct cell access to right side end of loop (seed has to be to the right of it)
 				rightExt = &(hybridE_multi(i1 + w1, i2 + w2));
@@ -236,6 +245,11 @@ predict( const IndexRange & r1
 					|| (rightExt->j2 + 1 - i2) > energy.getAccessibility2().getMaxLength()) {
 					continue;
 				}
+//				LOG(DEBUG) << "IL case 2 computation \n"
+//						   << "i1: " << i1 << "\n"
+//						   << "j1: " << rightExt->j1 << "\n"
+//						   << "i2: " << i2 << "\n"
+//						   << "j1: " << rightExt->j2 << "\n";
 				// compute energy for this loop sizes
 				curE = energy.getE_interLeft(i1, i1 + w1, i2, i2 + w2) + rightExt->E;
 				// check if this combination yields better energy
@@ -269,6 +283,11 @@ predict( const IndexRange & r1
 					|| (rightExt->j2 + 1 - i2) > energy.getAccessibility2().getMaxLength()) {
 					continue;
 				}
+//				LOG(DEBUG) << "Both computation \n"
+//						   << "i1: " << i1 << "\n"
+//						   << "j1: " << rightExt->j1 << "\n"
+//						   << "i2: " << i2 << "\n"
+//						   << "j1: " << rightExt->j2 << "\n";
 				// compute energy for this loop sizes
 				curE = energy.getE_multiLeft(i1, i1 + w1, i2,
 											 InteractionEnergy::ES_multi_mode::ES_multi_both) + rightExt->E;
@@ -302,6 +321,11 @@ predict( const IndexRange & r1
 					|| (rightExt->j2 + 1 - i2) > energy.getAccessibility2().getMaxLength()) {
 					continue;
 				}
+//				LOG(DEBUG) << "Target computation \n"
+//						   << "i1: " << i1 << "\n"
+//						   << "j1: " << rightExt->j1 << "\n"
+//						   << "i2: " << i2 << "\n"
+//						   << "j1: " << rightExt->j2 << "\n";
 				// compute energy for this loop sizes
 				curE = energy.getE_multi(i1, i1 + w1, i2, i2 + w2,
 										 InteractionEnergy::ES_multi_mode::ES_multi_1only) + rightExt->E;
@@ -335,6 +359,11 @@ predict( const IndexRange & r1
 					|| (rightExt->j2 + 1 - i2) > energy.getAccessibility2().getMaxLength()) {
 					continue;
 				}
+//				LOG(DEBUG) << "Query computation \n"
+//						   << "i1: " << i1 << "\n"
+//						   << "j1: " << rightExt->j1 << "\n"
+//						   << "i2: " << i2 << "\n"
+//						   << "j1: " << rightExt->j2 << "\n";
 				// compute energy for this loop sizes
 				curE = energy.getE_multiLeft(i1, i1 + w1, i2,
 											 InteractionEnergy::ES_multi_mode::ES_multi_2only) + rightExt->E;
@@ -352,21 +381,36 @@ predict( const IndexRange & r1
 
 			} // w1
 		}
+
 		///////////////////////////////////////////////////////////////////
 		// check if seed is starting here
 		///////////////////////////////////////////////////////////////////
-
+		// LOG(DEBUG) << "SeedHandler.getSeedE(i1,i2): " << seedHandler.getSeedE(i1,i2);
 		// check if seed is possible for this left boundary
 		if ( E_isNotINF( seedHandler.getSeedE(i1,i2) ) ) {
 			// get right extension
 			w1 = seedHandler.getSeedLength1(i1,i2)-1;
 			w2 = seedHandler.getSeedLength2(i1,i2)-1;
+//			LOG(DEBUG) << "Entered SeedHandling! " << i1 << ", " << i2;
 			// compute overall energy of seed+singleside
-			if (   i1+w1 < hybridE.size1()
-				&& i2+w2 < hybridE.size2()
-				&& (E_isNotINF((&(hybridE(i1+w1, i2+w2)))->E))) {
-
+			if (  i1+w1 < hybridE.size1()
+				&& i2+w2 < hybridE.size2()) {
+//				LOG(DEBUG) << "Entered SeedHandling case single!";
 				rightExt = &(hybridE(i1 + w1, i2 + w2));
+				// check if right side can pair
+				if (E_isINF(rightExt->E)) {
+					continue;
+				}
+				// check if interaction length is within boundary
+				if ((rightExt->j1 + 1 - i1) > energy.getAccessibility1().getMaxLength()
+					|| (rightExt->j2 + 1 - i2) > energy.getAccessibility2().getMaxLength()) {
+					continue;
+				}
+//				LOG(DEBUG) << "Seed case 1 computation \n"
+//						   << "i1: " << i1 << "\n"
+//						   << "j1: " << rightExt->j1 << "\n"
+//						   << "i2: " << i2 << "\n"
+//						   << "j1: " << rightExt->j2 << "\n";
 				// get energy of seed interaction with best right extension
 				curE = seedHandler.getSeedE(i1, i2) + rightExt->E;
 				// check if this combination yields better energy
@@ -381,15 +425,31 @@ predict( const IndexRange & r1
 					curCellEtotal = curEtotal;
 				}
 			}
+
 			// compute overall energy of seed+multiside
-			if (   i1+w1 < hybridE_multi.size1()
-			    && i2+w2 < hybridE_multi.size2()
-				&& (E_isNotINF((&(hybridE_multi(i1+w1, i2+w2)))->E))) {
+			if ( i1+w1 < hybridE_multi.size1()
+			    && i2+w2 < hybridE_multi.size2()) {
+//				LOG(DEBUG) << "Entered SeedHandling case Multi!";
 				rightExt = &(hybridE_multi(i1 + w1, i2 + w2));
+				// check if right side can pair
+				if (E_isINF(rightExt->E)) {
+					continue;
+				}
+				// check if interaction length is within boundary
+				if ((rightExt->j1 + 1 - i1) > energy.getAccessibility1().getMaxLength()
+					|| (rightExt->j2 + 1 - i2) > energy.getAccessibility2().getMaxLength()) {
+					continue;
+				}
+//				LOG(DEBUG) << "Seed case 2 computation \n"
+//						   << "i1: " << i1 << "\n"
+//						  << "j1: " << rightExt->j1 << "\n"
+//						  << "i2: " << i2 << "\n"
+//						  << "j1: " << rightExt->j2 << "\n";
 				// get energy of seed interaction with best right extension
 				curE = seedHandler.getSeedE(i1, i2) + rightExt->E;
 				// check if this combination yields better energy
 				curEtotal = energy.getE(i1, rightExt->j1, i2, rightExt->j2, curE);
+
 				if (curEtotal < curCellEtotal) {
 					// update current best for this left boundary
 					// copy right boundary
@@ -401,6 +461,15 @@ predict( const IndexRange & r1
 				}
 			}
 		}
+
+//		LOG(DEBUG) << "At updateOptima: \n"
+//				   << "i1 : " << i1 << "\n"
+//				   << "j1 : " << curCell->j1 << "\n"
+//				   << "j1 - Multi : " << curCellMulti->j1 << "\n"
+//				   << "i2 : " << i2 << "\n"
+//				   << "j2 : " << curCell->j2 << "\n"
+//		           << "j2 - Multi : " << curCellMulti->j2 << "\n"
+//				   << "CurCellETotal : " << curCellEtotal << "\n";
 
 		// update mfe if needed (call superclass update routine)
 		PredictorMfe2dMultiHeuristic::updateOptima( i1,curCell->j1, i2,curCell->j2, curCellEtotal, false );
@@ -442,6 +511,7 @@ void
 PredictorMfe2dMultiHeuristicSeed::
 traceBack( Interaction & interaction )
 {
+	LOG(DEBUG) << "Entered traceback!";
 	// check if something to trace
 	if (interaction.basePairs.size() < 2) {
 		return;
@@ -519,10 +589,9 @@ traceBack( Interaction & interaction )
 					continue;
 				}
 
-				// TODO: might have to introduce curCellMulti, not sure yet
 				// check if correct trace with multi-side extension
 				curCell = &(hybridE_multi(k1,k2));
-				if ( E_equal( curE, (seedHandler.getSeedE(i1,i2)+curCell->E) )) {
+				if ( E_equal( curE, (seedHandler.getSeedE(i1,i2)+(&(hybridE_multi(k1,k2)))->E) )) {
 					// store seed information
 					interaction.setSeedRange(
 							energy.getBasePair(i1, i2),

@@ -281,6 +281,7 @@ fillHybridE()
 
 			} // w1
 		}
+
 		// update mfe if needed
 		updateOptima(i1, curCell->j1, i2, curCell->j2, curCellEtotal, false);
 
@@ -403,12 +404,21 @@ traceBack( Interaction & interaction )
 			{
 				// stop searching
 				traceNotFound = false;
+				E_type E_multiRIght = energy.getE_multiRight(i1, i2, k2);
+
 				// Determine k2 based on k1
 				k2 = traceHybridO(k1, j1, i2, j2);
 				// store splitting base pair if not last one of interaction range
 				if ( k1 < j1 ) {
 					interaction.basePairs.push_back( energy.getBasePair(k1,k2) );
 				}
+				// store gap information
+				if (interaction.gap == NULL) { interaction.gap = new Interaction::Gap(); }
+				interaction.gap->energy += energy.getE_multiLeft(i1, k1, i2, InteractionEnergy::ES_multi_mode::ES_multi_both) + E_multiRIght;
+				Interaction::BasePair bpLeft = energy.getBasePair(i1,i2);
+				interaction.gap->gaps1.insert( IndexRange(bpLeft.first, interaction.basePairs.rbegin()->first) );
+				interaction.gap->gaps2.insert( IndexRange(interaction.basePairs.rbegin()->second,bpLeft.second) );
+
 				// trace right part of split
 				i1=k1;
 				i2=k2;
@@ -433,6 +443,15 @@ traceBack( Interaction & interaction )
 				if ( k1 < j1 ) {
 					interaction.basePairs.push_back( energy.getBasePair(k1,k2) );
 				}
+
+				// store gap information
+				if (interaction.gap == NULL) { interaction.gap = new Interaction::Gap(); }
+				interaction.gap->energy += energy.getE_multi(i1, k1, i2, k2,
+															 InteractionEnergy::ES_multi_mode::ES_multi_1only);
+				Interaction::BasePair bpLeft = energy.getBasePair(i1, i2);
+				interaction.gap->gaps1.insert(
+						IndexRange(bpLeft.first, interaction.basePairs.rbegin()->first));
+
 				// trace right part of split
 				i1=k1;
 				i2=k2;
@@ -455,10 +474,17 @@ traceBack( Interaction & interaction )
 				traceNotFound = false;
 				// Determine k2 based on k1
 				k2 = traceHybridO(k1, j1, i2, j2);
+				E_type E_multiRight = energy.getE_multiRight(i1, i2, k2);
+
 				// store splitting base pair if not last one of interaction range
 				if ( k1 < j1 ) {
 					interaction.basePairs.push_back( energy.getBasePair(k1,k2) );
 				}
+				// store gap information
+				if (interaction.gap == NULL) { interaction.gap = new Interaction::Gap(); }
+				interaction.gap->energy += energy.getE_multiLeft(i1, k1, i2, InteractionEnergy::ES_multi_mode::ES_multi_2only) + E_multiRight;
+				Interaction::BasePair bpLeft = energy.getBasePair(i1,i2);
+				interaction.gap->gaps2.insert( IndexRange(interaction.basePairs.rbegin()->second,bpLeft.second) );
 				// trace right part of split
 				i1=k1;
 				i2=k2;

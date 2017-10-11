@@ -561,7 +561,7 @@ getNextBest( Interaction & curBest )
 	// iterate (decreasingly) over all left interaction starts
 	E2dMatrix * curTable = NULL;
 	IndexRange r1,r2;
-	size_t d1 = 0, d2 = 0;  // temp vars to deals with possible interaction lengths
+	size_t d1 = 0, d2 = 0;  // temp vars to deal with possible interaction lengths
 	E_type curE = E_INF;
 	for (r1.from=hybridE.size1(); r1.from-- > 0;) {
 
