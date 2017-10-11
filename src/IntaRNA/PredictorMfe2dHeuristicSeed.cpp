@@ -310,6 +310,7 @@ traceBack( Interaction & interaction )
 			// update position to point after seed interaction
 			i1 = k1;
 			i2 = k2;
+
 			// traceback remaining right interaction via hybridE
 			if (i1<j1) {
 				Interaction bpsRight(*(interaction.s1), *(interaction.s2) );

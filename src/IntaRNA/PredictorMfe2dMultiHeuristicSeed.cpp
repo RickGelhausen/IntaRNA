@@ -469,7 +469,6 @@ void
 PredictorMfe2dMultiHeuristicSeed::
 traceBack( Interaction & interaction )
 {
-	LOG(DEBUG) << "Entered traceback!";
 	// check if something to trace
 	if (interaction.basePairs.size() < 2) {
 		return;
@@ -531,7 +530,8 @@ traceBack( Interaction & interaction )
 
 				// check if correct trace with single-side extension
 				curCell = &(hybridE(k1,k2));
-				if ( E_equal( curE, (seedHandler.getSeedE(i1,i2)+curCell->E) )) {
+				if ( curCell->j1 == j1 && curCell->j2 == j2 &&
+					  E_equal( curE, (seedHandler.getSeedE(i1,i2)+curCell->E) )) {
 					// store seed information
 					interaction.setSeedRange(
 							energy.getBasePair(i1, i2),
@@ -542,6 +542,7 @@ traceBack( Interaction & interaction )
 					// update position to point after seed interaction
 					i1 = k1;
 					i2 = k2;
+
 					curE = curCell->E;
 					doLocalTrace = false;
 					continue;
@@ -549,7 +550,8 @@ traceBack( Interaction & interaction )
 
 				// check if correct trace with multi-side extension
 				curCell = &(hybridE_multi(k1,k2));
-				if ( E_equal( curE, (seedHandler.getSeedE(i1,i2)+(&(hybridE_multi(k1,k2)))->E) )) {
+				if ( curCell->j1 == j1 && curCell->j2 == j2 &&
+					  E_equal( curE, (seedHandler.getSeedE(i1,i2)+curCell->E) )) {
 					// store seed information
 					interaction.setSeedRange(
 							energy.getBasePair(i1, i2),
@@ -560,6 +562,10 @@ traceBack( Interaction & interaction )
 					// update position to point after seed interaction
 					i1 = k1;
 					i2 = k2;
+
+					// Add right end of seed
+					interaction.basePairs.push_back(energy.getBasePair(i1,i2));
+
 					curE = curCell->E;
 					traceInESeed = false;
 					continue;
