@@ -5,7 +5,6 @@ namespace IntaRNA {
 ////////////////////////////////////////////////////////////////////////////
 
 
-// TODO: FIX CONSTRUCTOR
 PredictorMfe2dMultiHeuristicSeed::
 PredictorMfe2dMultiHeuristicSeed( const InteractionEnergy & energy
 		, OutputHandler & output
@@ -14,8 +13,8 @@ PredictorMfe2dMultiHeuristicSeed( const InteractionEnergy & energy
 		, const SeedConstraint & seedConstraint
 )
 		: PredictorMfe2dMultiHeuristic(energy,output,predTracker, allowES_)
-		, seedHandler( energy, seedConstraint )
 		, hybridE_seed(0,0)
+		, seedHandler( energy, seedConstraint )
 {
 }
 
@@ -73,11 +72,10 @@ predict( const IndexRange & r1
 		return;
 	}
 
-	// resize matrix
+	// resize matrices
 	hybridE.resize( hybridEsize1, hybridEsize2 );
-	hybridE_seed.resize( hybridEsize1, hybridEsize2 );
-	hybridE_multi.resize( hybridEsize1, hybridEsize2 );
 	hybridO.resize( hybridEsize1, hybridEsize2 );
+	hybridE_seed.resize( hybridEsize1, hybridEsize2 );
 
 	// temp vars
 	size_t i1,i2,w1,w2;
@@ -98,35 +96,12 @@ predict( const IndexRange & r1
 			// set to infinity, ie not used
 			hybridE(i1,i2) = BestInteraction(E_INF, RnaSequence::lastPos, RnaSequence::lastPos);
 		}
-
-		hybridE_multi(i1,i2) = BestInteraction(E_INF, RnaSequence::lastPos, RnaSequence::lastPos);
-		// init seed data
+		// init auxiliary matrix
+		hybridO(i1,i2) =  BestInteraction(E_INF, RnaSequence::lastPos, RnaSequence::lastPos);
+		// init data with seed
 		hybridE_seed(i1,i2) = BestInteraction(E_INF, RnaSequence::lastPos, RnaSequence::lastPos);
 	} // i2
 	} // i1
-
-	for (i1=0; i1<hybridO.size1(); i1++) {
-	for (i2=0; i2<hybridO.size2(); i2++) {
-		hybridO(i1,i2) =  BestInteraction(E_INF, RnaSequence::lastPos, RnaSequence::lastPos);
-	} // i2
-	} // i1
-
-	// init mfe without seed condition
-	OutputConstraint tmpOutConstraint(1, outConstraint.reportOverlap, outConstraint.maxE, outConstraint.deltaE);
-	initOptima( tmpOutConstraint );
-
-	// compute hybridization energies WITHOUT seed condition
-	// sets also -energy -hybridE
-	// -> no hybrid update since updateOptima overwritten
-	PredictorMfe2dMultiHeuristic::fillHybridE();
-
-	// check if any interaction possible
-	// if not no seed-containing interaction is possible neither
-	if (!(this->mfeInteractions.begin()->energy < tmpOutConstraint.maxE)) {
-		// stop computation since no favorable interaction found
-		reportOptima(tmpOutConstraint);
-		return;
-	}
 
 
 	// init mfe for later updates
@@ -134,9 +109,9 @@ predict( const IndexRange & r1
 
 	// compute entries
 	// current minimal value
-	E_type curE = E_INF, curEtotal = E_INF, curCellEtotal = E_INF;
+	E_type curE = E_INF, curEtotal = E_INF, curCell_Etotal = E_INF, curCellS_Etotal = E_INF;
 	BestInteraction * curCell = NULL;
-	BestInteraction * curCellMulti = NULL;
+	BestInteraction * curCellS = NULL;
 	BestInteraction * curCellO = NULL;
 	const BestInteraction * rightExt = NULL;
 
@@ -149,14 +124,14 @@ predict( const IndexRange & r1
 			continue;
 		}
 		// direct cell access
-		curCell  = &(hybridE_seed(i1,i2));
-		curCellMulti = &(hybridE_multi(i1,i2));
+		curCell  = &(hybridE(i1,i2));
+		curCellS = &(hybridE_seed(i1,i2));
 		curCellO = &(hybridO(i1, i2));
 
-		// reset temporary variables
-		curCellEtotal = E_INF;
+		///////////////////////////////////////////////////
+		// hybridO(i1,i2) computation
+		///////////////////////////////////////////////////
 
-		// HybridO computation
 		if (allowES != ES_target) {
 			for (w2 = 1; i2 + InteractionEnergy::minDistES + w2 < hybridE_seed.size2(); w2++) {
 				// direct cell access (const)
@@ -186,181 +161,20 @@ predict( const IndexRange & r1
 		}
 
 		///////////////////////////////////////////////////////////////////
-		// check all extensions of interactions CONTAINING a seed already
+		// hybridE(i1,i2) and hybridE_seed(i1,i2) computation
 		///////////////////////////////////////////////////////////////////
 
-		// TODO PARALLELIZE THIS DOUBLE LOOP ?!
-		// iterate over all loop sizes w1 (seq1) and w2 (seq2)
-		for (w1=1; w1-1 <= energy.getMaxInternalLoopSize1(); w1++) {
-		for (w2=1; w2-1 <= energy.getMaxInternalLoopSize2(); w2++) {
-			//(&(hybridE_seed(i1, i2)) != NULL)
-			if (  (i1+w1 < hybridE_seed.size1())
-			    && (i2+w2 < hybridE_seed.size2())) {
-				// direct cell access to right side end of loop (seed has to be to the right of it)
-				rightExt = &(hybridE_seed(i1 + w1, i2 + w2));
-				// check if right side of loop can pair
-				if (E_isINF(rightExt->E)) {
-					continue;
-				}
-				// check if interaction length is within boundary
-				if ((rightExt->j1 + 1 - i1) > energy.getAccessibility1().getMaxLength()
-					|| (rightExt->j2 + 1 - i2) > energy.getAccessibility2().getMaxLength()) {
-					continue;
-				}
+		// reset temporary variables to initial value
+		// == interaction initiation with E_init
+		curCell_Etotal = energy.getE(i1, i1, i2, i2, curCell->E);
 
-				// compute energy for this loop sizes
-				curE = energy.getE_interLeft(i1, i1 + w1, i2, i2 + w2) + rightExt->E;
-				// check if this combination yields better energy
-				curEtotal = energy.getE(i1, rightExt->j1, i2, rightExt->j2, curE);
-				if (curEtotal < curCellEtotal) {
-					// update current best for this left boundary
-					// copy right boundary
-					*curCell = *rightExt;
-					// set new energy
-					curCell->E = curE;
-					// store overall energy
-					curCellEtotal = curEtotal;
-				}
-			}
-			// &(hybridE_multi(i1, i2)) != NULL)
-			if (  (i1+w1 < hybridE_multi.size1())
-				 && (i2+w2 < hybridE_multi.size2())) {
-
-				// direct cell access to right side end of loop (seed has to be to the right of it)
-				rightExt = &(hybridE_multi(i1 + w1, i2 + w2));
-				// check if right side of loop can pair
-				if (E_isINF(rightExt->E)) {
-					continue;
-				}
-				// check if interaction length is within boundary
-				if ((rightExt->j1 + 1 - i1) > energy.getAccessibility1().getMaxLength()
-					|| (rightExt->j2 + 1 - i2) > energy.getAccessibility2().getMaxLength()) {
-					continue;
-				}
-
-				// compute energy for this loop sizes
-				curE = energy.getE_interLeft(i1, i1 + w1, i2, i2 + w2) + rightExt->E;
-				// check if this combination yields better energy
-				curEtotal = energy.getE(i1, rightExt->j1, i2, rightExt->j2, curE);
-				if (curEtotal < curCellEtotal) {
-					// update current best for this left boundary
-					// copy right boundary
-					*curCellMulti = *rightExt;
-					// set new energy
-					curCellMulti->E = curE;
-					// store overall energy
-					curCellEtotal = curEtotal;
-				}
-			}
-		} // w2
-		} // w1
-
-		// Multiloop cases = ES-gap
-
-		// Both-sided structure
-		if (allowES == ES_both) {
-			for (w1 = 1; i1 + InteractionEnergy::minDistES + w1 < hybridE_seed.size1(); w1++) {
-				// direct cell access (const)
-				rightExt = &(hybridO(i1 + w1, i2));
-				// check if right side can pair
-				if (E_isINF(rightExt->E)) {
-					continue;
-				}
-				// check if interaction length is within boundary
-				if ((rightExt->j1 + 1 - i1) > energy.getAccessibility1().getMaxLength()
-					|| (rightExt->j2 + 1 - i2) > energy.getAccessibility2().getMaxLength()) {
-					continue;
-				}
-
-				// compute energy for this loop sizes
-				curE = energy.getE_multiLeft(i1, i1 + w1, i2,
-											 InteractionEnergy::ES_multi_mode::ES_multi_both) + rightExt->E;
-				// check if this combination yields better energy
-				curEtotal = energy.getE(i1, rightExt->j1, i2, rightExt->j2, curE);
-				if (curEtotal < curCellEtotal) {
-					// update current best for this left boundary
-					// copy right boundary
-					*curCellMulti = *rightExt;
-					// set new energy
-					curCellMulti->E = curE;
-					// store total energy to avoid recomputation
-					curCellEtotal = curEtotal;
-				}
-
-			} // w1
-		}
-
-		// Structure in S1
-		if (allowES == ES_target || allowES == ES_xorQueryTarget) {
-			for (w1 = 1; i1 + InteractionEnergy::minDistES + w1 < hybridE_seed.size1(); w1++) {
-			for (w2 = 1; w2 - 1 <= energy.getMaxInternalLoopSize2() && i2 + w2 < hybridE_seed.size2(); w2++) {
-				// direct cell access (const)
-				rightExt = &(hybridE_seed(i1 + w1, i2 + w2));
-				// check if right side can pair
-				if (E_isINF(rightExt->E)) {
-					continue;
-				}
-				// check if interaction length is within boundary
-				if ((rightExt->j1 + 1 - i1) > energy.getAccessibility1().getMaxLength()
-					|| (rightExt->j2 + 1 - i2) > energy.getAccessibility2().getMaxLength()) {
-					continue;
-				}
-
-				// compute energy for this loop sizes
-				curE = energy.getE_multi(i1, i1 + w1, i2, i2 + w2,
-										 InteractionEnergy::ES_multi_mode::ES_multi_1only) + rightExt->E;
-				// check if this combination yields better energy
-				curEtotal = energy.getE(i1, rightExt->j1, i2, rightExt->j2, curE);
-				if (curEtotal < curCellEtotal) {
-					// update current best for this left boundary
-					// copy right boundary
-					*curCellMulti = *rightExt;
-					// set new energy
-					curCellMulti->E = curE;
-					// store total energy to avoid recomputation
-					curCellEtotal = curEtotal;
-				}
-
-			} // w2
-			} // w1
-		}
-
-		// Structure in S2
-		if (allowES == ES_query || allowES == ES_xorQueryTarget) {
-			for (w1 = 1; w1 - 1 <= energy.getMaxInternalLoopSize1() && i1 + w1 < hybridO.size1(); w1++) {
-				// direct cell access (const)
-				rightExt = &(hybridO(i1 + w1, i2));
-				// check if right side can pair
-				if (E_isINF(rightExt->E)) {
-					continue;
-				}
-				// check if interaction length is within boundary
-				if ((rightExt->j1 + 1 - i1) > energy.getAccessibility1().getMaxLength()
-					|| (rightExt->j2 + 1 - i2) > energy.getAccessibility2().getMaxLength()) {
-					continue;
-				}
-
-				// compute energy for this loop sizes
-				curE = energy.getE_multiLeft(i1, i1 + w1, i2,
-											 InteractionEnergy::ES_multi_mode::ES_multi_2only) + rightExt->E;
-				// check if this combination yields better energy
-				curEtotal = energy.getE(i1, rightExt->j1, i2, rightExt->j2, curE);
-				if (curEtotal < curCellEtotal) {
-					// update current best for this left boundary
-					// copy right boundary
-					*curCellMulti = *rightExt;
-					// set new energy
-					curCellMulti->E = curE;
-					// store total energy to avoid recomputation
-					curCellEtotal = curEtotal;
-				}
-
-			} // w1
-		}
+		// so far no seeded interaction (hybridS entry) computed/valid for i1,i2
+		curCellS_Etotal = E_INF;
 
 		///////////////////////////////////////////////////////////////////
-		// check if seed is starting here
+		// hybridE_seed(i1,i2) check if seed is starting here
 		///////////////////////////////////////////////////////////////////
+
 		// check if seed is possible for this left boundary
 		if ( E_isNotINF( seedHandler.getSeedE(i1,i2) ) ) {
 			// get right extension
@@ -373,64 +187,197 @@ predict( const IndexRange & r1
 
 				rightExt = &(hybridE(i1 + w1, i2 + w2));
 				// check if right side can pair
-				if (E_isINF(rightExt->E)) {
-					continue;
-				}
-				// check if interaction length is within boundary
-				if ((rightExt->j1 + 1 - i1) > energy.getAccessibility1().getMaxLength()
-					|| (rightExt->j2 + 1 - i2) > energy.getAccessibility2().getMaxLength()) {
-					continue;
-				}
-
-				// get energy of seed interaction with best right extension
-				curE = seedHandler.getSeedE(i1, i2) + rightExt->E;
-				// check if this combination yields better energy
-				curEtotal = energy.getE(i1, rightExt->j1, i2, rightExt->j2, curE);
-				if (curEtotal < curCellEtotal) {
-					// update current best for this left boundary
-					// copy right boundary
-					*curCell = *rightExt;
-					// set new energy
-					curCell->E = curE;
-					// store total energy
-					curCellEtotal = curEtotal;
-				}
-			}
-
-			// compute overall energy of seed+multiside
-			if ( i1+w1 < hybridE_multi.size1()
-			    && i2+w2 < hybridE_multi.size2()) {
-				rightExt = &(hybridE_multi(i1 + w1, i2 + w2));
-				// check if right side can pair
-				if (E_isINF(rightExt->E)) {
-					continue;
-				}
-				// check if interaction length is within boundary
-				if ((rightExt->j1 + 1 - i1) > energy.getAccessibility1().getMaxLength()
-					|| (rightExt->j2 + 1 - i2) > energy.getAccessibility2().getMaxLength()) {
-					continue;
-				}
-
-				// get energy of seed interaction with best right extension
-				curE = seedHandler.getSeedE(i1, i2) + rightExt->E;
-				// check if this combination yields better energy
-				curEtotal = energy.getE(i1, rightExt->j1, i2, rightExt->j2, curE);
-
-				if (curEtotal < curCellEtotal) {
-					// update current best for this left boundary
-					// copy right boundary
-					*curCell = *rightExt;
-					// set new energy
-					curCell->E = curE;
-					// store total energy
-					curCellEtotal = curEtotal;
+				if ( E_isNotINF(rightExt->E)
+					// check if interaction length is within boundary
+					&& (rightExt->j1 + 1 - i1) <= energy.getAccessibility1().getMaxLength()
+					&& (rightExt->j2 + 1 - i2) <= energy.getAccessibility2().getMaxLength())
+				{
+					// get energy of seed interaction with best right extension
+					curE = seedHandler.getSeedE(i1, i2) + rightExt->E;
+					// check if this combination yields better energy
+					curEtotal = energy.getE(i1, rightExt->j1, i2, rightExt->j2, curE);
+					if (curEtotal < curCellS_Etotal) {
+						// update current best for this left boundary
+						// copy right boundary
+						*curCellS = *rightExt;
+						// set new energy
+						curCellS->E = curE;
+						// store total energy
+						curCellS_Etotal = curEtotal;
+					}
 				}
 			}
 		}
 
+		// TODO PARALLELIZE THIS DOUBLE LOOP ?!
+		// iterate over all loop sizes w1 (seq1) and w2 (seq2)
+		for (w1=1; w1-1 <= energy.getMaxInternalLoopSize1(); w1++) {
+		for (w2=1; w2-1 <= energy.getMaxInternalLoopSize2(); w2++) {
+
+			// simple interior loop extension
+			if (  (i1+w1 < hybridE.size1())
+			    && (i2+w2 < hybridE.size2()))
+			{
+
+				///////////////////////////////////////////////////////////////////
+				// hybridE(i1,i2) computation
+				///////////////////////////////////////////////////////////////////
+
+				// direct cell access to right side end of loop (seed has to be to the right of it)
+				rightExt = &(hybridE(i1 + w1, i2 + w2));
+				// check if right side of loop can pair
+				if ( ( ! E_isINF(rightExt->E) )
+					// check if interaction length is within boundary
+					&& (rightExt->j1 + 1 - i1) <= energy.getAccessibility1().getMaxLength()
+					&& (rightExt->j2 + 1 - i2) <= energy.getAccessibility2().getMaxLength())
+				{
+					// compute energy for this loop sizes
+					curE = energy.getE_interLeft(i1, i1 + w1, i2, i2 + w2) + rightExt->E;
+					// check if this combination yields better energy
+					curEtotal = energy.getE(i1, rightExt->j1, i2, rightExt->j2, curE);
+					if (curEtotal < curCell_Etotal) {
+						// update current best for this left boundary
+						// copy right boundary
+						*curCell = *rightExt;
+						// set new energy
+						curCell->E = curE;
+						// store overall energy
+						curCell_Etotal = curEtotal;
+					}
+				}
+
+				///////////////////////////////////////////////////////////////////
+				// hybridE_seed(i1,i2) computation
+				///////////////////////////////////////////////////////////////////
+
+				// direct cell access to right side end of loop (seed has to be to the right of it)
+				rightExt = &(hybridE_seed(i1 + w1, i2 + w2));
+				// check if right side of loop can pair
+				if ( E_isNotINF(rightExt->E)
+					// check if interaction length is within boundary
+					&& (rightExt->j1 + 1 - i1) <= energy.getAccessibility1().getMaxLength()
+					&& (rightExt->j2 + 1 - i2) <= energy.getAccessibility2().getMaxLength())
+				{
+
+					// compute energy for this loop sizes
+					curE = energy.getE_interLeft(i1, i1 + w1, i2, i2 + w2) + rightExt->E;
+					// check if this combination yields better energy
+					curEtotal = energy.getE(i1, rightExt->j1, i2, rightExt->j2, curE);
+					if (curEtotal < curCellS_Etotal) {
+						// update current best for this left boundary
+						// copy right boundary
+						*curCellS = *rightExt;
+						// set new energy
+						curCellS->E = curE;
+						// store overall energy
+						curCellS_Etotal = curEtotal;
+					}
+				}
+			}
+		} // w2
+		} // w1
+
+		////////////////////////////////////////////////////////////////
+		// hybridE(i1,i2) Multiloop cases = ES-gap
+		////////////////////////////////////////////////////////////////
+
+		// Both-sided structure
+		if (allowES == ES_both) {
+			for (w1 = 1; i1 + InteractionEnergy::minDistES + w1 < hybridE_seed.size1(); w1++) {
+				// direct cell access (const)
+				rightExt = &(hybridO(i1 + w1, i2));
+				// check if right side can pair
+				if ( E_isNotINF(rightExt->E)
+					// check if interaction length is within boundary
+					&& (rightExt->j1 + 1 - i1) <= energy.getAccessibility1().getMaxLength()
+					&& (rightExt->j2 + 1 - i2) <= energy.getAccessibility2().getMaxLength())
+				{
+					// compute energy for this loop sizes
+					curE = energy.getE_multiLeft(i1, i1 + w1, i2,
+												 InteractionEnergy::ES_multi_mode::ES_multi_both) + rightExt->E;
+					// check if this combination yields better energy
+					curEtotal = energy.getE(i1, rightExt->j1, i2, rightExt->j2, curE);
+					if (curEtotal < curCell_Etotal) {
+						// update current best for this left boundary
+						// copy right boundary
+						*curCell = *rightExt;
+						// set new energy
+						curCell->E = curE;
+						// store total energy to avoid recomputation
+						curCell_Etotal = curEtotal;
+					}
+				}
+
+			} // w1
+		}
+
+		// Structure in S1
+		if (allowES == ES_target || allowES == ES_xorQueryTarget) {
+			for (w1 = 1; i1 + InteractionEnergy::minDistES + w1 < hybridE_seed.size1(); w1++) {
+			for (w2 = 1; w2 - 1 <= energy.getMaxInternalLoopSize2() && i2 + w2 < hybridE_seed.size2(); w2++) {
+				// direct cell access (const)
+				rightExt = &(hybridE_seed(i1 + w1, i2 + w2));
+				// check if right side can pair
+				if ( E_isNotINF(rightExt->E)
+						// check if interaction length is within boundary
+					&& (rightExt->j1 + 1 - i1) <= energy.getAccessibility1().getMaxLength()
+					&& (rightExt->j2 + 1 - i2) <= energy.getAccessibility2().getMaxLength())
+				{
+					// compute energy for this loop sizes
+					curE = energy.getE_multi(i1, i1 + w1, i2, i2 + w2,
+											 InteractionEnergy::ES_multi_mode::ES_multi_1only) + rightExt->E;
+					// check if this combination yields better energy
+					curEtotal = energy.getE(i1, rightExt->j1, i2, rightExt->j2, curE);
+					if (curEtotal < curCell_Etotal) {
+						// update current best for this left boundary
+						// copy right boundary
+						*curCell = *rightExt;
+						// set new energy
+						curCell->E = curE;
+						// store total energy to avoid recomputation
+						curCell_Etotal = curEtotal;
+					}
+				}
+
+			} // w2
+			} // w1
+		}
+
+		// Structure in S2
+		if (allowES == ES_query || allowES == ES_xorQueryTarget) {
+			for (w1 = 1; w1 - 1 <= energy.getMaxInternalLoopSize1() && i1 + w1 < hybridO.size1(); w1++) {
+				// direct cell access (const)
+				rightExt = &(hybridO(i1 + w1, i2));
+				// check if right side can pair
+				if ( E_isNotINF(rightExt->E)
+						// check if interaction length is within boundary
+					&& (rightExt->j1 + 1 - i1) <= energy.getAccessibility1().getMaxLength()
+					&& (rightExt->j2 + 1 - i2) <= energy.getAccessibility2().getMaxLength())
+				{
+					// compute energy for this loop sizes
+					curE = energy.getE_multiLeft(i1, i1 + w1, i2,
+												 InteractionEnergy::ES_multi_mode::ES_multi_2only) + rightExt->E;
+					// check if this combination yields better energy
+					curEtotal = energy.getE(i1, rightExt->j1, i2, rightExt->j2, curE);
+					if (curEtotal < curCell_Etotal) {
+						// update current best for this left boundary
+						// copy right boundary
+						*curCell = *rightExt;
+						// set new energy
+						curCell->E = curE;
+						// store total energy to avoid recomputation
+						curCell_Etotal = curEtotal;
+					}
+				}
+
+			} // w1
+		}
+
 
 		// update mfe if needed (call superclass update routine)
-		PredictorMfe2dMultiHeuristic::updateOptima( i1,curCell->j1, i2,curCell->j2, curCellEtotal, false );
+		if (curCellS != NULL && E_isNotINF(curCellS->E)) {
+			PredictorMfe2dMultiHeuristic::updateOptima( i1,curCellS->j1, i2,curCellS->j2, curCellS_Etotal, false );
+		}
 
 	} // i2
 	} // i1
@@ -513,17 +460,18 @@ traceBack( Interaction & interaction )
 	// trace back
 	// temp variables
 	size_t k1,k2;
-	bool doLocalTrace = true;
-	bool traceInESeed = true; // if false: traces hybridE_multi
+	bool traceInESeed = true; // if false: traces hybridE
+
 	// do until only right boundary is left over
 	while( (j1-i1) > 1 ) {
+
 		const BestInteraction * curCell = NULL;
 
-		// check if we still have to find the seed
-        if (doLocalTrace) {
+		// trace hybridE_seed entry
+		if (traceInESeed) {
 
 			// check seed extended to the right
-			if (traceInESeed && E_isNotINF( seedHandler.getSeedE(i1,i2))) {
+			if (E_isNotINF( seedHandler.getSeedE(i1,i2))) {
 
 				k1 = i1+seedHandler.getSeedLength1(i1,i2)-1;
 				k2 = i2+seedHandler.getSeedLength2(i1,i2)-1;
@@ -544,89 +492,66 @@ traceBack( Interaction & interaction )
 					i2 = k2;
 
 					curE = curCell->E;
-					doLocalTrace = false;
-					continue;
-				}
-
-				// check if correct trace with multi-side extension
-				curCell = &(hybridE_multi(k1,k2));
-				if ( curCell->j1 == j1 && curCell->j2 == j2 &&
-					  E_equal( curE, (seedHandler.getSeedE(i1,i2)+curCell->E) )) {
-					// store seed information
-					interaction.setSeedRange(
-							energy.getBasePair(i1, i2),
-							energy.getBasePair(k1, k2),
-							energy.getE(i1, k1, i2, k2, seedHandler.getSeedE(i1, i2)) + energy.getE_init());
-					// traceback seed base pairs (excludes right most = (k1,k2))
-					seedHandler.traceBackSeed(interaction, i1, i2);
-					// update position to point after seed interaction
-					i1 = k1;
-					i2 = k2;
-
-					// Add right end of seed
-					interaction.basePairs.push_back(energy.getBasePair(i1,i2));
-
-					curE = curCell->E;
 					traceInESeed = false;
 					continue;
 				}
-			}
-		}
-	    // check all interval splits if no trace already found
-	    if ( doLocalTrace ) {
+			} // seed extension
+
+			// check interior loop extension of hybridE_seed()
+			// check all combinations of decompositions into (i1,i2)..(k1,k2)-(j1,j2)
+			bool traceNotFound = true;
+			for (k1=std::min(j1-std::min(j1,seedHandler.getConstraint().getBasePairs())+1,i1+energy.getMaxInternalLoopSize1()+1); traceNotFound && k1>i1; k1--) {
+			for (k2=std::min(j2-std::min(j2,seedHandler.getConstraint().getBasePairs())+1,i2+energy.getMaxInternalLoopSize2()+1); traceNotFound && k2>i2; k2--) {
+				// temp access to current cell
+				curCell = &(hybridE_seed(k1,k2));
+				if ( E_isNotINF(curCell->E)
+					// check if right boundary is equal (part of the heuristic)
+					&& curCell->j1 == j1 && curCell->j2 == j2
+					 // and energy is the source of curE
+					&& E_equal( curE, (energy.getE_interLeft(i1,k1,i2,k2) + curCell->E ) ) )
+				{
+					// stop searching
+					traceNotFound = false;
+					// store splitting base pair
+					if ( k1 < j1 ) {
+						interaction.basePairs.push_back( energy.getBasePair(k1,k2) );
+					}
+					// trace right part of split
+					i1=k1;
+					i2=k2;
+					curE = curCell->E;
+				}
+			}} // k2, k1 : interior loop
+
+		} // traceInESeed
+
+		// trace in hybridE()
+		else {
 
 			// check all combinations of decompositions into (i1,i2)..(k1,k2)-(j1,j2)
 			bool traceNotFound = true;
-			for (k1=std::min(j1-seedHandler.getConstraint().getBasePairs()+1,i1+energy.getMaxInternalLoopSize1()+1); traceNotFound && k1>i1; k1--) {
-			for (k2=std::min(j2-seedHandler.getConstraint().getBasePairs()+1,i2+energy.getMaxInternalLoopSize2()+1); traceNotFound && k2>i2; k2--) {
-				if ( traceInESeed
-					&& j1-k1 < hybridE_seed.size1()
-					&& j2-k2 < hybridE_seed.size2()
-					&& (E_isNotINF((&(hybridE_seed(k1,k2)))->E))) {
-					// temp access to current cell
-					curCell = &(hybridE_seed(k1,k2));
+			for (k1=std::min(j1,i1+energy.getMaxInternalLoopSize1()+1); traceNotFound && k1>i1; k1--) {
+			for (k2=std::min(j2,i2+energy.getMaxInternalLoopSize2()+1); traceNotFound && k2>i2; k2--) {
+				// cell access
+				curCell = &(hybridE(k1,k2));
+				// check if (k1,k2) are valid left boundaries including a seed
+				if ( E_isNotINF(curCell->E)
 					// check if right boundary is equal (part of the heuristic)
-					if ( curCell->j1 == j1 && curCell->j2 == j2 &&
-						 // and energy is the source of curE
-						 E_equal( curE, (energy.getE_interLeft(i1,k1,i2,k2) + curCell->E ) ) )
-					{
-						// stop searching
-						traceNotFound = false;
-						// store splitting base pair
-						if ( k1 < j1 ) {
-							interaction.basePairs.push_back( energy.getBasePair(k1,k2) );
-						}
-						// trace right part of split
-						i1=k1;
-						i2=k2;
-						curE = curCell->E;
-						continue;
+					&& curCell->j1 == j1 && curCell->j2 == j2
+				 	// and energy is the source of curE
+					&& E_equal( curE, (energy.getE_interLeft(i1,k1,i2,k2) + curCell->E ) ) )
+				{
+					// stop searching
+					traceNotFound = false;
+					// store splitting base pair
+					if ( k1 < j1 ) {
+						interaction.basePairs.push_back( energy.getBasePair(k1,k2) );
 					}
-				} else
-					// check if (k1,k2) are valid left boundaries including a seed
-				if ( !traceInESeed
-					&& j1-k1 < hybridE_multi.size1()
-					&& j2-k2 < hybridE_multi.size2()
-					&& (E_isNotINF((&(hybridE_multi(k1,k2)))->E))) {
-
-					curCell = &(hybridE_multi(k1,k2));
-					// check if right boundary is equal (part of the heuristic)
-					if ( curCell->j1 == j1 && curCell->j2 == j2 &&
-						 // and energy is the source of curE
-						 E_equal( curE, (energy.getE_interLeft(i1,k1,i2,k2) + curCell->E ) ) )
-					{
-						// stop searching
-						traceNotFound = false;
-						// store splitting base pair
-						if ( k1 < j1 ) {
-							interaction.basePairs.push_back( energy.getBasePair(k1,k2) );
-						}
-						// trace right part of split
-						i1=k1;
-						i2=k2;
-						curE = curCell->E;
-						continue;
-					}
+					// trace right part of split
+					i1=k1;
+					i2=k2;
+					curE = curCell->E;
+					continue;
 				}
 
 			} // k2
@@ -635,7 +560,7 @@ traceBack( Interaction & interaction )
 			///////////////  multi-side trace  ///////////////////
 
 			// Both-sided structure
-			if (!traceInESeed && traceNotFound && allowES == ES_both) {
+			if (traceNotFound && allowES == ES_both) {
 				for (k1 = j1; traceNotFound && k1 > i1 + InteractionEnergy::minDistES; k1--) {
 					// temp access to current cell
 					curCell = &(hybridO(k1, i2));
@@ -672,7 +597,7 @@ traceBack( Interaction & interaction )
 			}
 
 			// Structure in S1
-			if (!traceInESeed && traceNotFound && (allowES == ES_target || allowES == ES_xorQueryTarget)) {
+			if (traceNotFound && (allowES == ES_target || allowES == ES_xorQueryTarget)) {
 				for (k1 = j1; traceNotFound && k1 > i1 + InteractionEnergy::minDistES; k1--) {
 				for (k2 = std::min(j2, i2 + energy.getMaxInternalLoopSize2() + 1); traceNotFound && k2 > i2; k2--) {
 					// temp access to current cell
@@ -711,7 +636,7 @@ traceBack( Interaction & interaction )
 			}
 
 			// Structure in S2
-			if (!traceInESeed && traceNotFound && (allowES == ES_query || allowES == ES_xorQueryTarget)) {
+			if (traceNotFound && (allowES == ES_query || allowES == ES_xorQueryTarget)) {
 				for (k1 = std::min(j1, i1 + energy.getMaxInternalLoopSize1() + 1); traceNotFound && k1 > i1; k1--) {
 					// temp access to current cell
 					curCell = &(hybridO(k1, i2));
@@ -747,24 +672,6 @@ traceBack( Interaction & interaction )
 				// final sanity check
 				assert(!traceNotFound);
 			} // local trace
-		}
-	       // seed was already traced, do "normal" interaction trace
-	    else {
-			// create temporary data structure to be filed
-			Interaction bpsRight(*(interaction.s1), *(interaction.s2) );
-			bpsRight.basePairs.push_back( energy.getBasePair(i1,i2) );
-			bpsRight.basePairs.push_back( energy.getBasePair(j1,j2) );
-			PredictorMfe2dMultiHeuristic::traceBack( bpsRight );
-			// copy remaining base pairs
-			Interaction::PairingVec & bps = bpsRight.basePairs;
-			// copy all base pairs excluding the right most
-			for (size_t i=0; i+1<bps.size(); i++) {
-				interaction.basePairs.push_back( bps.at(i) );
-			}
-			i1 = j1;
-			i2 = j2;
-			// stop traceback
-			break;
 		}
 
 
