@@ -413,8 +413,11 @@ protected:
 	//! the prediction mode (heuristic, space-efficient, exact)
 	CharParameter predMode;
 
+#ifdef INTARNA_MI_BINARY
 	//! defines for pred=M where intramolecular ES terms are considered
 	CharParameter predMulti;
+#endif
+
 #if INTARNA_MULITHREADING
 	//! number of threads = number of parallel predictors running
 	NumberParameter<int> threads;
@@ -635,11 +638,13 @@ protected:
 	 */
 	void validate_predMode(const char & value);
 
+#ifdef INTARNA_MI_BINARY
 	/**
      * Validates the prediction mode argument.
      * @param value the argument value to validate
 	 */
 	void validate_predMulti(const char & value);
+#endif
 
 	/**
 	 * Validates the temperature argument.
@@ -1251,6 +1256,7 @@ void CommandLineParsing::validate_predMode(const char & value)
 }
 
 ////////////////////////////////////////////////////////////////////////////
+#ifdef INTARNA_MI_BINARY
 
 inline
 void CommandLineParsing::validate_predMulti(const char & value)
@@ -1259,6 +1265,7 @@ void CommandLineParsing::validate_predMulti(const char & value)
 	validate_charArgument("mode", predMulti, value);
 }
 
+#endif
 ////////////////////////////////////////////////////////////////////////////
 
 inline
