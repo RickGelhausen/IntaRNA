@@ -750,6 +750,7 @@ traceBack( Interaction & interaction )
 		}
 	       // seed was already traced, do "normal" interaction trace
 	    else {
+			assert(E_equal(curE, hybridE_multi(i1,i2).E));
 			// create temporary data structure to be filed
 			Interaction bpsRight(*(interaction.s1), *(interaction.s2) );
 			bpsRight.basePairs.push_back( energy.getBasePair(i1,i2) );
