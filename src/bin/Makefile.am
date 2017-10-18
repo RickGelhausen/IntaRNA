@@ -10,12 +10,12 @@ AUTOMAKE_OPTIONS = std-options subdir-objects
 AM_DEFAULT_SOURCE_EXT = .cpp
 
 
+# the program to build
+bin_PROGRAMS = IntaRNA IntaRNA-mi
+
 ###############################################################################
 # THE INTARNA BINARY
 ###############################################################################
-
-# the program to build
-bin_PROGRAMS = IntaRNA
 
 # generated intaRNA sources 
 nodist_IntaRNA_SOURCES = 	\
@@ -30,6 +30,27 @@ IntaRNA_SOURCES =	\
 					IntaRNA.cpp
 					
 IntaRNA_LDADD =  $(top_builddir)/src/IntaRNA/libIntaRNA.a
+
+
+###############################################################################
+# THE INTARNA-MI BINARY
+###############################################################################
+
+# generated intaRNA sources 
+nodist_IntaRNA_mi_SOURCES = 	\
+					../config.h \
+					IntaRNA/intarna_config.h
+
+# intaRNA sources
+IntaRNA_mi_SOURCES =	\
+					../easylogging++.h \
+					CommandLineParsing.h \
+					CommandLineParsing.cpp \
+					IntaRNA.cpp
+					
+IntaRNA_mi_LDADD =  $(top_builddir)/src/IntaRNA/libIntaRNA.a
+
+IntaRNA_mi_CPPFLAGS = -DINTARNA_MI_BINARY $(AM_CPPFLAGS)
 
 ###############################################################################
 
