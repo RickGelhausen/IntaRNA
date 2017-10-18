@@ -87,10 +87,6 @@ protected:
 	//! the best hybridization energy including a seed for start i1,i2
 	E2dMatrix hybridE_seed;
 
-	//! energy of all multi-site interaction hybrids that contain a seeded
-	//! interaction right of the gap and no seed left of it.
-	E2dMatrix hybridE_multi;
-
 	//! handler to generate and access seed information with idx offset
 	SeedHandlerIdxOffset seedHandler;
 
