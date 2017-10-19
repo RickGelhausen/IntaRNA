@@ -99,17 +99,6 @@ add( const Interaction & i )
 	// unbound region s2
 	s2Unbound.width(flankingLength+3);
 	s2Unbound <<std::right; // <<("3'-" + i.s2->asString().substr( (size_t)std::max(0,(int)i2-(int)flankingLength), std::min(i2,flankingLength) ));
-//	if (i2 < flankingLength) {
-//		// full sequence prefix
-//		s2Unbound <<("3'-" + i.s2->asString().substr( 0, i2));
-//	} else {
-//		// prefix shortening needed
-//		s2Unbound <<("3'-"
-//					+ i.s2->asString().substr( 0,3)
-//					+ "..."
-//					+ i.s2->asString().substr( (size_t)std::max(0,(int)i2+6-(int)flankingLength), flankingLength-6)
-//					);
-//	}
 	if (i2+flankingLength > i.s2->size()) {
 		// add remaining sequence
 		s2Unbound <<("3'-" + reverse(i.s2->asString().substr(i2+1)));
@@ -199,15 +188,6 @@ add( const Interaction & i )
 	}
 	s1Unbound <<"-3'";
 	// unbound region s2
-//	if (j2+flankingLength > i.s2->size()) {
-//		// add remaining sequence
-//		s2Unbound <<i.s2->asString().substr(j2+1);
-//	} else {
-//		// shortening needed
-//		s2Unbound <<i.s2->asString().substr(j2+1, flankingLength-6)
-//					<<"..."
-//					<<i.s2->asString().substr(i.s2->size()-3);
-//	}
 	if (j2 < flankingLength) {
 		// full sequence prefix
 		s2Unbound <<reverse(i.s2->asString().substr( 0, j2));
