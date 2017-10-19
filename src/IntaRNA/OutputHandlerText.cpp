@@ -158,8 +158,9 @@ add( const Interaction & i )
 				// TODO replace with dot-bracket of subseq's mfe
 				// mark gap
 				const int leftBrackets = (int)loop/2;
-				pos1tag.width(leftBrackets); pos1tag <<'<';
-				pos1tag.width(loop-leftBrackets); pos1tag <<'>';
+				pos1tag.width(leftBrackets); pos1tag.fill('<'); pos1tag <<'<';
+				pos1tag.width(loop-leftBrackets); pos1tag.fill('>'); pos1tag <<'>';
+				pos1tag.fill(' ');
 			} else {
 				pos1tag.width(loop); pos1tag <<' ';
 			}
@@ -186,8 +187,9 @@ add( const Interaction & i )
 				// TODO replace with dot-bracket of subseq's mfe
 				// mark gap
 				const int leftBrackets = (int)loop/2;
-				pos2tag.width(leftBrackets); pos2tag <<'<';
-				pos2tag.width(loop-leftBrackets); pos2tag <<'>';
+				pos2tag.width(leftBrackets); pos2tag.fill('<'); pos2tag <<'<';
+				pos2tag.width(loop-leftBrackets); pos2tag.fill('>'); pos2tag <<'>';
+				pos2tag.fill(' ');
 			} else {
 				pos2tag.width(loop); pos2tag <<' ';
 			}
