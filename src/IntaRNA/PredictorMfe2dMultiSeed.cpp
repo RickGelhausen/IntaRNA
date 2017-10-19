@@ -412,6 +412,8 @@ traceBack( Interaction & interaction )
 								Interaction::BasePair bpLeft = energy.getBasePair(i1,i2);
 								interaction.gap->gaps1.insert( IndexRange(bpLeft.first,interaction.basePairs.rbegin()->first) );
 								interaction.gap->gaps2.insert( IndexRange(interaction.basePairs.rbegin()->second,bpLeft.second) );
+								// move seed to gap information
+								interaction.gap->seeds.push_back( *(interaction.seed) );
 								// trace right part of split
 								i1 = k1;
 								i2 = k2;
@@ -440,7 +442,8 @@ traceBack( Interaction & interaction )
 								interaction.gap->energy += energy.getE_multi(i1, k1, i2, k2, InteractionEnergy::ES_multi_mode::ES_multi_1only);
 								Interaction::BasePair bpLeft = energy.getBasePair(i1,i2);
 								interaction.gap->gaps1.insert( IndexRange(bpLeft.first,interaction.basePairs.rbegin()->first) );
-
+								// move seed to gap information
+								interaction.gap->seeds.push_back( *(interaction.seed) );
 								// trace right part of split
 								i1 = k1;
 								i2 = k2;
@@ -471,6 +474,8 @@ traceBack( Interaction & interaction )
 								interaction.gap->energy += energy.getE_multiLeft(i1, k1, i2, InteractionEnergy::ES_multi_mode::ES_multi_2only) + E_multiRight;
 								Interaction::BasePair bpLeft = energy.getBasePair(i1,i2);
 								interaction.gap->gaps2.insert( IndexRange(interaction.basePairs.rbegin()->second,bpLeft.second) );
+								// move seed to gap information
+								interaction.gap->seeds.push_back( *(interaction.seed) );
 								// trace right part of split
 								i1 = k1;
 								i2 = k2;
