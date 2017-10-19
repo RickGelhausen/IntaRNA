@@ -166,7 +166,9 @@ predict( const IndexRange & r1
 
 		// reset temporary variables to initial value
 		// == interaction initiation with E_init
-		curCell_Etotal = energy.getE(i1, i1, i2, i2, curCell->E);
+//		curCell_Etotal = energy.getE(i1, i1, i2, i2, curCell->E);
+		// use only interaction energy for hybridE
+		curCell_Etotal = curCell->E;
 
 		// so far no seeded interaction (hybridS entry) computed/valid for i1,i2
 		curCellS_Etotal = E_INF;
@@ -234,7 +236,9 @@ predict( const IndexRange & r1
 					// compute energy for this loop sizes
 					curE = energy.getE_interLeft(i1, i1 + w1, i2, i2 + w2) + rightExt->E;
 					// check if this combination yields better energy
-					curEtotal = energy.getE(i1, rightExt->j1, i2, rightExt->j2, curE);
+//					curEtotal = energy.getE(i1, rightExt->j1, i2, rightExt->j2, curE);
+					// use only interaction energy for hybridE
+					curEtotal = curE;
 					if (curEtotal < curCell_Etotal) {
 						// update current best for this left boundary
 						// copy right boundary
@@ -296,7 +300,9 @@ predict( const IndexRange & r1
 					curE = energy.getE_multiLeft(i1, i1 + w1, i2,
 												 InteractionEnergy::ES_multi_mode::ES_multi_both) + rightExt->E;
 					// check if this combination yields better energy
-					curEtotal = energy.getE(i1, rightExt->j1, i2, rightExt->j2, curE);
+//					curEtotal = energy.getE(i1, rightExt->j1, i2, rightExt->j2, curE);
+					// use only interaction energy for hybridE
+					curEtotal = curE;
 					if (curEtotal < curCell_Etotal) {
 						// update current best for this left boundary
 						// copy right boundary
@@ -327,7 +333,9 @@ predict( const IndexRange & r1
 					curE = energy.getE_multi(i1, i1 + w1, i2, i2 + w2,
 											 InteractionEnergy::ES_multi_mode::ES_multi_1only) + rightExt->E;
 					// check if this combination yields better energy
-					curEtotal = energy.getE(i1, rightExt->j1, i2, rightExt->j2, curE);
+//					curEtotal = energy.getE(i1, rightExt->j1, i2, rightExt->j2, curE);
+					// use only interaction energy for hybridE
+					curEtotal = curE;
 					if (curEtotal < curCell_Etotal) {
 						// update current best for this left boundary
 						// copy right boundary
@@ -358,7 +366,9 @@ predict( const IndexRange & r1
 					curE = energy.getE_multiLeft(i1, i1 + w1, i2,
 												 InteractionEnergy::ES_multi_mode::ES_multi_2only) + rightExt->E;
 					// check if this combination yields better energy
-					curEtotal = energy.getE(i1, rightExt->j1, i2, rightExt->j2, curE);
+//					curEtotal = energy.getE(i1, rightExt->j1, i2, rightExt->j2, curE);
+					// use only interaction energy for hybridE
+					curEtotal = curE;
 					if (curEtotal < curCell_Etotal) {
 						// update current best for this left boundary
 						// copy right boundary
@@ -479,7 +489,8 @@ traceBack( Interaction & interaction )
 				// check if correct trace with single-side extension
 				curCell = &(hybridE(k1,k2));
 				if ( curCell->j1 == j1 && curCell->j2 == j2 &&
-					  E_equal( curE, (seedHandler.getSeedE(i1,i2)+curCell->E) )) {
+					  E_equal( curE, (seedHandler.getSeedE(i1,i2)+curCell->E) ))
+				{
 					// store seed information
 					interaction.setSeedRange(
 							energy.getBasePair(i1, i2),
@@ -490,6 +501,10 @@ traceBack( Interaction & interaction )
 					// update position to point after seed interaction
 					i1 = k1;
 					i2 = k2;
+					// add right-most seed base pair if not already at end of interaction
+					if (i1 != j1) {
+						interaction.basePairs.push_back( energy.getBasePair(i1,i2) );
+					}
 
 					curE = curCell->E;
 					traceInESeed = false;
@@ -587,6 +602,8 @@ traceBack( Interaction & interaction )
 						Interaction::BasePair bpLeft = energy.getBasePair(i1,i2);
 						interaction.gap->gaps1.insert( IndexRange(bpLeft.first, interaction.basePairs.rbegin()->first) );
 						interaction.gap->gaps2.insert( IndexRange(interaction.basePairs.rbegin()->second,bpLeft.second) );
+						// move seed to gap information
+						interaction.gap->seeds.push_back( *(interaction.seed) );
 						// trace right part of split
 						i1 = k1;
 						i2 = k2;
@@ -624,6 +641,8 @@ traceBack( Interaction & interaction )
 						Interaction::BasePair bpLeft = energy.getBasePair(i1, i2);
 						interaction.gap->gaps1.insert(
 								IndexRange(bpLeft.first, interaction.basePairs.rbegin()->first));
+						// move seed to gap information
+						interaction.gap->seeds.push_back( *(interaction.seed) );
 
 						// trace right part of split
 						i1 = k1;
@@ -660,6 +679,8 @@ traceBack( Interaction & interaction )
 						interaction.gap->energy += energy.getE_multiLeft(i1, k1, i2, InteractionEnergy::ES_multi_mode::ES_multi_2only) + E_multiRight;
 						Interaction::BasePair bpLeft = energy.getBasePair(i1,i2);
 						interaction.gap->gaps2.insert( IndexRange(interaction.basePairs.rbegin()->second,bpLeft.second) );
+						// move seed to gap information
+						interaction.gap->seeds.push_back( *(interaction.seed) );
 						// trace right part of split
 						i1 = k1;
 						i2 = k2;
