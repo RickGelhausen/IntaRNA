@@ -286,7 +286,7 @@ callbackForStorage(FLT_OR_DBL   *pr,
 			int i = j - l + 1;
 			// check if interval boundary is a blocked position
 			// check if zero before computing its log-value
-			if (accConstr.isMarkedBlocked(i) || prob_unpaired == 0.0) {
+			if (accConstr.isMarkedBlocked(i) || E_equal(prob_unpaired, 0.0) ) {
 				// ED value = ED_UPPER_BOUND
 				edValues(i-1,j-1) = ED_UPPER_BOUND;
 			} else {
@@ -336,7 +336,6 @@ fillByRNAplfold( const VrnaHandler &vrnaHandler
 
 	// copy sequence into C data structure
 	char * sequence = (char *) vrna_alloc(sizeof(char) * (length + 1));
-//	char * structure = NULL;
 	for (int i=0; i<length; i++) {
 		sequence[i] = getSequence().asString().at(i);
 	}
@@ -344,48 +343,32 @@ fillByRNAplfold( const VrnaHandler &vrnaHandler
 
     // setup folding data
     vrna_fold_compound_t * fold_compound = vrna_fold_compound( sequence, &curModel, VRNA_OPTION_PF | VRNA_OPTION_WINDOW );
-//    vrna_fold_compound_t * fold_compound = vrna_fold_compound( sequence, &curModel, VRNA_OPTION_MFE | VRNA_OPTION_PF | VRNA_OPTION_WINDOW );
 
     // setup folding constraints
     if ( ! getAccConstraint().isEmpty() ) {
-//    	// copy structure constraint
-//		structure = (char *) vrna_alloc(sizeof(char) * (length + 1));
-//		for (int i=0; i<length; i++) {
-//			// copy accessibility constraint
-//			structure[i] = '.';
-////			structure[i] = getAccConstraint().getVrnaDotBracket(i);
-//		}
-//		// set array end indicator
-//		structure[length] = '\0';
-//
-//		// Adding hard constraints from pseudo dot-bracket
-//		unsigned int constraint_options = VRNA_CONSTRAINT_DB_DEFAULT;
-////		// enforce constraints
-////		constraint_options |= VRNA_CONSTRAINT_DB_ENFORCE_BP;
-//
-//		LOG( DEBUG ) <<"sequence  = '"<<std::string(sequence) <<"'";
-//		LOG( DEBUG ) <<"structure = '"<<std::string(structure) <<"'";
-//		LOG( DEBUG ) <<"options   = "<<constraint_options;
-//
-//
-//		// add constraint information to the fold compound object
-//		vrna_constraints_add(fold_compound, (const char *)structure, constraint_options);
-
-    	vrna_hc_init_window( fold_compound );
-
+    	// copy structure constraint
+		char * structure = structure = (char *) vrna_alloc(sizeof(char) * (length + 1));
 		for (int i=0; i<length; i++) {
-			if (!getAccConstraint().isUnconstrained(i)) {
-		    	vrna_hc_add_up( fold_compound, i, VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS);
-			}
+			// copy accessibility constraint
+			structure[i] = getAccConstraint().getVrnaDotBracket(i);
 		}
-// ### batch version via array data structure
-//    	vrna_hc_up_t unpairedConstraints[5];
-//		for (int i=0; i<5; i++) {
-//			unpairedConstraints[i].position = i+5;
-//			unpairedConstraints[i].options = VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
-//		}
-//		vrna_hc_add_up_batch( fold_compound, unpairedConstraints );
+		// set array end indicator
+		structure[length] = '\0';
 
+		// Adding hard constraints from pseudo dot-bracket
+		unsigned int constraint_options = VRNA_CONSTRAINT_DB_DEFAULT;
+		// enforce constraints
+		constraint_options |= VRNA_CONSTRAINT_DB_ENFORCE_BP;
+
+		LOG( DEBUG ) <<"sequence  = '"<<std::string(sequence) <<"'";
+		LOG( DEBUG ) <<"structure = '"<<std::string(structure) <<"'";
+		LOG( DEBUG ) <<"options   = "<<constraint_options;
+
+
+		// add constraint information to the fold compound object
+		vrna_constraints_add(fold_compound, (const char *)structure, constraint_options);
+
+		free(structure);
     }
 
     // provide access to this object to be filled by the callback
@@ -399,7 +382,6 @@ fillByRNAplfold( const VrnaHandler &vrnaHandler
     // garbage collection
     vrna_fold_compound_free(fold_compound);
     free(sequence);
-//    if (structure != NULL) free(structure);
 
 }
 
