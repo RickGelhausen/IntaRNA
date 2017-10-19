@@ -71,13 +71,17 @@ add( const Interaction & i )
 	const size_t j2 = i.basePairs.rbegin()->second;
 
 	// decompose printing into several rows
+	std::ostringstream pos1tag;
 	std::ostringstream s1Unbound;
 	std::ostringstream s1Bound;
 	std::ostringstream pairing;
 	std::ostringstream s2Bound;
 	std::ostringstream s2Unbound;
+	std::ostringstream pos2tag;
 
 	// left flanking
+	pos1tag	<<std::setw(flankingLength+3+1) <<'|';
+	pos2tag	<<std::setw(flankingLength+3+1) <<'|';
 	// unbound region s1
 	s1Unbound.width(flankingLength+3);
 	s1Unbound <<std::right;
@@ -149,6 +153,17 @@ add( const Interaction & i )
 		loop = std::max(loop1,loop2);
 		// print unbound loop regions
 		if (loop>0) {
+			// gap handling in s1
+			if (i.gap != NULL && i.gap->gaps1.covers(leftBP->first +1)) {
+				// TODO replace with dot-bracket of subseq's mfe
+				// mark gap
+				const int leftBrackets = (int)loop/2;
+				pos1tag.width(leftBrackets); pos1tag.fill('<'); pos1tag <<'<';
+				pos1tag.width(loop-leftBrackets); pos1tag.fill('>'); pos1tag <<'>';
+				pos1tag.fill(' ');
+			} else {
+				pos1tag.width(loop); pos1tag <<' ';
+			}
 			// unbound region s1
 			s1Unbound.width(loop);
 			if (loop1 > 0) {
@@ -167,12 +182,24 @@ add( const Interaction & i )
 			} else {
 				s2Unbound <<' ';
 			}
+			// gap handling in s2
+			if (i.gap != NULL && i.gap->gaps2.covers(leftBP->second +1)) {
+				// TODO replace with dot-bracket of subseq's mfe
+				// mark gap
+				const int leftBrackets = (int)loop/2;
+				pos2tag.width(leftBrackets); pos2tag.fill('<'); pos2tag <<'<';
+				pos2tag.width(loop-leftBrackets); pos2tag.fill('>'); pos2tag <<'>';
+				pos2tag.fill(' ');
+			} else {
+				pos2tag.width(loop); pos2tag <<' ';
+			}
 		}
 		interactionLength += loop;
 
 		// print current base pair (right end of internal loop)
 		nt1 = i.s1->asString().at(curBP->first);
 		nt2 = i.s2->asString().at(curBP->second);
+		pos1tag << (curBP->first == i.basePairs.rbegin()->first ? "|" : " "); // interaction end tag
 		s1Unbound.width(1);	 s1Unbound <<' ';
 		s1Bound.width(1);	 s1Bound   <<nt1;
 		pairing.width(1);
@@ -183,6 +210,7 @@ add( const Interaction & i )
 		}
 		s2Bound.width(1);	 s2Bound   <<nt2;
 		s2Unbound.width(1);	 s2Unbound <<' ';
+		pos2tag << (curBP->second == i.basePairs.rbegin()->second ? "|" : " "); // interaction end tag
 		interactionLength++;
 	}
 
@@ -222,32 +250,26 @@ add( const Interaction & i )
 
 	// position information (first and last interacting positions in sequence)
 	// start indexing with 1 instead of 0
-	std::ostringstream pos1, pos1tag;
+	std::ostringstream pos1;
 	pos1	<<std::setw(flankingLength+3+1) <<std::right <<(i1+1);
-	pos1tag	<<std::setw(flankingLength+3+1) <<'|';
 	size_t numberSize = numStringLength(i1);
 	// put right (3') end only if not overlapping with 5' start position (left)
 	if (i1+1 < j1 && numberSize+2 < flankingLength+3+interactionLength) {
 		pos1 <<std::setw(interactionLength -2) <<' '
 				<<std::setw(1) <<std::left <<(j1+1);
-		pos1tag	<<std::setw(interactionLength - 1) <<'|';
 	}
-	std::ostringstream pos2, pos2tag;
+	std::ostringstream pos2;
 	numberSize = numStringLength(i.s2->size()-i2-1);
 	// put left (3') end only if not overlapping with 5' start position (right)
 	pos2	<<std::setw(flankingLength+3+1);
-	pos2tag	<<std::setw(flankingLength+3+1);
 	if (i2==j2 || numberSize+2 < (flankingLength+3+interactionLength)) {
 		pos2	 <<std::right <<(i2+1);
-		pos2tag	 <<'|';
 	} else {
 		pos2	 <<' ';
-		pos2tag	 <<' ';
 	}
 	if (i2 > j2) {
 		pos2 <<std::setw(interactionLength - 2) <<' '
 				<<std::setw(1) <<std::left <<(j2+1);
-		pos2tag	<<std::setw(interactionLength - 1) <<'|';
 	}
 
 	// get individual energy contributions

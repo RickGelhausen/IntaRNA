@@ -639,8 +639,8 @@ if ( interaction.basePairs.size() != 2 ) {
 								if (interaction.gap == NULL) { interaction.gap = new Interaction::Gap(); }
 								interaction.gap->energy += energy.getE_multiLeft(i1, k1, i2, InteractionEnergy::ES_multi_mode::ES_multi_both) + E_multiRight;
 								Interaction::BasePair bpLeft = energy.getBasePair(i1,i2);
-								interaction.gap->gaps1.insert( IndexRange(bpLeft.first,interaction.basePairs.rbegin()->first) );
-								interaction.gap->gaps2.insert( IndexRange(interaction.basePairs.rbegin()->second,bpLeft.second) );
+								interaction.gap->gaps1.insert( IndexRange(bpLeft.first+1,interaction.basePairs.rbegin()->first-1) );
+								interaction.gap->gaps2.insert( IndexRange(interaction.basePairs.rbegin()->second+1,bpLeft.second-1) );
 								// trace right part of split
 								i1 = k1;
 								i2 = k2;
@@ -672,7 +672,7 @@ if ( interaction.basePairs.size() != 2 ) {
 								if (interaction.gap == NULL) { interaction.gap = new Interaction::Gap(); }
 								interaction.gap->energy += energy.getE_multi(i1, k1, i2, k2, InteractionEnergy::ES_multi_mode::ES_multi_1only);
 								Interaction::BasePair bpLeft = energy.getBasePair(i1,i2);
-								interaction.gap->gaps1.insert( IndexRange(bpLeft.first,interaction.basePairs.rbegin()->first) );
+								interaction.gap->gaps1.insert( IndexRange(bpLeft.first+1,interaction.basePairs.rbegin()->first-1) );
 								// trace right part of split
 								i1 = k1;
 								i2 = k2;
@@ -707,7 +707,7 @@ if ( interaction.basePairs.size() != 2 ) {
 								if (interaction.gap == NULL) { interaction.gap = new Interaction::Gap(); }
 								interaction.gap->energy += energy.getE_multiLeft(i1, k1, i2, InteractionEnergy::ES_multi_mode::ES_multi_2only) + E_multiRight;
 								Interaction::BasePair bpLeft = energy.getBasePair(i1,i2);
-								interaction.gap->gaps2.insert( IndexRange(interaction.basePairs.rbegin()->second,bpLeft.second) );
+								interaction.gap->gaps2.insert( IndexRange(interaction.basePairs.rbegin()->second+1,bpLeft.second-1) );
 								// trace right part of split
 								i1 = k1;
 								i2 = k2;
