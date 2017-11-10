@@ -109,7 +109,7 @@ predict( const IndexRange & r1
 
 	// compute entries
 	// current minimal value
-	E_type curE = E_INF, curEtotal = E_INF, curCell_Etotal = E_INF, curCellS_Etotal = E_INF;
+	E_type curE = E_INF, curEtotal = E_INF, curCellS_Etotal = E_INF;
 	BestInteraction * curCell = NULL;
 	BestInteraction * curCellS = NULL;
 	BestInteraction * curCellO = NULL;
@@ -146,8 +146,7 @@ predict( const IndexRange & r1
 					// compute energy for this loop sizes
 					curE = energy.getE_multiRight( i1, i2, i2 + w2) + rightExt->E;
 					// check if this combination yields better energy
-					curEtotal = energy.getE(i1, rightExt->j1, i2, rightExt->j2, curE);
-					if (curEtotal < curCellO->E) {
+					if (curE < curCellO->E) {
 						// update current best for this left boundary
 						// copy right boundary
 						*curCellO = *rightExt;
@@ -163,10 +162,6 @@ predict( const IndexRange & r1
 		///////////////////////////////////////////////////////////////////
 
 		// reset temporary variables to initial value
-		// == interaction initiation with E_init
-//		curCell_Etotal = energy.getE(i1, i1, i2, i2, curCell->E);
-		// use only interaction energy for hybridE
-		curCell_Etotal = curCell->E;
 
 		// so far no seeded interaction (hybridS entry) computed/valid for i1,i2
 		curCellS_Etotal = E_INF;
@@ -229,17 +224,12 @@ predict( const IndexRange & r1
 				// compute energy for this loop sizes
 				curE = energy.getE_interLeft(i1, i1 + w1, i2, i2 + w2) + rightExt->E;
 				// check if this combination yields better energy
-//					curEtotal = energy.getE(i1, rightExt->j1, i2, rightExt->j2, curE);
-				// use only interaction energy for hybridE
-				curEtotal = curE; // TODO: Is this correct?
-				if (curEtotal < curCell_Etotal) {
+				if (curE < curCell->E) {
 					// update current best for this left boundary
 					// copy right boundary
 					*curCell = *rightExt;
 					// set new energy
 					curCell->E = curE;
-					// store overall energy
-					curCell_Etotal = curEtotal;
 				}
 			}
 
@@ -292,17 +282,12 @@ predict( const IndexRange & r1
 					curE = energy.getE_multiLeft(i1, i1 + w1, i2,
 												 InteractionEnergy::ES_multi_mode::ES_multi_both) + rightExt->E;
 					// check if this combination yields better energy
-//					curEtotal = energy.getE(i1, rightExt->j1, i2, rightExt->j2, curE);
-					// use only interaction energy for hybridE
-					curEtotal = curE;
-					if (curEtotal < curCell_Etotal) {
+					if (curE < curCell->E) {
 						// update current best for this left boundary
 						// copy right boundary
 						*curCell = *rightExt;
 						// set new energy
 						curCell->E = curE;
-						// store total energy to avoid recomputation
-						curCell_Etotal = curEtotal;
 					}
 				}
 
@@ -325,17 +310,12 @@ predict( const IndexRange & r1
 					curE = energy.getE_multi(i1, i1 + w1, i2, i2 + w2,
 											 InteractionEnergy::ES_multi_mode::ES_multi_1only) + rightExt->E;
 					// check if this combination yields better energy
-//					curEtotal = energy.getE(i1, rightExt->j1, i2, rightExt->j2, curE);
-					// use only interaction energy for hybridE
-					curEtotal = curE;
-					if (curEtotal < curCell_Etotal) {
+					if (curE < curCell->E) {
 						// update current best for this left boundary
 						// copy right boundary
 						*curCell = *rightExt;
 						// set new energy
 						curCell->E = curE;
-						// store total energy to avoid recomputation
-						curCell_Etotal = curEtotal;
 					}
 				}
 
@@ -358,17 +338,12 @@ predict( const IndexRange & r1
 					curE = energy.getE_multiLeft(i1, i1 + w1, i2,
 												 InteractionEnergy::ES_multi_mode::ES_multi_2only) + rightExt->E;
 					// check if this combination yields better energy
-//					curEtotal = energy.getE(i1, rightExt->j1, i2, rightExt->j2, curE);
-					// use only interaction energy for hybridE
-					curEtotal = curE;
-					if (curEtotal < curCell_Etotal) {
+					if (curE < curCell->E) {
 						// update current best for this left boundary
 						// copy right boundary
 						*curCell = *rightExt;
 						// set new energy
 						curCell->E = curE;
-						// store total energy to avoid recomputation
-						curCell_Etotal = curEtotal;
 					}
 				}
 
