@@ -153,12 +153,12 @@ fillHybridE_seed( const size_t j1, const size_t j2, const size_t i1min, const si
 		for (i2 = 1 + i2range.to; i2-- > i2range.from;) {
 			// check if left boundary (i1,i2) is complementary
 			// check if this cell is to be computed (!=E_INF)
-			if (!energy.areComplementary(i1,i2) || E_isINF(hybridE_pq(i1, i2))) {
-				// interaction not possible
-				hybridE_pq_seed(i1, i2) = E_INF;
-				hybridO(i1,i2) = E_INF;
-				continue;
-			}
+//			if (!energy.areComplementary(i1,i2) || E_isINF(hybridE_pq(i1, i2))) {
+//				// interaction not possible
+//				hybridE_pq_seed(i1, i2) = E_INF;
+//				hybridO(i1,i2) = E_INF;
+//				continue;
+//			}
 
 			///////////////////////////////////////////////////
 			// hybridO(i1,i2) computation
@@ -222,7 +222,7 @@ fillHybridE_seed( const size_t j1, const size_t j2, const size_t i1min, const si
 					///////////////////////////////////////////////////////////////////
 
 					if (E_isNotINF(hybridE_pq_seed(k1, k2))) {
-						curMinE_seed = std::min(curMinE,
+						curMinE_seed = std::min(curMinE_seed,
 										   (energy.getE_interLeft(i1, k1, i2, k2)
 											+ hybridE_pq_seed(k1, k2))
 						);

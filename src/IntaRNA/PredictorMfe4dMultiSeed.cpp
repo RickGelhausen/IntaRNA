@@ -306,7 +306,7 @@ fillHybridE_seed( )
 			for (k1=std::min(j1-seedHandler.getConstraint().getBasePairs()+1,i1+energy.getMaxInternalLoopSize1()+1); k1>i1; k1--) {
 			for (k2=std::min(j2-seedHandler.getConstraint().getBasePairs()+1,i2+energy.getMaxInternalLoopSize2()+1); k2>i2; k2--) {
 
-				// check if (k1,k2) are valid left boundaries including a multi-side
+				// check if (k1,k2) are valid left boundaries
 				if ( hybridE(k1,k2) != NULL
 					 && j1-k1 < hybridE(k1,k2)->size1()
 					 && j2-k2 < hybridE(k1,k2)->size2()
@@ -542,7 +542,7 @@ if ( interaction.basePairs.size() != 2 ) {
 			} // k1
 		}
 
-			// trace in hybridE()
+		// trace in hybridE()
 		else {
 			// check all combinations of decompositions into (i1,i2)..(k1,k2)-(j1,j2)
 			bool traceNotFound = true;

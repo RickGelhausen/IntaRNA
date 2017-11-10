@@ -72,9 +72,6 @@ protected:
 	//! access to the output handler of the super class
 	using PredictorMfe2dMultiHeuristic::output;
 
-	//! access to the list of reported interaction ranges of the super class
-	using PredictorMfe2dMultiHeuristic::reportedInteractions;
-
 	// TODO provide all data structures as arguments to make predict() call threadsafe
 
 	//! energy of all interaction hybrids that end in position p (seq1) and
@@ -84,11 +81,14 @@ protected:
 	// Auxillary matrix to improve runtime
 	using PredictorMfe2dMultiHeuristic::hybridO;
 
-	//! the best hybridization energy including a seed for start i1,i2
-	E2dMatrix hybridE_seed;
+	//! access to the list of reported interaction ranges of the super class
+	using PredictorMfe2dMultiHeuristic::reportedInteractions;
 
 	//! handler to generate and access seed information with idx offset
 	SeedHandlerIdxOffset seedHandler;
+
+	//! the best hybridization energy including a seed for start i1,i2
+	E2dMatrix hybridE_seed;
 
 protected:
 
