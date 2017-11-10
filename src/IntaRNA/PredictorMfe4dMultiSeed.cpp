@@ -193,7 +193,7 @@ fillHybridE_seed( )
 	//////////  FIRST ROUND : COMPUTE HYBRIDIZATION ENERGIES ONLY  ////////////
 
 	// current minimal value
-	E_type curMinE = E_INF, curMinE_multi = E_INF, curMinO = E_INF;
+	E_type curMinE = E_INF, curMinE_seed = E_INF, curMinO = E_INF;
 	// iterate increasingly over all window sizes w1 (seq1) and w2 (seq2)
 	// minimal size == number of seed base pairs
 	for (w1=0; w1<energy.getAccessibility1().getMaxLength(); w1++) {
@@ -279,8 +279,8 @@ fillHybridE_seed( )
 			j2=i2+w2;
 
 			// compute entry hybridE_seed ///////////////////////////
-			curMinE = E_INF;
-			curMinE_multi = E_INF;
+			curMinE = (*hybridE(i1, i2))(w1,w2);
+			curMinE_seed = E_INF;
 
 			// base case = incorporate mfe seed starting at (i1,i2)
 			//             + interaction on right side up to (j1,j2)
@@ -297,7 +297,7 @@ fillHybridE_seed( )
 					 && E_isNotINF((*hybridE(k1,k2))(j1-k1,j2-k2)))
 				{
 					// check extension of single-side interaction
-					curMinE = seedHandler.getSeedE(i1,i2) + (*hybridE(k1,k2))(j1-k1,j2-k2);
+					curMinE_seed = seedHandler.getSeedE(i1,i2) + (*hybridE(k1,k2))(j1-k1,j2-k2);
 				}
 			}
 
@@ -324,7 +324,7 @@ fillHybridE_seed( )
 					 && j2-k2 < hybridE_seed(k1,k2)->size2()
 					 && E_isNotINF( (*hybridE_seed(k1,k2))(j1-k1,j2-k2) ) )
 				{
-					curMinE = std::min( curMinE,
+					curMinE_seed = std::min( curMinE,
 										(energy.getE_interLeft(i1,k1,i2,k2)
 										 + (*hybridE_seed(k1,k2))(j1-k1,j2-k2) )
 					);
@@ -387,12 +387,13 @@ fillHybridE_seed( )
 
 
 			// store computed value
-			(*hybridE_seed(i1,i2))(w1,w2) = curMinE;
+			(*hybridE(i1, i2))(w1, w2) = curMinE;
+			(*hybridE_seed(i1,i2))(w1,w2) = curMinE_seed;
 
 			// update mfe if needed (call super class)
 			if (E_isNotINF(curMinE)) {
 				// call superclass function to do final reporting
-				PredictorMfe4d::updateOptima( i1,j1,i2,j2, curMinE, true );
+				PredictorMfe4d::updateOptima( i1,j1,i2,j2, curMinE_seed, true );
 			}
 
 		}
