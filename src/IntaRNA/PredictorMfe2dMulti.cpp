@@ -64,13 +64,15 @@ predict( const IndexRange & r1
 	energy.setOffset1(r1.from);
 	energy.setOffset2(r2.from);
 
-	// resize matrix
-	hybridE_pq.resize( std::min( energy.size1()
-			, (r1.to==RnaSequence::lastPos?energy.size1()-1:r1.to)-r1.from+1 )
-			, std::min( energy.size2()
-					, (r2.to==RnaSequence::lastPos?energy.size2()-1:r2.to)-r2.from+1 ) );
+	const size_t hybridE_pqsize1 = std::min( energy.size1()
+			, (r1.to==RnaSequence::lastPos?energy.size1()-1:r1.to)-r1.from+1 );
+	const size_t hybridE_pqsize2 = std::min( energy.size2()
+			, (r2.to==RnaSequence::lastPos?energy.size2()-1:r2.to)-r2.from+1 );
 
-	hybridO.resize(hybridE_pq.size1(), hybridE_pq.size2());
+	// resize matrix
+	hybridE_pq.resize( hybridE_pqsize1, hybridE_pqsize2 );
+	hybridO.resize(	hybridE_pqsize1, hybridE_pqsize2 );
+
 	// initialize mfe interaction for updates
 	initOptima( outConstraint );
 
@@ -214,15 +216,17 @@ fillHybridE( const size_t j1, const size_t j2
 				hybridO(i1,i2) = E_INF;
 				continue;
 			}
+
 			// check if left boundary (i1,i2) is complementary
-			if (!energy.areComplementary(i1,i2)) {
+			if (!energy.areComplementary(i1,i2) || E_isINF( hybridE_pq(i1,i2))) {
 				// interaction not possible
 				hybridE_pq(i1,i2) = E_INF;
 				hybridO(i1,i2) = E_INF;
 				continue;
 			}
-			// fill hybridO matrix
 
+			// fill hybridO matrix
+			if (allowES != ES_target)
 			// compute entry, since (i1,i2) complementary
 			{
 				// init
@@ -240,84 +244,81 @@ fillHybridE( const size_t j1, const size_t j2
 				hybridO(i1, i2) = curMinO;
 			}
 
-			// check if this cell is to be computed (!=E_INF)
-			if( E_isNotINF( hybridE_pq(i1,i2) ) ) {
+			// compute entry
+			curMinE = E_INF;
 
-				// compute entry
-
-				// either interaction initiation
-				if ( w1==1 && w2==1 )  {
-					curMinE = energy.getE_init();
-				} else {
-					// or only internal loop energy (nothing between i and j)
-					curMinE = energy.getE_interLeft(i1,j1,i2,j2)
-							  + hybridE_pq(j1,j2);
-				}
-
-				// check all combinations of decompositions into (i1,i2)..(k1,k2)-(j1,j2)
-				if (w1 > 2 && w2 > 2) {
-					for (k1=std::min(j1-1,i1+energy.getMaxInternalLoopSize1()+1); k1>i1; k1--) {
-					for (k2=std::min(j2-1,i2+energy.getMaxInternalLoopSize2()+1); k2>i2; k2--) {
-						// check if (k1,k2) are valid left boundary
-						if ( E_isNotINF( hybridE_pq(k1,k2) ) ) {
-							curMinE = std::min( curMinE,
-												(energy.getE_interLeft(i1,k1,i2,k2)
-												 + hybridE_pq(k1,k2) )
-							);
-						}
-					}
-					}
-
-					// Multiloop cases = ES-gap
-
-					// Both-sided structure
-					if (allowES == ES_both) {
-						for (k1 = j1; k1 > i1 + InteractionEnergy::minDistES; k1--) {
-							if ( E_isNotINF( hybridO(k1,i2) ) )  {
-								// update minE
-								curMinE = std::min(curMinE,
-												   (energy.getE_multiLeft(i1, k1, i2, InteractionEnergy::ES_multi_mode::ES_multi_both)
-													+ hybridO(k1, i2)
-												   ));
-							}
-						}
-					}
-
-					// Structure in S1
-					if (allowES == ES_target || allowES == ES_xorQueryTarget) {
-						for (k1 = j1; k1 > i1 + InteractionEnergy::minDistES; k1--) {
-							for (k2 = std::min(j2, i2 + energy.getMaxInternalLoopSize2() + 1); k2 > i2; k2--) {
-								if ( E_isNotINF(hybridE_pq(k1,k2) ) ) {
-									// update minE
-									curMinE = std::min(curMinE,
-													   (energy.getE_multi(i1, k1, i2, k2, InteractionEnergy::ES_multi_mode::ES_multi_1only)
-														+ hybridE_pq(k1, k2)
-													   ));
-								}
-							}
-						}
-					}
-
-
-					// Structure in S2
-					if (allowES == ES_query || allowES == ES_xorQueryTarget) {
-						for (k1 = std::min(j1, i1 + energy.getMaxInternalLoopSize1() + 1); k1 > i1; k1--) {
-							if ( E_isNotINF(hybridO(k1, i2))) {
-								// update minE
-								curMinE = std::min(curMinE,
-												   (energy.getE_multiLeft(i1, k1, i2, InteractionEnergy::ES_multi_mode::ES_multi_2only)
-													+ hybridO(k1, i2)
-												   ));
-							}
-						}
-					}
-				}
-				// store value
-				hybridE_pq(i1,i2) = curMinE;
-				// update mfe if needed
-				updateOptima( i1,j1,i2,j2, hybridE_pq(i1,i2), true );
-				continue;
+			// either interaction initiation
+			if ( w1==1 && w2==1 )  {
+				curMinE = energy.getE_init();
+			} else {
+				// or only internal loop energy (nothing between i and j)
+				curMinE = energy.getE_interLeft(i1,j1,i2,j2)
+						  + hybridE_pq(j1,j2);
 			}
+
+			// check all combinations of decompositions into (i1,i2)..(k1,k2)-(j1,j2)
+			if (w1 > 2 && w2 > 2) {
+				for (k1=std::min(j1-1,i1+energy.getMaxInternalLoopSize1()+1); k1>i1; k1--) {
+				for (k2=std::min(j2-1,i2+energy.getMaxInternalLoopSize2()+1); k2>i2; k2--) {
+					// check if (k1,k2) are valid left boundary
+					if ( E_isNotINF( hybridE_pq(k1,k2) ) ) {
+						curMinE = std::min( curMinE,
+											(energy.getE_interLeft(i1,k1,i2,k2)
+											 + hybridE_pq(k1,k2) )
+						);
+					}
+				}
+				}
+
+				// Multiloop cases = ES-gap
+
+				// Both-sided structure
+				if (allowES == ES_both) {
+					for (k1 = j1; k1 > i1 + InteractionEnergy::minDistES; k1--) {
+						if ( E_isNotINF( hybridO(k1,i2) ) )  {
+							// update minE
+							curMinE = std::min(curMinE,
+											   (energy.getE_multiLeft(i1, k1, i2, InteractionEnergy::ES_multi_mode::ES_multi_both)
+												+ hybridO(k1, i2)
+											   ));
+						}
+					}
+				}
+
+				// Structure in S1
+				if (allowES == ES_target || allowES == ES_xorQueryTarget) {
+					for (k1 = j1; k1 > i1 + InteractionEnergy::minDistES; k1--) {
+					for (k2 = std::min(j2, i2 + energy.getMaxInternalLoopSize2() + 1); k2 > i2; k2--) {
+						if ( E_isNotINF(hybridE_pq(k1,k2) ) ) {
+							// update minE
+							curMinE = std::min(curMinE,
+											   (energy.getE_multi(i1, k1, i2, k2, InteractionEnergy::ES_multi_mode::ES_multi_1only)
+												+ hybridE_pq(k1, k2)
+											   ));
+						}
+					}
+					}
+				}
+
+
+				// Structure in S2
+				if (allowES == ES_query || allowES == ES_xorQueryTarget) {
+					for (k1 = std::min(j1, i1 + energy.getMaxInternalLoopSize1() + 1); k1 > i1; k1--) {
+						if ( E_isNotINF(hybridO(k1, i2))) {
+							// update minE
+							curMinE = std::min(curMinE,
+											   (energy.getE_multiLeft(i1, k1, i2, InteractionEnergy::ES_multi_mode::ES_multi_2only)
+												+ hybridO(k1, i2)
+											   ));
+						}
+					}
+				}
+			}
+			// store value
+			hybridE_pq(i1,i2) = curMinE;
+			// update mfe if needed
+			updateOptima( i1,j1,i2,j2, hybridE_pq(i1,i2), true );
+			continue;
 		}
 	}
 
