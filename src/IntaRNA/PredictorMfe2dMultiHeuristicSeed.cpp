@@ -110,7 +110,7 @@ predict( const IndexRange & r1
 	// compute entries
 	// current minimal value
 	E_type curE = E_INF
-//			, curEtotal = E_INF
+			, curEtotal = E_INF
 			, curCellS_Etotal = E_INF;
 	BestInteraction * curCell = NULL;
 	BestInteraction * curCellS = NULL;
