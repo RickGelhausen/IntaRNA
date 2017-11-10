@@ -324,7 +324,7 @@ fillHybridE_seed( )
 					 && j2-k2 < hybridE_seed(k1,k2)->size2()
 					 && E_isNotINF( (*hybridE_seed(k1,k2))(j1-k1,j2-k2) ) )
 				{
-					curMinE_seed = std::min( curMinE,
+					curMinE_seed = std::min( curMinE_seed,
 										(energy.getE_interLeft(i1,k1,i2,k2)
 										 + (*hybridE_seed(k1,k2))(j1-k1,j2-k2) )
 					);
@@ -391,7 +391,7 @@ fillHybridE_seed( )
 			(*hybridE_seed(i1,i2))(w1,w2) = curMinE_seed;
 
 			// update mfe if needed (call super class)
-			if (E_isNotINF(curMinE)) {
+			if (E_isNotINF(curMinE_seed)) {
 				// call superclass function to do final reporting
 				PredictorMfe4d::updateOptima( i1,j1,i2,j2, curMinE_seed, true );
 			}
