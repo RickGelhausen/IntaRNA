@@ -109,9 +109,7 @@ predict( const IndexRange & r1
 
 	// compute entries
 	// current minimal value
-	E_type curE = E_INF
-			, curEtotal = E_INF
-			, curCellS_Etotal = E_INF;
+	E_type curE = E_INF, curEtotal = E_INF, curCellS_Etotal = E_INF;
 	BestInteraction * curCell = NULL;
 	BestInteraction * curCellS = NULL;
 	BestInteraction * curCellO = NULL;
@@ -226,10 +224,7 @@ predict( const IndexRange & r1
 				// compute energy for this loop sizes
 				curE = energy.getE_interLeft(i1, i1 + w1, i2, i2 + w2) + rightExt->E;
 				// check if this combination yields better energy
-//					curEtotal = energy.getE(i1, rightExt->j1, i2, rightExt->j2, curE);
-				// use only interaction energy for hybridE
-				curEtotal = curE; // TODO: Is this correct?
-				if (curEtotal < curCell->E) {
+				if (curE < curCell->E) {
 					// update current best for this left boundary
 					// copy right boundary
 					*curCell = *rightExt;
@@ -287,10 +282,7 @@ predict( const IndexRange & r1
 					curE = energy.getE_multiLeft(i1, i1 + w1, i2,
 												 InteractionEnergy::ES_multi_mode::ES_multi_both) + rightExt->E;
 					// check if this combination yields better energy
-//					curEtotal = energy.getE(i1, rightExt->j1, i2, rightExt->j2, curE);
-					// use only interaction energy for hybridE
-					curEtotal = curE;
-					if (curEtotal < curCell->E) {
+					if (curE < curCell->E) {
 						// update current best for this left boundary
 						// copy right boundary
 						*curCell = *rightExt;
@@ -318,10 +310,7 @@ predict( const IndexRange & r1
 					curE = energy.getE_multi(i1, i1 + w1, i2, i2 + w2,
 											 InteractionEnergy::ES_multi_mode::ES_multi_1only) + rightExt->E;
 					// check if this combination yields better energy
-//					curEtotal = energy.getE(i1, rightExt->j1, i2, rightExt->j2, curE);
-					// use only interaction energy for hybridE
-					curEtotal = curE;
-					if (curEtotal < curCell->E) {
+					if (curE < curCell->E) {
 						// update current best for this left boundary
 						// copy right boundary
 						*curCell = *rightExt;
@@ -348,9 +337,8 @@ predict( const IndexRange & r1
 					// compute energy for this loop sizes
 					curE = energy.getE_multiLeft(i1, i1 + w1, i2,
 												 InteractionEnergy::ES_multi_mode::ES_multi_2only) + rightExt->E;
-					// use only interaction energy for hybridE
-					curEtotal = curE;
-					if (curEtotal < curCell->E) {
+					// check if this combination yields better energy
+					if (curE < curCell->E) {
 						// update current best for this left boundary
 						// copy right boundary
 						*curCell = *rightExt;
