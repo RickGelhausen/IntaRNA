@@ -109,7 +109,9 @@ predict( const IndexRange & r1
 
 	// compute entries
 	// current minimal value
-	E_type curE = E_INF, curEtotal = E_INF, curCellS_Etotal = E_INF;
+	E_type curE = E_INF
+//			, curEtotal = E_INF
+			, curCellS_Etotal = E_INF;
 	BestInteraction * curCell = NULL;
 	BestInteraction * curCellS = NULL;
 	BestInteraction * curCellO = NULL;
@@ -146,8 +148,7 @@ predict( const IndexRange & r1
 					// compute energy for this loop sizes
 					curE = energy.getE_multiRight( i1, i2, i2 + w2) + rightExt->E;
 					// check if this combination yields better energy
-					curEtotal = energy.getE(i1, rightExt->j1, i2, rightExt->j2, curE);
-					if (curEtotal < curCellO->E) {
+					if (curE < curCellO->E) {
 						// update current best for this left boundary
 						// copy right boundary
 						*curCellO = *rightExt;
