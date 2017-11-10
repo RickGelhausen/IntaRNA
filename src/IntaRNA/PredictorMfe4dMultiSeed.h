@@ -100,14 +100,6 @@ namespace IntaRNA {
 		//! defines where ES-terms are considered
 		AllowES allowES;
 
-		//! energy of all multi-site interaction hybrids that contain a seeded
-		//! interaction right of the gap and no seed left of it.
-		//! they are computed by the recursion with indices
-		//! hybridE_seed(i1,i2)->(w1,w2), with interaction start i1 (seq1) and i2 (seq2) and
-		//! interaction end j1=i1+w1 and j2=j2+w2.
-		//! NOTE: hybridE_seed(i1,i2)==NULL if not complementary(seq1[i1],seq2[i2])
-		E4dMatrix hybridE_multi;
-
 
 	protected:
 

@@ -11,10 +11,11 @@ PredictorMfe2dMultiSeed(
 		, OutputHandler & output
 		, PredictionTracker * predTracker
 		, const AllowES allowES_
-		, const SeedConstraint & seedConstraint )
-		: PredictorMfe2dMulti(energy,output,predTracker,allowES_)
+		, const SeedConstraint & seedConstraint
+)
+		: PredictorMfe2dMulti(energy,output,predTracker, allowES_)
+		, hybridE_pq_seed(0,0)
 		, seedHandler(energy,seedConstraint)
-		, hybridE_pq_seed()
 {
 	assert( seedHandler.getConstraint().getBasePairs() > 1 );
 }
@@ -30,7 +31,8 @@ PredictorMfe2dMultiSeed::
 
 void
 PredictorMfe2dMultiSeed::
-predict( const IndexRange & r1, const IndexRange & r2
+predict( const IndexRange & r1
+		, const IndexRange & r2
 		, const OutputConstraint & outConstraint )
 {
 #if INTARNA_MULITHREADING
@@ -48,7 +50,7 @@ predict( const IndexRange & r1, const IndexRange & r2
 #if INTARNA_IN_DEBUG_MODE
 	// check indices
 	if (!(r1.isAscending() && r2.isAscending()) )
-		throw std::runtime_error("PredictorMfe2d::predict("+toString(r1)+","+toString(r2)+") is not sane");
+		throw std::runtime_error("PredictorMfe2dMultiSeed::predict("+toString(r1)+","+toString(r2)+") is not sane");
 #endif
 
 	// setup index offset
@@ -76,7 +78,7 @@ predict( const IndexRange & r1, const IndexRange & r2
 	// resize matrix
 	hybridE_pq.resize( hybridE_pqsize1, hybridE_pqsize2 );
 	hybridE_pq_seed.resize( hybridE_pqsize1, hybridE_pqsize2 );
-	hybridO.resize(hybridE_pqsize1, hybridE_pqsize2);
+	hybridO.resize( hybridE_pqsize1, hybridE_pqsize2 );
 
 	// initialize mfe interaction for updates
 	initOptima( outConstraint );
@@ -131,7 +133,7 @@ fillHybridE_seed( const size_t j1, const size_t j2, const size_t i1min, const si
 	}
 
 	// global vars to avoid reallocation
-	size_t i1,i2,k1,k2,j1c,j2c;
+	size_t i1,i2,k1,k2;
 
 	// get i1/i2 index boundaries for computation
 	const IndexRange i1range( std::max(hybridErange.r1.from,i1min), j1+1-seedHandler.getConstraint().getBasePairs() );
@@ -141,22 +143,36 @@ fillHybridE_seed( const size_t j1, const size_t j2, const size_t i1min, const si
 
 	// current minimal value
 	E_type curMinE = E_INF;
+	E_type curMinE_seed = E_INF;
 	E_type curMinO = E_INF;
 	// iterate over all window starts i1 (seq1) and i2 (seq2)
 	// TODO PARALLELIZE THIS DOUBLE LOOP ?!
-	for (i1=1+i1range.to; i1-- > i1range.from; ) {
-		// screen for left boundaries i2 in seq2
-		for (i2=1+i2range.to; i2-- > i2range.from; ) {
-			// fill hybridO matrix
 
+	for (i1 = 1 + i1range.to; i1-- > i1range.from; ) {
+		// screen for left boundaries i2 in seq2
+		for (i2 = 1 + i2range.to; i2-- > i2range.from;) {
+			// check if left boundary (i1,i2) is complementary
+			// check if this cell is to be computed (!=E_INF)
+			if (!energy.areComplementary(i1,i2) || E_isINF(hybridE_pq(i1, i2))) {
+				// interaction not possible
+				hybridE_pq_seed(i1, i2) = E_INF;
+				hybridO(i1,i2) = E_INF;
+				continue;
+			}
+
+			///////////////////////////////////////////////////
+			// hybridO(i1,i2) computation
+			///////////////////////////////////////////////////
+
+			if (allowES != ES_target)
 			// compute entry, since (i1,i2) complementary
 			{
 				// init
 				curMinO = E_INF;
 
 
-				for (k2 = i2range.to; k2 > i2 + InteractionEnergy::minDistES; k2--) {
-					if (E_isNotINF( hybridE_pq_seed(i1, k2))) {
+				for (k2 = j2; k2 > i2 + InteractionEnergy::minDistES; k2--) {
+					if (E_isNotINF(hybridE_pq_seed(i1, k2))) {
 						curMinO = std::min(curMinO,
 										   energy.getE_multiRight(i1, i2, k2)
 										   + hybridE_pq_seed(i1, k2));
@@ -165,89 +181,114 @@ fillHybridE_seed( const size_t j1, const size_t j2, const size_t i1min, const si
 
 				hybridO(i1, i2) = curMinO;
 			}
+
 			// compute entry
-			curMinE = E_INF;
+			curMinE = hybridE_pq(i1,i2);
+			curMinE_seed = E_INF;
 
-			// check if this cell is to be computed (!=E_INF)
-			if( E_isNotINF( hybridE_pq(i1,i2) ) ) {
-
-				// base case = incorporate mfe seed starting at (i1,i2)
-				//             + interaction on right side up to (p,q)
-				if ( E_isNotINF( seedHandler.getSeedE(i1,i2) ) ) {
-					// decode right mfe boundary
-					k1 = i1+seedHandler.getSeedLength1(i1,i2)-1;
-					k2 = i2+seedHandler.getSeedLength2(i1,i2)-1;
-					// compute overall energy of seed+upToPQ
-					if ( k1 <= j1 && k2 <= j2 && E_isNotINF(hybridE_pq(k1,k2))) {
-						curMinE = seedHandler.getSeedE(i1,i2) + hybridE_pq(k1,k2);
-					}
+			// base case = incorporate mfe seed starting at (i1,i2)
+			//             + interaction on right side up to (p,q)
+			if (E_isNotINF(seedHandler.getSeedE(i1, i2))) {
+				// decode right mfe boundary
+				k1 = i1 + seedHandler.getSeedLength1(i1, i2) - 1;
+				k2 = i2 + seedHandler.getSeedLength2(i1, i2) - 1;
+				// compute overall energy of seed+singleSide
+				if (k1 <= j1 && k2 <= j2 && E_isNotINF(hybridE_pq(k1, k2))) {
+					curMinE_seed = seedHandler.getSeedE(i1, i2) + hybridE_pq(k1, k2);
 				}
+			}
 
-				// check all combinations of decompositions into (i1,i2)..(k1,k2)-(j1,j2)
-				// where k1..j1 contains a seed
-				for (k1=std::min(i1range.to,i1+energy.getMaxInternalLoopSize1()+1); k1>i1; k1--) {
-				for (k2=std::min(i2range.to,i2+energy.getMaxInternalLoopSize2()+1); k2>i2; k2--) {
-					// check if (k1,k2) are valid left boundaries including a seed
-					if ( E_isNotINF( hybridE_pq_seed(k1,k2) ) ) {
-						curMinE = std::min( curMinE,
-											(energy.getE_interLeft(i1,k1,i2,k2)
-											 + hybridE_pq_seed(k1,k2) )
+			// check all combinations of decompositions into (i1,i2)..(k1,k2)-(j1,j2)
+			// where k1..j1 contains a seed
+			for (k1 = std::min(i1range.to, i1 + energy.getMaxInternalLoopSize1() + 1); k1 > i1; k1--) {
+			for (k2 = std::min(i2range.to, i2 + energy.getMaxInternalLoopSize2() + 1); k2 > i2; k2--) {
+
+				//if (k1 <= j1 && k2 <= j2) {
+
+					///////////////////////////////////////////////////////////////////
+					// hybridE(i1,i2) computation
+					///////////////////////////////////////////////////////////////////
+
+					if (E_isNotINF(hybridE_pq(k1, k2))) {
+						curMinE = std::min(curMinE,
+											 (energy.getE_interLeft(i1, k1, i2, k2)
+											  + hybridE_pq(k1, k2))
+						);
+
+					}
+
+					///////////////////////////////////////////////////////////////////
+					// hybridE_seed(i1,i2) computation
+					///////////////////////////////////////////////////////////////////
+
+					if (E_isNotINF(hybridE_pq_seed(k1, k2))) {
+						curMinE_seed = std::min(curMinE,
+										   (energy.getE_interLeft(i1, k1, i2, k2)
+											+ hybridE_pq_seed(k1, k2))
 						);
 					}
-				}
-				}
+				//}
+			} // k2
+			} // k1
 
-				// Multiloop cases = ES-gap
+			////////////////////////////////////////////////////////////////
+			// hybridE(i1,i2) Multiloop cases = ES-gap
+			////////////////////////////////////////////////////////////////
 
-				// Both-sided structure
-				if (allowES == ES_both) {
-					for (k1 = i1range.to; k1 > i1 + InteractionEnergy::minDistES; k1--) {
-						if ( E_isNotINF( hybridO(k1,i2) ) )  {
-							// update minE
-							curMinE = std::min(curMinE,
-											   (energy.getE_multiLeft(i1, k1, i2, InteractionEnergy::ES_multi_mode::ES_multi_both)
-												+ hybridO(k1, i2)
-											   ));
-						}
+			// Both-sided structure
+			if (allowES == ES_both) {
+				for (k1 = j1; k1 > i1 + InteractionEnergy::minDistES; k1--) {
+					if (E_isNotINF(hybridO(k1, i2))) {
+						// update minE
+						curMinE = std::min(curMinE,
+										   (energy.getE_multiLeft(i1, k1, i2,
+																  InteractionEnergy::ES_multi_mode::ES_multi_both)
+											+ hybridO(k1, i2)
+										   ));
 					}
 				}
+			}
 
-				// Structure in S1
-				if (allowES == ES_target || allowES == ES_xorQueryTarget) {
-					for (k1 = i1range.to; k1 > i1 + InteractionEnergy::minDistES; k1--) {
-					for (k2 = std::min(i2range.to, i2 + energy.getMaxInternalLoopSize2() + 1); k2 > i2; k2--) {
-						if ( E_isNotINF(hybridE_pq_seed(k1,k2) ) ) {
-							// update minE
-							curMinE = std::min(curMinE,
-											   (energy.getE_multi(i1, k1, i2, k2, InteractionEnergy::ES_multi_mode::ES_multi_1only)
-												+ hybridE_pq_seed(k1, k2)
-											   ));
-						}
-					}
-					}
-				}
-
-
-				// Structure in S2
-				if (allowES == ES_query || allowES == ES_xorQueryTarget) {
-					for (k1 = std::min(i1range.to, i1 + energy.getMaxInternalLoopSize1() + 1); k1 > i1; k1--) {
-						if ( E_isNotINF(hybridO(k1, i2))) {
-							// update minE
-							curMinE = std::min(curMinE,
-											   (energy.getE_multiLeft(i1, k1, i2, InteractionEnergy::ES_multi_mode::ES_multi_2only)
-												+ hybridO(k1, i2)
-											   ));
-						}
+			// Structure in S1
+			if (allowES == ES_target || allowES == ES_xorQueryTarget) {
+				for (k1 = j1; k1 > i1 + InteractionEnergy::minDistES; k1--) {
+				for (k2 = std::min(j2, i2 + energy.getMaxInternalLoopSize2() + 1); k2 > i2; k2--) {
+					if ( E_isNotINF(hybridE_pq_seed(k1,k2) ) ) {
+						// update minE
+						curMinE = std::min(curMinE,
+										   (energy.getE_multi(i1, k1, i2, k2, InteractionEnergy::ES_multi_mode::ES_multi_1only)
+											+ hybridE_pq_seed(k1, k2)
+										   ));
 					}
 				}
-				// update mfe if needed (call super class)
-				if (E_isNotINF(curMinE)) {
-					PredictorMfe2dMulti::updateOptima( i1,j1,i2,j2, curMinE, true );
+				}
+			}
+
+
+
+			// Structure in S2
+			if (allowES == ES_query || allowES == ES_xorQueryTarget) {
+				for (k1 = std::min(j2, i1 + energy.getMaxInternalLoopSize1() + 1); k1 > i1; k1--) {
+					if (E_isNotINF(hybridO(k1, i2))) {
+						// update minE
+						curMinE = std::min(curMinE,
+										   (energy.getE_multiLeft(i1, k1, i2,
+																  InteractionEnergy::ES_multi_mode::ES_multi_2only)
+											+ hybridO(k1, i2)
+										   ));
+					}
 				}
 			}
 
 			// store value
-			hybridE_pq_seed(i1,i2) = curMinE;
+			hybridE_pq(i1, i2) = curMinE;
+			hybridE_pq_seed(i1, i2) = curMinE_seed;
+
+			// update mfe if needed (call super class)
+			if (E_isNotINF(curMinE)) {
+				PredictorMfe2dMulti::updateOptima( i1, j1, i2, j2, curMinE_seed, true );
+			}
+
 		}
 	}
 
@@ -321,9 +362,6 @@ traceBack( Interaction & interaction )
 	}
 #endif
 
-	// temp variables
-	size_t k1,k2;
-
 
 	// refill submatrices of mfe interaction
 	fillHybridE_seed( j1, j2, i1, i2 );
@@ -332,184 +370,202 @@ traceBack( Interaction & interaction )
 	E_type curE = hybridE_pq_seed(i1,i2);
 
 	// trace back
-	bool seedNotTraced = true;
-	while( i1 != j1 ) {
+	// temp variables
+	size_t k1,k2;
+	bool traceInESeed = true; // if false: traces hybridE
+
+	while( (j1-i1) > 1 ) {
 
 		// check if we still have to find the seed
-		if (seedNotTraced) {
+		if (traceInESeed) {
 
 			// check base case == seed only
-			if ( E_isNotINF( seedHandler.getSeedE(i1,i2) ) ) {
+			if (E_isNotINF(seedHandler.getSeedE(i1, i2))) {
 
 				// right boundary of seed
-				k1 = i1 + seedHandler.getSeedLength1(i1,i2) -1;
-				k2 = i2 + seedHandler.getSeedLength2(i1,i2) -1;
+				k1 = i1 + seedHandler.getSeedLength1(i1, i2) - 1;
+				k2 = i2 + seedHandler.getSeedLength2(i1, i2) - 1;
 
-				// check if correct trace
-				if ( E_equal( curE, seedHandler.getSeedE(i1,i2) + hybridE_pq(k1,k2) ) ) {
+				// check if correct trace single-side extension
+				if (E_isNotINF(hybridE_pq(k1, k2))
+					&& E_equal(curE, seedHandler.getSeedE(i1, i2) + hybridE_pq(k1, k2))) {
 					// store seed information
 					interaction.setSeedRange(
-							energy.getBasePair(i1,i2),
-							energy.getBasePair(k1,k2),
-							energy.getE(i1,k1,i2,k2,seedHandler.getSeedE(i1,i2))+energy.getE_init());
+							energy.getBasePair(i1, i2),
+							energy.getBasePair(k1, k2),
+							energy.getE(i1, k1, i2, k2, seedHandler.getSeedE(i1, i2)) + energy.getE_init());
 					// trace back seed base pairs
-					seedHandler.traceBackSeed( interaction, i1, i2 );
+					seedHandler.traceBackSeed(interaction, i1, i2);
 					// continue after seed
 					i1 = k1;
 					i2 = k2;
-					curE = hybridE_pq(k1,k2);
-					seedNotTraced = false;
+					curE = hybridE_pq(k1, k2);
+					traceInESeed = false;
 					continue;
 				}
-			}
-			// check all interval splits
-			if ( (j1-i1) > 1 && (j2-i2) > 1) {
-				// check all combinations of decompositions into (i1,i2)..(k1,k2)-(j1,j2)
-				// where k1..j1 contains a seed
-				bool traceNotFound = true;
-				for (k1=std::min(j1-seedHandler.getConstraint().getBasePairs()+1,i1+energy.getMaxInternalLoopSize1()+1); traceNotFound && k1>i1; k1--) {
-				for (k2=std::min(j2-seedHandler.getConstraint().getBasePairs()+1,i2+energy.getMaxInternalLoopSize2()+1); traceNotFound && k2>i2; k2--) {
-					// check if (k1,k2) are valid left boundaries including a seed
-					if ( E_isNotINF( hybridE_pq_seed(k1,k2) ) ) {
-						// check if correct split
-						if (E_equal ( curE,
-									  (energy.getE_interLeft(i1,k1,i2,k2)
-									   + hybridE_pq_seed(k1,k2) )
-						) )
-						{
-							// update trace back boundary
-							i1=k1;
-							i2=k2;
-							curE= hybridE_pq_seed(k1,k2);
-							// stop search splits
-							traceNotFound = false;
-							// store splitting base pair
-							interaction.basePairs.push_back( energy.getBasePair(k1,k2) );
-						}
-					}
-				} // k2
-				} // k1
+			} // seed extension
 
-				// Structure in both
-				if (traceNotFound && allowES == ES_both) {
-					for (k1 = j1-seedHandler.getConstraint().getBasePairs()+1; traceNotFound && k1 > i1 + InteractionEnergy::minDistES; k1--) {
-						if ( E_isNotINF(hybridO(k1, i2) ) )
-						{
-							if (E_equal(curE,
-										(energy.getE_multiLeft(i1, k1, i2, InteractionEnergy::ES_multi_mode::ES_multi_both)
-										 + hybridO(k1, i2)
-										))) {
-								// stop searching
-								traceNotFound = false;
-								// Determine k2 based on k1
-								k2 = traceHybridO(k1, j1, i2, j2);
-								E_type E_multiRight = energy.getE_multiRight(i1, i2, k2);
-								// store splitting base pair
-								interaction.basePairs.push_back(energy.getBasePair(k1, k2));
-								// store gap information
-								if (interaction.gap == NULL) { interaction.gap = new Interaction::Gap(); }
-								interaction.gap->energy += energy.getE_multiLeft(i1, k1, i2, InteractionEnergy::ES_multi_mode::ES_multi_both) + E_multiRight;
-								Interaction::BasePair bpLeft = energy.getBasePair(i1,i2);
-								interaction.gap->gaps1.insert( IndexRange(bpLeft.first+1,interaction.basePairs.rbegin()->first-1) );
-								interaction.gap->gaps2.insert( IndexRange(interaction.basePairs.rbegin()->second+1,bpLeft.second-1) );
-								// move seed to gap information
-								interaction.gap->seeds.push_back( *(interaction.seed) );
-								// trace right part of split
-								i1 = k1;
-								i2 = k2;
-								curE = hybridE_pq_seed(i1, i2);
-							}
-						}
-					}
+			// check interior loop extension of hybridE_seed()
+			// check all combinations of decompositions into (i1,i2)..(k1,k2)-(j1,j2)
+			bool traceNotFound = true;
+			for (k1 = std::min(j1 - seedHandler.getConstraint().getBasePairs() + 1,
+							   i1 + energy.getMaxInternalLoopSize1() + 1); traceNotFound && k1 > i1; k1--) {
+			for (k2 = std::min(j2 - seedHandler.getConstraint().getBasePairs() + 1,
+							   i2 + energy.getMaxInternalLoopSize2() + 1); traceNotFound && k2 > i2; k2--) {
+				// check if (k1,k2) are valid left boundaries including a seed
+				// check if correct split
+				if (E_isNotINF(hybridE_pq_seed(k1, k2))
+					&& E_equal (curE,
+							 (energy.getE_interLeft(i1, k1, i2, k2)
+							  + hybridE_pq_seed(k1, k2))
+				)) {
+					// stop searching
+					traceNotFound = false;
+					// store splitting base pair
+					interaction.basePairs.push_back(energy.getBasePair(k1, k2));
+					// update trace back boundary
+					i1 = k1;
+					i2 = k2;
+					curE = hybridE_pq_seed(k1, k2);
 				}
+			} // k2
+			} // k1
+		} // traceInESeed
 
-				// Structure in S1
-				if (traceNotFound && (allowES == ES_target || allowES == ES_xorQueryTarget)) {
-					for (k1 = j1-seedHandler.getConstraint().getBasePairs()+1; traceNotFound && k1 > i1 + InteractionEnergy::minDistES; k1--) {
-					for (k2 = std::min(j2-seedHandler.getConstraint().getBasePairs()+1, i2 + energy.getMaxInternalLoopSize2() + 1); traceNotFound && k2 > i2; k2--) {
-						if ( E_isNotINF( hybridE_pq_seed(k1, k2) ) )
-						{
-							if (E_equal(curE,
-										(energy.getE_multi(i1, k1, i2, k2, InteractionEnergy::ES_multi_mode::ES_multi_1only)
-										 + hybridE_pq_seed(k1, k2)
-										))) {
-								// stop searching
-								traceNotFound = false;
-								// store splitting base pair
-								interaction.basePairs.push_back(energy.getBasePair(k1, k2));
-								// store gap information
-								if (interaction.gap == NULL) { interaction.gap = new Interaction::Gap(); }
-								interaction.gap->energy += energy.getE_multi(i1, k1, i2, k2, InteractionEnergy::ES_multi_mode::ES_multi_1only);
-								Interaction::BasePair bpLeft = energy.getBasePair(i1,i2);
-								interaction.gap->gaps1.insert( IndexRange(bpLeft.first+1,interaction.basePairs.rbegin()->first-1) );
-								// move seed to gap information
-								interaction.gap->seeds.push_back( *(interaction.seed) );
-								// trace right part of split
-								i1 = k1;
-								i2 = k2;
-								curE = hybridE_pq_seed(i1, i2);
-							}
-						}
-					}
-					}
-				}
-
-				// Structure in S2
-				if (traceNotFound && (allowES == ES_query || allowES == ES_xorQueryTarget)) {
-					for (k1 = std::min(j1-seedHandler.getConstraint().getBasePairs()+1, i1 + energy.getMaxInternalLoopSize1() + 1); traceNotFound && k1 > i1; k1--) {
-						if ( E_isNotINF(hybridO(k1, i2)))
-						{
-							if (E_equal(curE,
-										(energy.getE_multiLeft(i1, k1, i2, InteractionEnergy::ES_multi_mode::ES_multi_2only)
-										 + hybridO(k1, i2)
-										))) {
-								// stop searching
-								traceNotFound = false;
-								k2 = traceHybridO(k1, j1, i2, j2);
-								E_type E_multiRight = energy.getE_multiRight(i1, i2, k2);
-								// store splitting base pair
-								interaction.basePairs.push_back(energy.getBasePair(k1, k2));
-								// store gap information
-								if (interaction.gap == NULL) { interaction.gap = new Interaction::Gap(); }
-								interaction.gap->energy += energy.getE_multiLeft(i1, k1, i2, InteractionEnergy::ES_multi_mode::ES_multi_2only) + E_multiRight;
-								Interaction::BasePair bpLeft = energy.getBasePair(i1,i2);
-								interaction.gap->gaps2.insert( IndexRange(interaction.basePairs.rbegin()->second+1,bpLeft.second-1) );
-								// move seed to gap information
-								interaction.gap->seeds.push_back( *(interaction.seed) );
-								// trace right part of split
-								i1 = k1;
-								i2 = k2;
-								curE = hybridE_pq_seed(i1, i2);
-							}
-						}
-					}
-				}
-				assert(!traceNotFound);
-			}
-		}
-			// seed was already traced, do "normal" interaction trace
+		// trace in hybridE()
 		else {
-			// create temporary data structure to be filed
-			Interaction rightSide( *interaction.s1, *interaction.s2 );
-			rightSide.basePairs.push_back( energy.getBasePair(i1,i2) );
-			rightSide.basePairs.push_back( energy.getBasePair(j1,j2) );
-			// call traceback of super class
-			PredictorMfe2dMulti::traceBack( rightSide );
-			// copy base pairs (excluding last)
-			for (size_t i=0; i+1<rightSide.basePairs.size(); i++) {
-				interaction.basePairs.push_back( rightSide.basePairs.at(i) );
+			// check all combinations of decompositions into (i1,i2)..(k1,k2)-(j1,j2)
+			bool traceNotFound = true;
+			for (k1 = std::min(j1, i1 + energy.getMaxInternalLoopSize1() + 1); traceNotFound && k1 > i1; k1--) {
+			for (k2 = std::min(j2, i2 + energy.getMaxInternalLoopSize2() + 1); traceNotFound && k2 > i2; k2--) {
+				// check if (k1,k2) are valid left boundaries including a seed
+				// check if correct split
+				if (E_isNotINF(hybridE_pq(k1, k2))
+					&& E_equal (curE,
+							 (energy.getE_interLeft(i1, k1, i2, k2)
+							  + hybridE_pq(k1, k2))
+				)) {
+					// stop searching
+					traceNotFound = false;
+					// store splitting base pair
+					interaction.basePairs.push_back(energy.getBasePair(k1, k2));
+					// update trace back boundary
+					i1 = k1;
+					i2 = k2;
+					curE = hybridE_pq(k1, k2);
+					continue;
+				}
+			} // k2
+			} // k1
+
+			///////////////  multi-side trace  ///////////////////
+
+			// Both-sided structure
+			if (traceNotFound && allowES == ES_both) {
+				for (k1 = j1; traceNotFound && k1 > i1 + InteractionEnergy::minDistES; k1--) {
+					if (E_equal(curE,
+								(energy.getE_multiLeft(i1, k1, i2, InteractionEnergy::ES_multi_mode::ES_multi_both)
+								 + hybridO(k1, i2)
+								))) {
+						// stop searching
+						traceNotFound = false;
+						traceInESeed = true;
+						// Determine k2 based on k1
+						k2 = traceHybridO(k1, j1, i2, j2);
+						E_type E_multiRight = energy.getE_multiRight(i1, i2, k2);
+						// store splitting base pair
+						interaction.basePairs.push_back(energy.getBasePair(k1, k2));
+						// store gap information
+						if (interaction.gap == NULL) { interaction.gap = new Interaction::Gap(); }
+						interaction.gap->energy += energy.getE_multiLeft(i1, k1, i2, InteractionEnergy::ES_multi_mode::ES_multi_both) + E_multiRight;
+						Interaction::BasePair bpLeft = energy.getBasePair(i1,i2);
+						interaction.gap->gaps1.insert( IndexRange(bpLeft.first+1,interaction.basePairs.rbegin()->first-1) );
+						interaction.gap->gaps2.insert( IndexRange(interaction.basePairs.rbegin()->second+1,bpLeft.second-1) );
+						// move seed to gap information
+						interaction.gap->seeds.push_back( *(interaction.seed) );
+						// trace right part of split
+						i1 = k1;
+						i2 = k2;
+						curE = hybridE_pq_seed(k1, k2);
+						continue;
+					}
+				}
 			}
-			i1 = j1;
-			i2 = j2;
-			// stop traceback
-			break;
-		}
-		// do until only right boundary is left over (already part of interaction)
+
+			// Structure in S1
+			if (traceNotFound && (allowES == ES_target || allowES == ES_xorQueryTarget)) {
+				for (k1 = j1; traceNotFound && k1 > i1 + InteractionEnergy::minDistES; k1--) {
+				for (k2 = std::min(j2, i2 + energy.getMaxInternalLoopSize2() + 1); traceNotFound && k2 > i2; k2--) {
+					if (E_equal(curE,
+								(energy.getE_multi(i1, k1, i2, k2, InteractionEnergy::ES_multi_mode::ES_multi_1only)
+								 + hybridE_pq_seed(k1, k2)
+								))) {
+						// stop searching
+						traceNotFound = false;
+						traceInESeed = true;
+						// store splitting base pair
+						interaction.basePairs.push_back(energy.getBasePair(k1, k2));
+						// store gap information
+						if (interaction.gap == NULL) { interaction.gap = new Interaction::Gap(); }
+						interaction.gap->energy += energy.getE_multi(i1, k1, i2, k2, InteractionEnergy::ES_multi_mode::ES_multi_1only);
+						Interaction::BasePair bpLeft = energy.getBasePair(i1,i2);
+						interaction.gap->gaps1.insert( IndexRange(bpLeft.first+1,interaction.basePairs.rbegin()->first-1) );
+						// move seed to gap information
+						interaction.gap->seeds.push_back( *(interaction.seed) );
+						// trace right part of split
+						i1 = k1;
+						i2 = k2;
+						curE = hybridE_pq_seed(k1, k2);
+						continue;
+					}
+				}
+				}
+			}
+
+			// Structure in S2
+			if (traceNotFound && (allowES == ES_query || allowES == ES_xorQueryTarget)) {
+				for (k1 = std::min(j1, i1 + energy.getMaxInternalLoopSize1() + 1); traceNotFound && k1 > i1; k1--) {
+					if (E_equal(curE,
+								(energy.getE_multiLeft(i1, k1, i2, InteractionEnergy::ES_multi_mode::ES_multi_2only)
+								 + hybridO(k1, i2)
+								))) {
+						// stop searching
+						traceNotFound = false;
+						traceInESeed = true;
+						// Determine k2 based on k1
+						k2 = traceHybridO(k1, j1, i2, j2);
+						E_type E_multiRight = energy.getE_multiRight(i1, i2, k2);
+						// store splitting base pair
+						interaction.basePairs.push_back(energy.getBasePair(k1, k2));
+						// store gap information
+						if (interaction.gap == NULL) { interaction.gap = new Interaction::Gap(); }
+						interaction.gap->energy += energy.getE_multiLeft(i1, k1, i2, InteractionEnergy::ES_multi_mode::ES_multi_2only) + E_multiRight;
+						Interaction::BasePair bpLeft = energy.getBasePair(i1,i2);
+						interaction.gap->gaps2.insert( IndexRange(interaction.basePairs.rbegin()->second+1,bpLeft.second-1) );
+						// move seed to gap information
+						interaction.gap->seeds.push_back( *(interaction.seed) );
+						// trace right part of split
+						i1 = k1;
+						i2 = k2;
+						curE = hybridE_pq_seed(k1, k2);
+						continue;
+					}
+				}
+			}
+
+			// final sanity check
+			assert(!traceNotFound);
+		} // local trace
 	}
 
 	// sort final interaction (to make valid) (faster than calling sort())
 	if (interaction.basePairs.size() > 2) {
 		Interaction::PairingVec & bps = interaction.basePairs;
+		// check if last added base pair is a duplicate of the boundary
+		if (bps.rbegin()->first == j1) {
+			// remove last base pair
+			bps.erase( bps.begin()+bps.size()-1 );
+		}
 		// shift all added base pairs to the front
 		for (size_t i=2; i<bps.size(); i++) {
 			bps.at(i-1).first = bps.at(i).first;
