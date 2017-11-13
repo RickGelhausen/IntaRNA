@@ -151,7 +151,7 @@ fillHybridE_seed( const size_t j1, const size_t j2, const size_t i1min, const si
 	for (i1 = 1+i1range.to; i1-- > i1range.from; ) {
 
 		// check if accessible
-		const bool i1accessible = energy.isAccessible1(j1);
+		const bool i1accessible = energy.isAccessible1(i1);
 
 		// screen for left boundaries i2 in seq2
 		for (i2 = 1+i2range.to; i2-- > i2range.from;) {
@@ -164,6 +164,12 @@ fillHybridE_seed( const size_t j1, const size_t j2, const size_t i1min, const si
 				hybridO(i1, i2) = E_INF;
 			}
 
+			if( E_isINF( hybridE_pq(i1,i2) ) ) {
+				hybridE_pq(i1,i2) = E_INF;
+				hybridE_pq_seed(i1,i2) = E_INF;
+				hybridO(i1, i2) = E_INF;
+				continue;
+			}
 			///////////////////////////////////////////////////
 			// hybridO(i1,i2) computation
 			///////////////////////////////////////////////////
