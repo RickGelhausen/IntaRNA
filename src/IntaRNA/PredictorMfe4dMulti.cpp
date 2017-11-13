@@ -347,6 +347,7 @@ traceHybridO( const size_t i1, const size_t j1
 			}
 		}
 	}
+	throw std::runtime_error("PredictorMfe4dMulti::traceHybridO() : could not trace k2 in hybridO");
 }
 
 ////////////////////////////////////////////////////////////////////////////

@@ -306,7 +306,7 @@ fillHybridE_seed( )
 			for (k1=std::min(j1-seedHandler.getConstraint().getBasePairs()+1,i1+energy.getMaxInternalLoopSize1()+1); k1>i1; k1--) {
 			for (k2=std::min(j2-seedHandler.getConstraint().getBasePairs()+1,i2+energy.getMaxInternalLoopSize2()+1); k2>i2; k2--) {
 
-				// check if (k1,k2) are valid left boundaries including a multi-side
+				// check if (k1,k2) are valid left boundaries
 				if ( hybridE(k1,k2) != NULL
 					 && j1-k1 < hybridE(k1,k2)->size1()
 					 && j2-k2 < hybridE(k1,k2)->size2()
@@ -324,7 +324,7 @@ fillHybridE_seed( )
 					 && j2-k2 < hybridE_seed(k1,k2)->size2()
 					 && E_isNotINF( (*hybridE_seed(k1,k2))(j1-k1,j2-k2) ) )
 				{
-					curMinE_seed = std::min( curMinE,
+					curMinE_seed = std::min( curMinE_seed,
 										(energy.getE_interLeft(i1,k1,i2,k2)
 										 + (*hybridE_seed(k1,k2))(j1-k1,j2-k2) )
 					);
@@ -391,7 +391,7 @@ fillHybridE_seed( )
 			(*hybridE_seed(i1,i2))(w1,w2) = curMinE_seed;
 
 			// update mfe if needed (call super class)
-			if (E_isNotINF(curMinE)) {
+			if (E_isNotINF(curMinE_seed)) {
 				// call superclass function to do final reporting
 				PredictorMfe4d::updateOptima( i1,j1,i2,j2, curMinE_seed, true );
 			}
@@ -542,7 +542,7 @@ if ( interaction.basePairs.size() != 2 ) {
 			} // k1
 		}
 
-			// trace in hybridE()
+		// trace in hybridE()
 		else {
 			// check all combinations of decompositions into (i1,i2)..(k1,k2)-(j1,j2)
 			bool traceNotFound = true;
