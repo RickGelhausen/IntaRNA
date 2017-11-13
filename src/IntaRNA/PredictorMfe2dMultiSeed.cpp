@@ -256,8 +256,6 @@ fillHybridE_seed( const size_t j1, const size_t j2, const size_t i1min, const si
 				}
 			}
 
-
-
 			// Structure in S2
 			if (allowES == ES_query || allowES == ES_xorQueryTarget) {
 				for (k1 = std::min(j2, i1 + energy.getMaxInternalLoopSize1() + 1); k1 > i1; k1--) {
