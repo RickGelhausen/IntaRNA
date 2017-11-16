@@ -1,5 +1,5 @@
 
-171006 Martin Mann :
+171006 Martin Raden :
  * AccessibilityVrna :
    * fillByRNAup() :
      * BUGFIX : have to check whether region is blocked not if constrained
@@ -864,7 +864,7 @@ version 2.0.2
    - isOutNonOverlapping() : obsolete
    - isOutputReportMax() : obsolete
    + outOverlap + validator : overlap encoding
-   + getOutputConstraint() : central data structure for output constraints´
+   + getOutputConstraint() : central data structure for output constraintsÂ´
    - regexRangeEncoding : obsolete due to IndexRangeList::regex
    * parseRegion() : now uses IndexRangeList string constructor and shift() for
      initialization
@@ -1544,7 +1544,7 @@ version 2.0.2
  * README : 
    + compilation information
    + refers to README.md
- + README.md (by Björn Grüning)
+ + README.md (by BjÃ¶rn GrÃ¼ning)
  * COPYING : refers to LICENSE
  + LICENSE : now MIT license for intarna 2.*
  * configure.ac : replaced by new version for intarna 2.*
