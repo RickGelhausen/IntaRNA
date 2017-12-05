@@ -2,12 +2,15 @@
 #include "IntaRNA/IndexRangeList.h"
 
 #include <algorithm>
+#include <exception>
 
 namespace IntaRNA {
 
 //////////////////////////////////////////////////////////////////////
 
-const boost::regex IndexRangeList::regex("^(\\d|([123456789]\\d*)-(\\d|[123456789]\\d*),)*(\\d|[123456789]\\d*)-(\\d|[123456789]\\d*)$");
+const std::string IndexRangeList::regexString("(\\d|([123456789]\\d*)-(\\d|[123456789]\\d*),)*(\\d|[123456789]\\d*)-(\\d|[123456789]\\d*)");
+
+const boost::regex IndexRangeList::regex("^"+IndexRangeList::regexString+"$");
 
 //////////////////////////////////////////////////////////////////////
 
@@ -104,14 +107,12 @@ void
 IndexRangeList::
 push_back( const IndexRange& range )
 {
-#if INTARNA_IN_DEBUG_MODE
 	if (!range.isAscending())  {
 		throw std::runtime_error("IndexRangeList::push_back("+toString(range)+") range is not ascending");
 	}
 	if (!list.empty() && list.rbegin()->from >= range.from) {
 		throw std::runtime_error("IndexRangeList::push_back("+toString(range)+") violates order given last range = "+toString(*(list.rbegin())));
 	}
-#endif
 	if (!list.empty() && list.rbegin()->to >= range.from) {
 		INTARNA_NOT_IMPLEMENTED("IndexRangeList::push_back() : overlapping ranges are currently not supported")
 	}
@@ -125,11 +126,9 @@ IndexRangeList::iterator
 IndexRangeList::
 insert( const IndexRange& range )
 {
-#if INTARNA_IN_DEBUG_MODE
 	if (!range.isAscending())  {
 		throw std::runtime_error("IndexRangeList::insert("+toString(range)+") range is not ascending");
 	}
-#endif
 	// add first member to list
 	if (list.empty()) {
 		list.push_back( range );
@@ -166,6 +165,36 @@ insert( const IndexRange& range )
 
 //////////////////////////////////////////////////////////////////////
 
+IndexRange &
+IndexRangeList::
+get( const size_t idx )
+{
+	if (idx >= size()) {
+		throw std::runtime_error("IndexRangeList::get() : index "+toString(idx)+" out of range (>= "+toString(size())+")");
+	}
+	// access according element via iterator and return
+	iterator idxIter = list.begin();
+	std::advance( idxIter, idx );
+	return *(idxIter);
+}
+
+//////////////////////////////////////////////////////////////////////
+
+const IndexRange &
+IndexRangeList::
+get( const size_t idx ) const
+{
+	if (idx >= size()) {
+		throw std::runtime_error("IndexRangeList::get() : index "+toString(idx)+" out of range (>= "+toString(size())+")");
+	}
+	// access according element via iterator and return
+	const_iterator idxIter = list.begin();
+	std::advance( idxIter, idx );
+	return *(idxIter);
+}
+
+//////////////////////////////////////////////////////////////////////
+
 IndexRangeList
 IndexRangeList::
 shift( const int indexShift, const size_t indexMax ) const
@@ -197,10 +226,8 @@ reverse( const size_t seqLength )
 	// reverse each entry
 	size_t tmpFrom;
 	for (IndexRangeList::iterator r=begin(); r!=end(); r++) {
-#if INTARNA_IN_DEBUG_MODE
 		// check if reversal is possible
 		if (r->from >= seqLength || r->to >= seqLength) throw std::runtime_error("IndexRangeList::reverse("+toString(seqLength)+") = range "+toString(*r)+" exceeds seqLength");
-#endif
 		// reverse boundaries
 		tmpFrom = r->from;
 		r->from = seqLength -1 - r->to;

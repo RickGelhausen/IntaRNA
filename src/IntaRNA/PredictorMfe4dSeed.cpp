@@ -12,9 +12,9 @@ PredictorMfe4dSeed::
 PredictorMfe4dSeed( const InteractionEnergy & energy
 					, OutputHandler & output
 					, PredictionTracker * predTracker
-					, const SeedConstraint & seedConstraint )
+					, SeedHandler * seedHandlerInstance )
  : PredictorMfe4d(energy,output,predTracker)
-	, seedHandler(energy,seedConstraint)
+	, seedHandler(seedHandlerInstance)
 	, hybridE_seed(0,0)
 {
 }
@@ -523,6 +523,7 @@ getNextBest( Interaction & curBest )
 				continue;
 			}
 
+			// access energy table for left-most interaction base pair
 			curTable = hybridE_seed(r1.from,r2.from);
 
 			// iterate over all available interaction site lengths in seq1

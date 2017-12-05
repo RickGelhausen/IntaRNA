@@ -2,13 +2,13 @@
 
 AC_PREREQ([2.65])
 # 5 argument version only available with aclocal >= 2.64
-AC_INIT( [IntaRNA], [2.0.5], [], [intaRNA], [http://www.bioinf.uni-freiburg.de] )
+AC_INIT( [IntaRNA], [2.1.0], [], [intaRNA], [http://www.bioinf.uni-freiburg.de] )
 
 
 # minimal required version of the boost library 
 BOOST_REQUIRED_VERSION=1.50.0
 # minimal required version of the Vienna RNA library
-VRNA_REQUIRED_VERSION=2.3.0
+VRNA_REQUIRED_VERSION=2.4.3
 
 
 AC_CANONICAL_HOST
@@ -96,14 +96,30 @@ AC_ARG_ENABLE([debug],
 	    [enable debug data generation (def=disabled)])],
   	[debuger="$enableval"])
 AC_MSG_RESULT([$debuger])
+
 AS_IF([test x"$debuger" = x"yes"], [
 	AC_DEFINE([_DEBUG], [1], [Run in DEBUG mode with additional assertions and debug output])
-	AM_CXXFLAGS="$AM_CXXFLAGS -g -O0 -Wno-uninitialized -Wno-deprecated" # -Wall"
+	AM_CXXFLAGS="$AM_CXXFLAGS -g -O0 -Wno-uninitialized -Wno-deprecated -DELPP_DEBUG_ERRORS" # -Wall"
 ], [
 	AC_DEFINE([NDEBUG], [1], [Run in normal mode with minimal assertions])
 	AM_CXXFLAGS="$AM_CXXFLAGS -O3 -fno-strict-aliasing -Wno-uninitialized -Wno-deprecated"
 ])
 
+###############################################################################
+# STATIC LINKING SUPPORT
+###############################################################################
+
+AC_MSG_CHECKING([whether to build statically linked binaries])
+AC_ARG_ENABLE([static-linking],
+    [AS_HELP_STRING([--enable-static-linking],
+	    [enables static linking of the executables (default=disabled)])],
+    [enable_static_linking=$enableval],
+    [enable_static_linking=no])
+AC_MSG_RESULT([$enable_static_linking])
+
+AS_IF([test x"$enable_static_linking" = x"yes"], [
+	AM_LDFLAGS="-static $AM_LDFLAGS"
+])
 
 ###############################################################################
 # MULTI-THREADING SUPPORT SETUP
@@ -175,8 +191,36 @@ AS_IF([test "x$HAVE_DOXYGEN" = "xyes"], [
 ])
 
 ###############################################################################
+# EASYLOGGING++
 ###############################################################################
 
+# enable easylogging++ performance tracking
+AM_CXXFLAGS="$AM_CXXFLAGS -DELPP_FEATURE_PERFORMANCE_TRACKING"
+# disable default log file creation
+AM_CXXFLAGS="$AM_CXXFLAGS -DELPP_NO_DEFAULT_LOG_FILE"
+
+#############################
+# COLORING SETUP
+#############################
+
+AC_MSG_CHECKING([whether to enable coloring of console log output])
+logColoring=yes
+AC_ARG_ENABLE([log-coloring],
+	[AS_HELP_STRING([--disable-log-coloring],
+	    [disable console log coloring (def=enabled)])],
+  	[logColoring="$enableval"])
+AC_MSG_RESULT([$logColoring])
+AS_IF([test x"$logColoring" = x"yes"], [
+	AC_DEFINE([INTARNA_LOG_COLORING], [1], [Enabling console log coloring])
+	AC_SUBST([INTARNA_LOG_COLORING],[1])
+], [
+	AC_DEFINE([INTARNA_LOG_COLORING], [0], [Disabling console log coloring])
+	AC_SUBST([INTARNA_LOG_COLORING],[0])
+])
+
+
+
+###############################################################################
 
 ###############################################################################
 # BOOST CHECK

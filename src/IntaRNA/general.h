@@ -16,19 +16,6 @@
 
 ////////////////  CENTRAL LOGGING LIB  //////////////////
 
-// disable default log file creation
-#ifndef ELPP_NO_DEFAULT_LOG_FILE
-	#define ELPP_NO_DEFAULT_LOG_FILE 1
-#endif
-// disable log file argument (and parsing)
-#ifndef ELPP_DISABLE_LOG_FILE_FROM_ARG
-	#define ELPP_DISABLE_LOG_FILE_FROM_ARG 1
-#endif
-// enable debug error tracking
-#if INTARNA_IN_DEBUG_MODE
-	#define ELPP_DEBUG_ERRORS 1
-#endif
-
 #include "easylogging++.h"
 
 ////////////////  GARBAGE COLLECTION  ///////////////////
@@ -94,13 +81,23 @@ namespace IntaRNA {
 	#error E_precisionEpsilon already defined
 #endif
 	//! the delta difference range to consider two energies equivalent
-#define E_precisionEpsilon 1000.0*std::numeric_limits<E_type>::epsilon()
+    //! using sqrt(representable positive value closest to zero)
+#define E_precisionEpsilon std::sqrt(std::numeric_limits<E_type>::min())
 
 #ifdef E_equal
 	#error E_equal already defined
 #endif
 	//! check if two energies are equal according to some epsilon
 #define E_equal( e1, e2 ) ( std::abs((e1)-(e2)) < E_precisionEpsilon)
+// another option from http://en.cppreference.com/w/cpp/types/numeric_limits/epsilon
+//#define E_equal_ULP 2
+//#define E_equal( e1, e2 ) ( \
+//	/* the machine epsilon has to be scaled to the magnitude of the values used */ \
+//	/* and multiplied by the desired precision in ULPs (units in the last place) */ \
+//	std::abs(e1-e2) < std::numeric_limits<T>::epsilon() * std::abs(e1+e2) * E_equal_ULP \
+//	/* unless the result is subnormal */ \
+//	|| std::abs(e1-e2) < std::numeric_limits<T>::min() \
+//)
 
 #ifdef E_isNotINF
 	#error E_isNotINF already defined

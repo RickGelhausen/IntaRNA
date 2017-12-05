@@ -11,10 +11,10 @@ PredictorMfe2dHeuristicSeed::
 PredictorMfe2dHeuristicSeed( const InteractionEnergy & energy
 		, OutputHandler & output
 		, PredictionTracker * predTracker
-		, const SeedConstraint & seedConstraint
+		, SeedHandler * seedHandlerInstance
 		)
  : PredictorMfe2dHeuristic(energy,output,predTracker)
-	, seedHandler( energy, seedConstraint )
+	, seedHandler( seedHandlerInstance )
 {
 }
 
@@ -139,6 +139,10 @@ predict( const IndexRange & r1
 		curCell = &(hybridE_seed(i1,i2));
 		// reset temporary variables
 		curEtotal = E_INF;
+		// current best total energy value
+		// NOTE: by setting to E_INF instead of getE(curCell->E) we ignore the
+		// single intermolecular bp case to avoid the effect of extremely low
+		// EDs of single positions
 		curCellEtotal = E_INF;
 
 		///////////////////////////////////////////////////////////////////

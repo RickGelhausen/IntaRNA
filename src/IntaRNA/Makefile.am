@@ -43,6 +43,7 @@ libIntaRNA_a_HEADERS =    \
 					OutputHandlerCsv.h \
 					OutputHandlerHub.h \
 					OutputHandlerIntaRNA1.h \
+					OutputHandlerInteractionList.h \
 					OutputHandlerRangeOnly.h \
 					OutputHandlerText.h \
 					PredictionTracker.h \
@@ -70,7 +71,9 @@ libIntaRNA_a_HEADERS =    \
 					RnaSequence.h \
 					SeedConstraint.h \
 					SeedHandler.h \
+					SeedHandlerExplicit.h \
 					SeedHandlerIdxOffset.h \
+					SeedHandlerMfe.h \
 					VrnaHandler.h
 
 # the sources to add to the library and to add to the source distribution
@@ -95,6 +98,7 @@ libIntaRNA_a_SOURCES =    \
 					OutputHandler.cpp \
 					OutputHandlerCsv.cpp \
 					OutputHandlerIntaRNA1.cpp \
+					OutputHandlerInteractionList.cpp \
 					OutputHandlerRangeOnly.cpp \
 					OutputHandlerText.cpp \
 					PredictionTrackerPairMinE.cpp \
@@ -118,8 +122,8 @@ libIntaRNA_a_SOURCES =    \
 					ReverseAccessibility.cpp \
 					RnaSequence.cpp \
 					SeedConstraint.cpp \
-					SeedHandler.cpp \
-					SeedHandlerIdxOffset.cpp \
+					SeedHandlerExplicit.cpp \
+					SeedHandlerMfe.cpp \
 					VrnaHandler.cpp
 
 
