@@ -141,17 +141,7 @@ initHybridE( const size_t j1, const size_t j2
 		for (i2=hybridErange.r2.from; i2<=j2; i2++) {
 			w2 = j2-i2+1;
 			// check if all larger windows needing this site are already set to INF
-			bool largerWindowsINF = i1==hybridErange.r1.from && i2==hybridErange.r2.from;
-			// check all larger windows w1 + i2p..j2 (that might need this window for computation)
-			for (size_t i2p=hybridErange.r2.from; largerWindowsINF && i2p>i2; i2p++) {
-				// check if larger window is E_INF
-				largerWindowsINF = E_isINF(hybridE_pq(i1,i2p));
-			}
-			// check all larger windows w2 + w1p (that might need this window for computation)
-			for (size_t i1p=hybridErange.r1.from; largerWindowsINF && i1p>i1; i1p++) {
-				// check if larger window is E_INF
-				largerWindowsINF = E_isINF(hybridE_pq(i1,i2));
-			}
+			bool largerWindowsINF = i1==hybridErange.r1.from && i2==hybridErange.r2.from;  // TODO Only true for first vaules
 
 			// if it holds for all w'>=w: ED1(i1+w1')+ED2(i2+w2')-outConstraint.maxE > -1*(min(w1',w2')*EmaxStacking + Einit + 2*Edangle + 2*Eend)
 			// ie. the ED values exceed the max possible energy gain of an interaction
