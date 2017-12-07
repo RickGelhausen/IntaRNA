@@ -40,7 +40,7 @@ namespace IntaRNA {
 				, OutputHandler & output
 				, PredictionTracker * predTracker
 				, const AllowES allowES
-				, const SeedConstraint & seedConstraint
+				, SeedHandler * seedHandler
 		);
 
 		/**

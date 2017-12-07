@@ -1705,28 +1705,28 @@ getPredictor( const InteractionEnergy & energy, OutputHandler & output ) const
 			switch ( predMode.val ) {
 			case 'H' : {
 				switch ( predMulti.val ) {
-				case 'Q': return new PredictorMfe2dMultiHeuristicSeed( energy, output, predTracker, Predictor::AllowES ::ES_query, getSeedConstraint( energy ));
-				case 'T': return new PredictorMfe2dMultiHeuristicSeed( energy, output, predTracker, Predictor::AllowES ::ES_target, getSeedConstraint( energy ));
-				case 'X': return new PredictorMfe2dMultiHeuristicSeed( energy, output, predTracker, Predictor::AllowES ::ES_xorQueryTarget, getSeedConstraint( energy ));
-				case 'B': return new PredictorMfe2dMultiHeuristicSeed( energy, output, predTracker, Predictor::AllowES ::ES_both, getSeedConstraint( energy ));
+				case 'Q': return new PredictorMfe2dMultiHeuristicSeed( energy, output, predTracker, Predictor::AllowES ::ES_query, getSeedHandler( energy ));
+				case 'T': return new PredictorMfe2dMultiHeuristicSeed( energy, output, predTracker, Predictor::AllowES ::ES_target, getSeedHandler( energy ));
+				case 'X': return new PredictorMfe2dMultiHeuristicSeed( energy, output, predTracker, Predictor::AllowES ::ES_xorQueryTarget, getSeedHandler( energy ));
+				case 'B': return new PredictorMfe2dMultiHeuristicSeed( energy, output, predTracker, Predictor::AllowES ::ES_both, getSeedHandler( energy ));
 				default: INTARNA_NOT_IMPLEMENTED("predMulti "+toString(predMulti.val)+" not implemented for prediction "+toString(pred.val));
 				}
 			}
 			case 'M' : {
 				switch ( predMulti.val ) {
-				case 'Q': return new PredictorMfe2dMultiSeed( energy, output, predTracker, Predictor::AllowES ::ES_query, getSeedConstraint( energy ));
-				case 'T': return new PredictorMfe2dMultiSeed( energy, output, predTracker, Predictor::AllowES ::ES_target, getSeedConstraint( energy ));
-				case 'X': return new PredictorMfe2dMultiSeed( energy, output, predTracker, Predictor::AllowES ::ES_xorQueryTarget, getSeedConstraint( energy ));
-				case 'B': return new PredictorMfe2dMultiSeed( energy, output, predTracker, Predictor::AllowES ::ES_both, getSeedConstraint( energy ));
+				case 'Q': return new PredictorMfe2dMultiSeed( energy, output, predTracker, Predictor::AllowES ::ES_query, getSeedHandler( energy ));
+				case 'T': return new PredictorMfe2dMultiSeed( energy, output, predTracker, Predictor::AllowES ::ES_target, getSeedHandler( energy ));
+				case 'X': return new PredictorMfe2dMultiSeed( energy, output, predTracker, Predictor::AllowES ::ES_xorQueryTarget, getSeedHandler( energy ));
+				case 'B': return new PredictorMfe2dMultiSeed( energy, output, predTracker, Predictor::AllowES ::ES_both, getSeedHandler( energy ));
 				default: INTARNA_NOT_IMPLEMENTED("predMulti "+toString(predMulti.val)+" not implemented for prediction "+toString(pred.val));
 				}
 			} break;
 			case 'E' : {
 				switch ( predMulti.val ) {
-                case 'Q': return new PredictorMfe4dMultiSeed( energy, output, predTracker, Predictor::AllowES ::ES_query, getSeedConstraint( energy ));
-                case 'T': return new PredictorMfe4dMultiSeed( energy, output, predTracker, Predictor::AllowES ::ES_target, getSeedConstraint( energy ));
-                case 'X': return new PredictorMfe4dMultiSeed( energy, output, predTracker, Predictor::AllowES ::ES_xorQueryTarget, getSeedConstraint( energy ));
-                case 'B': return new PredictorMfe4dMultiSeed( energy, output, predTracker, Predictor::AllowES ::ES_both, getSeedConstraint( energy ));
+                case 'Q': return new PredictorMfe4dMultiSeed( energy, output, predTracker, Predictor::AllowES ::ES_query, getSeedHandler( energy ));
+                case 'T': return new PredictorMfe4dMultiSeed( energy, output, predTracker, Predictor::AllowES ::ES_target, getSeedHandler( energy ));
+                case 'X': return new PredictorMfe4dMultiSeed( energy, output, predTracker, Predictor::AllowES ::ES_xorQueryTarget, getSeedHandler( energy ));
+                case 'B': return new PredictorMfe4dMultiSeed( energy, output, predTracker, Predictor::AllowES ::ES_both, getSeedHandler( energy ));
                 default: INTARNA_NOT_IMPLEMENTED("predMulti "+toString(predMulti.val)+" not implemented for prediction "+toString(pred.val));
 				}
 			} break;
@@ -1734,9 +1734,9 @@ getPredictor( const InteractionEnergy & energy, OutputHandler & output ) const
 			}
 #else
 			switch ( predMode.val ) {
-			case 'H' :  return new PredictorMfe2dHeuristicSeed( energy, output, predTracker, getSeedConstraint( energy ) );
-			case 'M' :  return new PredictorMfe2dSeed( energy, output, predTracker, getSeedConstraint( energy ) );
-			case 'E' :  return new PredictorMfe4dSeed( energy, output, predTracker, getSeedConstraint( energy ) );
+			case 'H' :  return new PredictorMfe2dHeuristicSeed( energy, output, predTracker, getSeedHandler( energy ) );
+			case 'M' :  return new PredictorMfe2dSeed( energy, output, predTracker, getSeedHandler( energy ) );
+			case 'E' :  return new PredictorMfe4dSeed( energy, output, predTracker, getSeedHandler( energy ) );
 			default :  INTARNA_NOT_IMPLEMENTED("mode "+toString(predMode.val)+" not implemented for prediction "+toString(pred.val));
 			}
 #endif

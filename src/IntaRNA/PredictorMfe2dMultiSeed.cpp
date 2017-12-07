@@ -11,11 +11,11 @@ PredictorMfe2dMultiSeed(
 		, OutputHandler & output
 		, PredictionTracker * predTracker
 		, const AllowES allowES_
-		, const SeedConstraint & seedConstraint
+		, SeedHandler * seedHandlerInstance
 )
 		: PredictorMfe2dMulti(energy,output,predTracker, allowES_)
 		, hybridE_pq_seed(0,0)
-		, seedHandler(energy,seedConstraint)
+		, seedHandler(seedHandlerInstance)
 {
 	assert( seedHandler.getConstraint().getBasePairs() > 1 );
 }

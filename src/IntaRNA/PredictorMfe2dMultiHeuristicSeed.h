@@ -44,7 +44,7 @@ public:
 			, OutputHandler & output
 			, PredictionTracker * predTracker
 			, const AllowES allowES_
-			, const SeedConstraint & seedConstraint );
+			, SeedHandler* seedHandler  );
 
 	virtual ~PredictorMfe2dMultiHeuristicSeed();
 
