@@ -98,7 +98,7 @@ predict( const IndexRange & r1
 				continue;
 
 			// compute hybridE_pq_seed and update mfe via PredictorMfe2d::updateOptima()
-			fillHybridE_seed( j1, j2 );
+			fillHybridE_seed( j1, j2, 0, 0, outConstraint );
 		}
 	}
 
@@ -111,11 +111,12 @@ predict( const IndexRange & r1
 
 void
 PredictorMfe2dMultiSeed::
-fillHybridE_seed( const size_t j1, const size_t j2, const size_t i1min, const size_t i2min )
+fillHybridE_seed( const size_t j1, const size_t j2, const size_t i1min, const size_t i2min
+				, const OutputConstraint & outConstraint  )
 {
 
 	// compute hybridE_pq
-	fillHybridE( j1, j2, i1min, i2min );
+	fillHybridE( j1, j2, outConstraint, i1min, i2min );
 
 	assert(i1min <= j1);
 	assert(i2min <= j2);
@@ -182,13 +183,7 @@ fillHybridE_seed( const size_t j1, const size_t j2, const size_t i1min, const si
 				// initial case = interaction init
 				hybridE_pq(i1,i2) = energy.getE_init();
 			}
-//
-//			if ( E_isINF(hybridE_pq(i1,i2)) ) {
-//				// set all entries to E_INF to mark invalid index combination
-//				hybridE_pq_seed(i1, i2) = E_INF;
-//				hybridO(i1, i2) = E_INF;
-//				continue;
-//			}
+
 			///////////////////////////////////////////////////
 			// hybridO(i1,i2) computation
 			///////////////////////////////////////////////////
@@ -345,7 +340,7 @@ traceHybridO( const size_t i1, const size_t j1
 
 void
 PredictorMfe2dMultiSeed::
-traceBack( Interaction & interaction )
+traceBack( Interaction & interaction, const OutputConstraint & outConstraint  )
 {
 	// check if something to trace
 	if (interaction.basePairs.size() < 2) {
@@ -389,7 +384,7 @@ traceBack( Interaction & interaction )
 
 
 	// refill submatrices of mfe interaction
-	fillHybridE_seed( j1, j2, i1, i2 );
+	fillHybridE_seed( j1, j2, i1, i2, outConstraint );
 
 	// the currently traced value for i1-j1, i2-j2
 	E_type curE = hybridE_pq_seed(i1,i2);
