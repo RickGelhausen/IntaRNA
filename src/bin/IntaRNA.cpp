@@ -19,8 +19,6 @@
 #include "IntaRNA/OutputHandler.h"
 #include "IntaRNA/OutputHandlerIntaRNA1.h"
 #include "IntaRNA/OutputHandlerInteractionList.h"
-#include "easylogging++.h"
-#include "easylogging++.cc"
 
 // initialize logging for binary
 INITIALIZE_EASYLOGGINGPP
