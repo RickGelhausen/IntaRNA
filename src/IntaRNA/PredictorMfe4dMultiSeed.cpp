@@ -449,7 +449,6 @@ if ( interaction.basePairs.size() != 2 ) {
 }
 #endif
 
-
 	// check for single interaction (start==end)
 	if (interaction.basePairs.begin()->first == interaction.basePairs.rbegin()->first) {
 		// delete second boundary (identical to first)
@@ -515,30 +514,30 @@ if ( interaction.basePairs.size() != 2 ) {
 			bool traceNotFound = true;
 			for (k1 = std::min(j1 - seedHandler.getConstraint().getBasePairs() + 1,
 							   i1 + energy.getMaxInternalLoopSize1() + 1); traceNotFound && k1 > i1; k1--) {
-				for (k2 = std::min(j2 - seedHandler.getConstraint().getBasePairs() + 1,
-								   i2 + energy.getMaxInternalLoopSize2() + 1); traceNotFound && k2 > i2; k2--) {
-					// check if (k1,k2) are valid left boundaries including a seed
-					if (hybridE_seed(k1, k2) != NULL
-						&& j1 - k1 < hybridE_seed(k1, k2)->size1()
-						&& j2 - k2 < hybridE_seed(k1, k2)->size2()
-						&& E_isNotINF((*hybridE_seed(k1, k2))(j1 - k1, j2 - k2))) {
-						// check if correct split
-						if (E_equal (curE,
-									 (energy.getE_interLeft(i1, k1, i2, k2)
-									  + (*hybridE_seed(k1, k2))(j1 - k1, j2 - k2))
-						)) {
-							// stop searching
-							traceNotFound = false;
-							// store splitting base pair
-							interaction.basePairs.push_back(energy.getBasePair(k1, k2));
-							// update trace back boundary
-							i1 = k1;
-							i2 = k2;
-							curE = (*hybridE_seed(k1, k2))(j1 - k1, j2 - k2);
-							continue;
-						}
+			for (k2 = std::min(j2 - seedHandler.getConstraint().getBasePairs() + 1,
+							   i2 + energy.getMaxInternalLoopSize2() + 1); traceNotFound && k2 > i2; k2--) {
+				// check if (k1,k2) are valid left boundaries including a seed
+				if (hybridE_seed(k1, k2) != NULL
+					&& j1 - k1 < hybridE_seed(k1, k2)->size1()
+					&& j2 - k2 < hybridE_seed(k1, k2)->size2()
+					&& E_isNotINF((*hybridE_seed(k1, k2))(j1 - k1, j2 - k2))) {
+					// check if correct split
+					if (E_equal (curE,
+								 (energy.getE_interLeft(i1, k1, i2, k2)
+								  + (*hybridE_seed(k1, k2))(j1 - k1, j2 - k2))
+					)) {
+						// stop searching
+						traceNotFound = false;
+						// store splitting base pair
+						interaction.basePairs.push_back(energy.getBasePair(k1, k2));
+						// update trace back boundary
+						i1 = k1;
+						i2 = k2;
+						curE = (*hybridE_seed(k1, k2))(j1 - k1, j2 - k2);
+						continue;
 					}
-				} // k2
+				}
+			} // k2
 			} // k1
 		}
 

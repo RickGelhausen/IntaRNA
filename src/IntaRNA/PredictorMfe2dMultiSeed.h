@@ -102,6 +102,22 @@ protected:
 protected:
 
 	/**
+	 * Initializes the hybridE_pq table for the computation for interactions
+	 * ending in p=j1 and q=j2
+	 *
+	 * @param j1 end of the interaction within seq 1
+	 * @param j2 end of the interaction within seq 2
+	 * @param outConstraint constrains the interactions reported to the output handler
+	 * @param i1init smallest value for i1
+	 * @param i2init smallest value for i2
+	 */
+	void
+	initHybridE_seed( const size_t j1, const size_t j2
+			, const OutputConstraint & outConstraint
+			, const size_t i1init=0, const size_t i2init=0
+	);
+
+	/**
 	 * does nothing but to ignore the calls from fillHybridE()
 	 *
 	 * @param i1 the index of the first sequence interacting with i2

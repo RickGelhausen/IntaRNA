@@ -107,6 +107,49 @@ predict( const IndexRange & r1
 
 }
 
+////////////////////////////////////////////////////////////////////////////
+
+void
+PredictorMfe2dMultiSeed::
+initHybridE_seed( const size_t j1, const size_t j2
+		, const OutputConstraint & outConstraint
+		, const size_t i1init, const size_t i2init
+)
+{
+#if INTARNA_IN_DEBUG_MODE
+	if (i1init > j1)
+		throw std::runtime_error("PredictorMfe2dMutliSeed::initHybridE() : i1init > j1 : "+toString(i1init)+" > "+toString(j1));
+	if (i2init > j2)
+		throw std::runtime_error("PredictorMfe2dMutliSeed::initHybridE() : i2init > j2 : "+toString(i2init)+" > "+toString(j2));
+#endif
+
+	// global vars to avoid reallocation
+	size_t i1,i2;
+
+	// to mark as to be computed
+	const E_type E_MAX = std::numeric_limits<E_type>::max();
+
+	hybridErange.r1.from = std::max(i1init,j1-std::min(j1,energy.getAccessibility1().getMaxLength()+1));
+	hybridErange.r1.to = j1;
+	hybridErange.r2.from = std::max(i2init,j2-std::min(j2,energy.getAccessibility2().getMaxLength()+1));
+	hybridErange.r2.to = j2;
+
+	for (i1=hybridErange.r1.from; i1<=j1; i1++ ) {
+		for (i2=hybridErange.r2.from; i2<=j2; i2++) {
+			// check if complementary, i.e. to be computed
+			if( energy.areComplementary(i1,i2) )
+			{
+				// mark as to be computed (has to be < E_INF)
+				hybridE_pq_seed(i1,i2) = E_MAX;
+			} else {
+				// mark as NOT to be computed
+				hybridE_pq_seed(i1,i2) = E_INF;
+			}
+		}
+	}
+
+}
+
 //////////////////////////////////////////////////////////////////////////
 
 void
@@ -117,6 +160,9 @@ fillHybridE_seed( const size_t j1, const size_t j2, const size_t i1min, const si
 
 	// compute hybridE_pq
 	fillHybridE( j1, j2, outConstraint, i1min, i2min );
+
+	// init for right interaction end (j1, j2)
+	initHybridE_seed( j1, j2, outConstraint, 0, 0 );
 
 	assert(i1min <= j1);
 	assert(i2min <= j2);
@@ -153,7 +199,6 @@ fillHybridE_seed( const size_t j1, const size_t j2, const size_t i1min, const si
 
 		// screen for left boundaries i2 in seq2
 		for (i2=hybridErange.r2.to+1; i2-- > hybridErange.r2.from; ) {
-
 
 			// check if this cell is to be computed (!=E_INF)
 			if( E_isNotINF( hybridE_pq(i1,i2) ) ) {
@@ -199,33 +244,33 @@ fillHybridE_seed( const size_t j1, const size_t j2, const size_t i1min, const si
 				// where k1..j1 contains a seed
 				for (k1 = std::min(j1 + 1 - seedHandler.getConstraint().getBasePairs(),
 								   i1 + energy.getMaxInternalLoopSize1() + 1); k1 > i1; k1--) {
-					for (k2 = std::min(j2 + 1 - seedHandler.getConstraint().getBasePairs(),
-									   i2 + energy.getMaxInternalLoopSize2() + 1); k2 > i2; k2--) {
+				for (k2 = std::min(j2 + 1 - seedHandler.getConstraint().getBasePairs(),
+								   i2 + energy.getMaxInternalLoopSize2() + 1); k2 > i2; k2--) {
 
-						///////////////////////////////////////////////////////////////////
-						// hybridE(i1,i2) computation
-						///////////////////////////////////////////////////////////////////
+					///////////////////////////////////////////////////////////////////
+					// hybridE(i1,i2) computation
+					///////////////////////////////////////////////////////////////////
 
-						if (E_isNotINF(hybridE_pq(k1, k2))) {
-							curMinE = std::min(curMinE,
-											   (energy.getE_interLeft(i1, k1, i2, k2)
-												+ hybridE_pq(k1, k2))
-							);
+					if (E_isNotINF(hybridE_pq(k1, k2))) {
+						curMinE = std::min(curMinE,
+										   (energy.getE_interLeft(i1, k1, i2, k2)
+											+ hybridE_pq(k1, k2))
+						);
 
-						}
+					}
 
-						///////////////////////////////////////////////////////////////////
-						// hybridE_seed(i1,i2) computation
-						///////////////////////////////////////////////////////////////////
+					///////////////////////////////////////////////////////////////////
+					// hybridE_seed(i1,i2) computation
+					///////////////////////////////////////////////////////////////////
 
-						if (E_isNotINF(hybridE_pq_seed(k1, k2))) {
-							curMinE_seed = std::min(curMinE_seed,
-													(energy.getE_interLeft(i1, k1, i2, k2)
-													 + hybridE_pq_seed(k1, k2))
-							);
-						}
+					if (E_isNotINF(hybridE_pq_seed(k1, k2))) {
+						curMinE_seed = std::min(curMinE_seed,
+												(energy.getE_interLeft(i1, k1, i2, k2)
+												 + hybridE_pq_seed(k1, k2))
+						);
+					}
 
-					} // k2
+				} // k2
 				} // k1
 
 				////////////////////////////////////////////////////////////////
@@ -310,6 +355,7 @@ traceHybridO( const size_t i1, const size_t j1
 			}
 		}
 	}
+	throw std::runtime_error("PredictorMfe2dMultiSeed::traceHybridO() : could not trace k2 in hybridO");
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -347,8 +393,8 @@ traceBack( Interaction & interaction, const OutputConstraint & outConstraint  )
 	size_t	i1 = energy.getIndex1(interaction.basePairs.at(0)),
 			j1 = energy.getIndex1(interaction.basePairs.at(1)),
 			i2 = energy.getIndex2(interaction.basePairs.at(0)),
-			j2 = energy.getIndex2(interaction.basePairs.at(1))
-	;
+			j2 = energy.getIndex2(interaction.basePairs.at(1)),
+			k1, k2;
 
 #if INTARNA_IN_DEBUG_MODE
 	// check if intervals are larger enough to contain a seed
@@ -358,6 +404,7 @@ traceBack( Interaction & interaction, const OutputConstraint & outConstraint  )
 	}
 #endif
 
+	LOG(DEBUG) << "Traceback!!";
 
 	// refill submatrices of mfe interaction
 	fillHybridE_seed( j1, j2, i1, i2, outConstraint );
@@ -366,8 +413,6 @@ traceBack( Interaction & interaction, const OutputConstraint & outConstraint  )
 	E_type curE = hybridE_pq_seed(i1,i2);
 
 	// trace back
-	// temp variables
-	size_t k1,k2;
 	bool traceInESeed = true; // if false: traces hybridE
 
 	while( (j1-i1) > 1 ) {
@@ -395,6 +440,11 @@ traceBack( Interaction & interaction, const OutputConstraint & outConstraint  )
 					// continue after seed
 					i1 = k1;
 					i2 = k2;
+					// add right most base pair of seed
+					interaction.basePairs.push_back(energy.getBasePair(k1, k2));
+					// move seed to gap information
+					if (interaction.gap == NULL) { interaction.gap = new Interaction::Gap(); }
+					interaction.gap->seeds.push_back(*(interaction.seed));
 					curE = hybridE_pq(k1, k2);
 					traceInESeed = false;
 					continue;
@@ -423,6 +473,7 @@ traceBack( Interaction & interaction, const OutputConstraint & outConstraint  )
 					i1 = k1;
 					i2 = k2;
 					curE = hybridE_pq_seed(k1, k2);
+					continue;
 				}
 			} // k2
 			} // k1
