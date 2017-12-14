@@ -510,31 +510,37 @@ traceBack( Interaction & interaction, const OutputConstraint & outConstraint  )
 			// Both-sided structure
 			if (traceNotFound && allowES == ES_both) {
 				for (k1 = j1; traceNotFound && k1 > i1 + InteractionEnergy::minDistES; k1--) {
-					if (E_equal(curE,
-								(energy.getE_multiLeft(i1, k1, i2, InteractionEnergy::ES_multi_mode::ES_multi_both)
-								 + hybridO(k1, i2)
-								))) {
-						// stop searching
-						traceNotFound = false;
-						traceInESeed = true;
-						// Determine k2 based on k1
-						k2 = traceHybridO(k1, j1, i2, j2);
-						E_type E_multiRight = energy.getE_multiRight(i1, i2, k2);
-						// store splitting base pair
-						interaction.basePairs.push_back(energy.getBasePair(k1, k2));
-						// store gap information
-						if (interaction.gap == NULL) { interaction.gap = new Interaction::Gap(); }
-						interaction.gap->energy += energy.getE_multiLeft(i1, k1, i2, InteractionEnergy::ES_multi_mode::ES_multi_both) + E_multiRight;
-						Interaction::BasePair bpLeft = energy.getBasePair(i1,i2);
-						interaction.gap->gaps1.insert( IndexRange(bpLeft.first+1,interaction.basePairs.rbegin()->first-1) );
-						interaction.gap->gaps2.insert( IndexRange(interaction.basePairs.rbegin()->second+1,bpLeft.second-1) );
-						// move seed to gap information
-						interaction.gap->seeds.push_back( *(interaction.seed) );
-						// trace right part of split
-						i1 = k1;
-						i2 = k2;
-						curE = hybridE_pq_seed(k1, k2);
-						continue;
+					if (E_isNotINF(hybridO(k1,i2))) {
+						if (E_equal(curE,
+									(energy.getE_multiLeft(i1, k1, i2, InteractionEnergy::ES_multi_mode::ES_multi_both)
+									 + hybridO(k1, i2)
+									))) {
+							// stop searching
+							traceNotFound = false;
+							traceInESeed = true;
+							// Determine k2 based on k1
+							k2 = traceHybridO(k1, j1, i2, j2);
+							E_type E_multiRight = energy.getE_multiRight(i1, i2, k2);
+							// store splitting base pair
+							interaction.basePairs.push_back(energy.getBasePair(k1, k2));
+							// store gap information
+							if (interaction.gap == NULL) { interaction.gap = new Interaction::Gap(); }
+							interaction.gap->energy +=
+									energy.getE_multiLeft(i1, k1, i2, InteractionEnergy::ES_multi_mode::ES_multi_both) +
+									E_multiRight;
+							Interaction::BasePair bpLeft = energy.getBasePair(i1, i2);
+							interaction.gap->gaps1.insert(
+									IndexRange(bpLeft.first + 1, interaction.basePairs.rbegin()->first - 1));
+							interaction.gap->gaps2.insert(
+									IndexRange(interaction.basePairs.rbegin()->second + 1, bpLeft.second - 1));
+							// move seed to gap information
+							interaction.gap->seeds.push_back(*(interaction.seed));
+							// trace right part of split
+							i1 = k1;
+							i2 = k2;
+							curE = hybridE_pq_seed(k1, k2);
+							continue;
+						}
 					}
 				}
 			}
@@ -543,27 +549,31 @@ traceBack( Interaction & interaction, const OutputConstraint & outConstraint  )
 			if (traceNotFound && (allowES == ES_target || allowES == ES_xorQueryTarget)) {
 				for (k1 = j1; traceNotFound && k1 > i1 + InteractionEnergy::minDistES; k1--) {
 				for (k2 = std::min(j2, i2 + energy.getMaxInternalLoopSize2() + 1); traceNotFound && k2 > i2; k2--) {
-					if (E_equal(curE,
-								(energy.getE_multi(i1, k1, i2, k2, InteractionEnergy::ES_multi_mode::ES_multi_1only)
-								 + hybridE_pq_seed(k1, k2)
-								))) {
-						// stop searching
-						traceNotFound = false;
-						traceInESeed = true;
-						// store splitting base pair
-						interaction.basePairs.push_back(energy.getBasePair(k1, k2));
-						// store gap information
-						if (interaction.gap == NULL) { interaction.gap = new Interaction::Gap(); }
-						interaction.gap->energy += energy.getE_multi(i1, k1, i2, k2, InteractionEnergy::ES_multi_mode::ES_multi_1only);
-						Interaction::BasePair bpLeft = energy.getBasePair(i1,i2);
-						interaction.gap->gaps1.insert( IndexRange(bpLeft.first+1,interaction.basePairs.rbegin()->first-1) );
-						// move seed to gap information
-						interaction.gap->seeds.push_back( *(interaction.seed) );
-						// trace right part of split
-						i1 = k1;
-						i2 = k2;
-						curE = hybridE_pq_seed(k1, k2);
-						continue;
+					if (E_isNotINF(hybridE_pq_seed(k1, k2))) {
+						if (E_equal(curE,
+									(energy.getE_multi(i1, k1, i2, k2, InteractionEnergy::ES_multi_mode::ES_multi_1only)
+									 + hybridE_pq_seed(k1, k2)
+									))) {
+							// stop searching
+							traceNotFound = false;
+							traceInESeed = true;
+							// store splitting base pair
+							interaction.basePairs.push_back(energy.getBasePair(k1, k2));
+							// store gap information
+							if (interaction.gap == NULL) { interaction.gap = new Interaction::Gap(); }
+							interaction.gap->energy += energy.getE_multi(i1, k1, i2, k2,
+																		 InteractionEnergy::ES_multi_mode::ES_multi_1only);
+							Interaction::BasePair bpLeft = energy.getBasePair(i1, i2);
+							interaction.gap->gaps1.insert(
+									IndexRange(bpLeft.first + 1, interaction.basePairs.rbegin()->first - 1));
+							// move seed to gap information
+							interaction.gap->seeds.push_back(*(interaction.seed));
+							// trace right part of split
+							i1 = k1;
+							i2 = k2;
+							curE = hybridE_pq_seed(k1, k2);
+							continue;
+						}
 					}
 				}
 				}
@@ -572,30 +582,35 @@ traceBack( Interaction & interaction, const OutputConstraint & outConstraint  )
 			// Structure in S2
 			if (traceNotFound && (allowES == ES_query || allowES == ES_xorQueryTarget)) {
 				for (k1 = std::min(j1, i1 + energy.getMaxInternalLoopSize1() + 1); traceNotFound && k1 > i1; k1--) {
-					if (E_equal(curE,
-								(energy.getE_multiLeft(i1, k1, i2, InteractionEnergy::ES_multi_mode::ES_multi_2only)
-								 + hybridO(k1, i2)
-								))) {
-						// stop searching
-						traceNotFound = false;
-						traceInESeed = true;
-						// Determine k2 based on k1
-						k2 = traceHybridO(k1, j1, i2, j2);
-						E_type E_multiRight = energy.getE_multiRight(i1, i2, k2);
-						// store splitting base pair
-						interaction.basePairs.push_back(energy.getBasePair(k1, k2));
-						// store gap information
-						if (interaction.gap == NULL) { interaction.gap = new Interaction::Gap(); }
-						interaction.gap->energy += energy.getE_multiLeft(i1, k1, i2, InteractionEnergy::ES_multi_mode::ES_multi_2only) + E_multiRight;
-						Interaction::BasePair bpLeft = energy.getBasePair(i1,i2);
-						interaction.gap->gaps2.insert( IndexRange(interaction.basePairs.rbegin()->second+1,bpLeft.second-1) );
-						// move seed to gap information
-						interaction.gap->seeds.push_back( *(interaction.seed) );
-						// trace right part of split
-						i1 = k1;
-						i2 = k2;
-						curE = hybridE_pq_seed(k1, k2);
-						continue;
+					if (E_isNotINF(hybridO(k1, i2))) {
+						if (E_equal(curE,
+									(energy.getE_multiLeft(i1, k1, i2, InteractionEnergy::ES_multi_mode::ES_multi_2only)
+									 + hybridO(k1, i2)
+									))) {
+							// stop searching
+							traceNotFound = false;
+							traceInESeed = true;
+							// Determine k2 based on k1
+							k2 = traceHybridO(k1, j1, i2, j2);
+							E_type E_multiRight = energy.getE_multiRight(i1, i2, k2);
+							// store splitting base pair
+							interaction.basePairs.push_back(energy.getBasePair(k1, k2));
+							// store gap information
+							if (interaction.gap == NULL) { interaction.gap = new Interaction::Gap(); }
+							interaction.gap->energy += energy.getE_multiLeft(i1, k1, i2,
+																			 InteractionEnergy::ES_multi_mode::ES_multi_2only) +
+													   E_multiRight;
+							Interaction::BasePair bpLeft = energy.getBasePair(i1, i2);
+							interaction.gap->gaps2.insert(
+									IndexRange(interaction.basePairs.rbegin()->second + 1, bpLeft.second - 1));
+							// move seed to gap information
+							interaction.gap->seeds.push_back(*(interaction.seed));
+							// trace right part of split
+							i1 = k1;
+							i2 = k2;
+							curE = hybridE_pq_seed(k1, k2);
+							continue;
+						}
 					}
 				}
 			}
