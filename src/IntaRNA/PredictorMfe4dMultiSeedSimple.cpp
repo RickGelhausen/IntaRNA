@@ -45,7 +45,7 @@ predict( const IndexRange & r1
 #if INTARNA_MULITHREADING
 	#pragma omp critical(intarna_omp_logOutput)
 #endif
-	{ VLOG(2) <<"predicting mfe multi-side interactions with seed in O(n^4) space and O(n^5) time..."; }
+	{ VLOG(2) <<"predicting mfe multi-site interactions with seed in O(n^4) space and O(n^5) time..."; }
 	// measure timing
 	TIMED_FUNC_IF(timerObj,VLOG_IS_ON(9));
 
@@ -262,7 +262,7 @@ fillHybridE_seed( )
 			}
 			}
 
-			///////////////// compute multi-side cases /////////////////
+			///////////////// compute multi-site cases /////////////////
 
             // Both-sided structure seeded interaction on the right
             if (allowES == ES_both) {
@@ -482,7 +482,7 @@ traceBack( Interaction & interaction, const OutputConstraint & outConstraint )
 			} // k1
 
 
-			///////////////  multi-side trace  ///////////////////
+			///////////////  multi-site trace  ///////////////////
 
 			// Structure in both
 			if (traceNotFound && allowES == ES_both) {

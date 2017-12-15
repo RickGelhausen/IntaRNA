@@ -348,7 +348,7 @@ add( const Interaction & i )
 				seedToStream( *(i.seed) );
 			} // seed
 
-			// print multi-side gap information if available
+			// print multi-site gap information if available
 			if (i.gap != NULL) {
 				out
 						<<"\n"
