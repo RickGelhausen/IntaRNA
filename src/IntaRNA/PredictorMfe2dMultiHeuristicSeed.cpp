@@ -119,13 +119,7 @@ predict( const IndexRange & r1
 	for (i1=hybridE_seed.size1(); i1-- > 0;) {
 	for (i2=hybridE_seed.size2(); i2-- > 0;) {
 
-		// check if left side can pair
-		if (E_isINF(hybridE(i1,i2).E)) {
-			continue;
-		}
 		// direct cell access
-		curCell  = &(hybridE(i1,i2));
-		curCellS = &(hybridE_seed(i1,i2));
 		curCellO = &(hybridO(i1, i2));
 
 		///////////////////////////////////////////////////
@@ -157,9 +151,19 @@ predict( const IndexRange & r1
 			} // w2
 		}
 
+
 		///////////////////////////////////////////////////////////////////
 		// hybridE(i1,i2) and hybridE_seed(i1,i2) computation
 		///////////////////////////////////////////////////////////////////
+
+		// check if left side can pair
+		if (E_isINF(hybridE(i1,i2).E)) {
+			continue;
+		}
+
+		// direct cell access
+		curCell  = &(hybridE(i1,i2));
+		curCellS = &(hybridE_seed(i1,i2));
 
 		// reset temporary variables to initial value
 

@@ -106,13 +106,7 @@ fillHybridE()
 	for (i1=hybridE.size1(); i1-- > 0;) {
 	for (i2=hybridE.size2(); i2-- > 0;) {
 		// direct cell access
-		curCell = &(hybridE(i1,i2));
 		curCellO = &(hybridO(i1,i2));
-
-		// check if left side can pair
-		if (E_isINF(curCell->E)) {
-			continue;
-		}
 
 		// HybridO computation
 		if (allowES != ES_target) {
@@ -138,6 +132,14 @@ fillHybridE()
 					}
 				}
 			} // w2
+		}
+
+		// direct cell access
+		curCell = &(hybridE(i1,i2));
+
+		// check if left side can pair
+		if (E_isINF(curCell->E)) {
+			continue;
 		}
 
 		// current best total energy value
