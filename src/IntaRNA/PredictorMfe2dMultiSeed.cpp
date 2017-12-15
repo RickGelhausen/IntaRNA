@@ -158,8 +158,8 @@ fillHybridE_seed( const size_t j1, const size_t j2, const size_t i1min, const si
 				, const OutputConstraint & outConstraint  )
 {
 
-	// compute hybridE_pq
-	fillHybridE( j1, j2, outConstraint, i1min, i2min );
+	// init for right interaction end (j1,j2)
+	initHybridE( j1, j2, outConstraint, i1min, i2min );
 
 	// init for right interaction end (j1, j2)
 	initHybridE_seed( j1, j2, outConstraint, 0, 0 );
@@ -192,13 +192,13 @@ fillHybridE_seed( const size_t j1, const size_t j2, const size_t i1min, const si
 	E_type curMinE = E_INF;
 	E_type curMinE_seed = E_INF;
 	E_type curMinO = E_INF;
+
 	// iterate over all window starts i1 (seq1) and i2 (seq2)
 	// TODO PARALLELIZE THIS DOUBLE LOOP ?!
-
-	for (i1=hybridErange.r1.to+1; i1-- > hybridErange.r1.from; ) {
+	for (i1=j1+1; i1-- > i1min; ) {
 
 		// screen for left boundaries i2 in seq2
-		for (i2=hybridErange.r2.to+1; i2-- > hybridErange.r2.from; ) {
+		for (i2=j2+1; i2-- > i2min; ) {
 
 			// check if this cell is to be computed (!=E_INF)
 			if( E_isNotINF( hybridE_pq(i1,i2) ) ) {
@@ -226,6 +226,12 @@ fillHybridE_seed( const size_t j1, const size_t j2, const size_t i1min, const si
 
 				// compute entry
 				curMinE = hybridE_pq(i1, i2);
+
+				// check if interaction initiation
+				if (i1 == j1 && i2 == j2) {
+					curMinE = energy.getE_init();
+				}
+
 				curMinE_seed = E_INF;
 
 				// base case = incorporate mfe seed starting at (i1,i2)
@@ -403,8 +409,6 @@ traceBack( Interaction & interaction, const OutputConstraint & outConstraint  )
 		throw std::runtime_error("PredictorMfe2dMultiSeed::traceBack() : given boundaries "+toString(interaction)+" can not hold a seed of "+toString(seedHandler.getConstraint().getBasePairs())+" base pairs");
 	}
 #endif
-
-	LOG(DEBUG) << "Traceback!!";
 
 	// refill submatrices of mfe interaction
 	fillHybridE_seed( j1, j2, i1, i2, outConstraint );
