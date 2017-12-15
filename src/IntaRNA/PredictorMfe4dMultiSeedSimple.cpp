@@ -13,10 +13,10 @@ PredictorMfe4dMultiSeedSimple( const InteractionEnergy & energy
 					, OutputHandler & output
 					, PredictionTracker * predTracker
 					, const AllowES allowES_
-					, const SeedConstraint & seedConstraint
+					, SeedHandler * seedHandlerInstance
 					)
  : PredictorMfe4d(energy,output,predTracker)
-	, seedHandler(energy,seedConstraint)
+	, seedHandler(seedHandlerInstance)
 	, hybridE_seed(0,0)
 	, allowES( allowES_ )
 {
@@ -341,7 +341,7 @@ fillHybridE_seed( )
 
 void
 PredictorMfe4dMultiSeedSimple::
-traceBack( Interaction & interaction )
+traceBack( Interaction & interaction, const OutputConstraint & outConstraint )
 {
 	// check if something to trace
 	if (interaction.basePairs.size() < 2) {

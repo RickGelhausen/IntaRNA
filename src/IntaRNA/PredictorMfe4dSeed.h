@@ -30,12 +30,12 @@ public:
 	 * @param predTracker the prediction tracker to be used or NULL if no
 	 *         tracking is to be done; if non-NULL, the tracker gets deleted
 	 *         on this->destruction.
-	 * @param seedConstraint the seed constraint to be used for seed identification
+	 * @param seedHandler the seed handler to be used for seed identification
 	 */
 	PredictorMfe4dSeed( const InteractionEnergy & energy
 						, OutputHandler & output
 						, PredictionTracker * predTracker
-						, const SeedConstraint & seedConstraint );
+						, SeedHandler * seedHandler );
 
 	virtual ~PredictorMfe4dSeed();
 
@@ -122,9 +122,11 @@ protected:
 	 * Fills a given interaction (boundaries given) with the according
 	 * hybridizing base pairs.
 	 * @param interaction IN/OUT the interaction to fill
+	 * @param outConstraint constrains the interactions reported to the output handler
 	 */
+	virtual
 	void
-	traceBack( Interaction & interaction );
+	traceBack( Interaction & interaction, const OutputConstraint & outConstraint  );
 
 
 	/**

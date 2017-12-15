@@ -41,13 +41,13 @@ public:
 	 * @param predTracker the prediction tracker to be used or NULL if no
 	 *         tracking is to be done; if non-NULL, the tracker gets deleted
 	 *         on this->destruction.
-	 * @param seedConstraint the seed constraint to be used for seed identification
+	 * @param seedHandler the seed handler to be used
 	 */
 	PredictorMfe2dSeed(
 			const InteractionEnergy & energy
 			, OutputHandler & output
 			, PredictionTracker * predTracker
-			, const SeedConstraint & seedConstraint );
+			, SeedHandler * seedHandler );
 
 
 	/**
@@ -129,18 +129,22 @@ protected:
 	 * @param j2 end of the interaction within seq 2
 	 * @param i1min smallest value for i1
 	 * @param i2min smallest value for i2
+	 * @param outConstraint constrains the interactions reported to the output handler
 	 *
 	 */
 	void
-	fillHybridE_seed( const size_t j1, const size_t j2, const size_t i1min=0, const size_t i2min=0  );
+	fillHybridE_seed( const size_t j1, const size_t j2, const size_t i1min, const size_t i2min
+			, const OutputConstraint & outConstraint );
 
 	/**
 	 * Fills a given interaction (boundaries given) with the according
 	 * hybridizing base pairs using hybridE_seed.
 	 * @param interaction IN/OUT the interaction to fill
+	 * @param outConstraint constrains the interactions reported to the output handler
 	 */
+	virtual
 	void
-	traceBack( Interaction & interaction );
+	traceBack( Interaction & interaction, const OutputConstraint & outConstraint  );
 
 	/**
 	 * Identifies the next best interaction with an energy equal to or higher

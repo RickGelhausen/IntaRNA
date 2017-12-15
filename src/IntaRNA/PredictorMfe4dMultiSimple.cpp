@@ -261,7 +261,7 @@ fillHybridE( ) {
 
 void
 PredictorMfe4dMultiSimple::
-traceBack( Interaction & interaction )
+traceBack( Interaction & interaction, const OutputConstraint & outConstraint )
 {
     // check if something to trace
     if (interaction.basePairs.size() < 2) {

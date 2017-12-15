@@ -10,11 +10,11 @@ PredictorMfe2dMultiHeuristicSeed( const InteractionEnergy & energy
 		, OutputHandler & output
 		, PredictionTracker * predTracker
 		, const AllowES allowES_
-		, const SeedConstraint & seedConstraint
+		, SeedHandler * seedHandlerInstance
 )
 		: PredictorMfe2dMultiHeuristic(energy,output,predTracker, allowES_)
 		, hybridE_seed(0,0)
-		, seedHandler( energy, seedConstraint )
+		, seedHandler( seedHandlerInstance)
 {
 }
 
@@ -391,7 +391,7 @@ traceHybridO( const size_t i1, const size_t j1
 
 void
 PredictorMfe2dMultiHeuristicSeed::
-traceBack( Interaction & interaction )
+traceBack( Interaction & interaction, const OutputConstraint & outConstraint  )
 {
 	// check if something to trace
 	if (interaction.basePairs.size() < 2) {

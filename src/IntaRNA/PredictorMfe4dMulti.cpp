@@ -354,7 +354,7 @@ traceHybridO( const size_t i1, const size_t j1
 
 void
 PredictorMfe4dMulti::
-traceBack( Interaction & interaction )
+traceBack( Interaction & interaction, const OutputConstraint & outConstraint )
 {
 
     // check if something to trace

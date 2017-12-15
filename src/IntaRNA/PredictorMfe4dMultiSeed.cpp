@@ -13,10 +13,10 @@ PredictorMfe4dMultiSeed( const InteractionEnergy & energy
 		, OutputHandler & output
 		, PredictionTracker * predTracker
 		, const AllowES allowES_
-		, const SeedConstraint & seedConstraint
+		, SeedHandler * seedHandlerInstance
 )
 		: PredictorMfe4d(energy,output,predTracker)
-		, seedHandler(energy,seedConstraint)
+		, seedHandler(seedHandlerInstance)
 		, hybridE_seed(0,0)
 		, allowES( allowES_ )
 		, hybridO()
@@ -432,7 +432,7 @@ traceHybridO( const size_t i1, const size_t j1
 
 void
 PredictorMfe4dMultiSeed::
-traceBack( Interaction & interaction )
+traceBack( Interaction & interaction, const OutputConstraint & outConstraint )
 {
 	// check if something to trace
 	if (interaction.basePairs.size() < 2) {
@@ -448,7 +448,6 @@ if ( interaction.basePairs.size() != 2 ) {
 	throw std::runtime_error("PredictorMfe4dMultiSeed::traceBack() : given interaction does not contain boundaries only");
 }
 #endif
-
 
 	// check for single interaction (start==end)
 	if (interaction.basePairs.begin()->first == interaction.basePairs.rbegin()->first) {
@@ -515,30 +514,30 @@ if ( interaction.basePairs.size() != 2 ) {
 			bool traceNotFound = true;
 			for (k1 = std::min(j1 - seedHandler.getConstraint().getBasePairs() + 1,
 							   i1 + energy.getMaxInternalLoopSize1() + 1); traceNotFound && k1 > i1; k1--) {
-				for (k2 = std::min(j2 - seedHandler.getConstraint().getBasePairs() + 1,
-								   i2 + energy.getMaxInternalLoopSize2() + 1); traceNotFound && k2 > i2; k2--) {
-					// check if (k1,k2) are valid left boundaries including a seed
-					if (hybridE_seed(k1, k2) != NULL
-						&& j1 - k1 < hybridE_seed(k1, k2)->size1()
-						&& j2 - k2 < hybridE_seed(k1, k2)->size2()
-						&& E_isNotINF((*hybridE_seed(k1, k2))(j1 - k1, j2 - k2))) {
-						// check if correct split
-						if (E_equal (curE,
-									 (energy.getE_interLeft(i1, k1, i2, k2)
-									  + (*hybridE_seed(k1, k2))(j1 - k1, j2 - k2))
-						)) {
-							// stop searching
-							traceNotFound = false;
-							// store splitting base pair
-							interaction.basePairs.push_back(energy.getBasePair(k1, k2));
-							// update trace back boundary
-							i1 = k1;
-							i2 = k2;
-							curE = (*hybridE_seed(k1, k2))(j1 - k1, j2 - k2);
-							continue;
-						}
+			for (k2 = std::min(j2 - seedHandler.getConstraint().getBasePairs() + 1,
+							   i2 + energy.getMaxInternalLoopSize2() + 1); traceNotFound && k2 > i2; k2--) {
+				// check if (k1,k2) are valid left boundaries including a seed
+				if (hybridE_seed(k1, k2) != NULL
+					&& j1 - k1 < hybridE_seed(k1, k2)->size1()
+					&& j2 - k2 < hybridE_seed(k1, k2)->size2()
+					&& E_isNotINF((*hybridE_seed(k1, k2))(j1 - k1, j2 - k2))) {
+					// check if correct split
+					if (E_equal (curE,
+								 (energy.getE_interLeft(i1, k1, i2, k2)
+								  + (*hybridE_seed(k1, k2))(j1 - k1, j2 - k2))
+					)) {
+						// stop searching
+						traceNotFound = false;
+						// store splitting base pair
+						interaction.basePairs.push_back(energy.getBasePair(k1, k2));
+						// update trace back boundary
+						i1 = k1;
+						i2 = k2;
+						curE = (*hybridE_seed(k1, k2))(j1 - k1, j2 - k2);
+						continue;
 					}
-				} // k2
+				}
+			} // k2
 			} // k1
 		}
 

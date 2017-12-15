@@ -116,7 +116,8 @@ fillHybridE()
 		if (E_isINF(curCell->E)) {
 			continue;
 		}
-		// current
+
+		// current best total energy value (covers to far E_init only)
 		curCellEtotal = energy.getE(i1,curCell->j1,i2,curCell->j2,curCell->E);
 
 		// TODO PARALLELIZE THIS DOUBLE LOOP ?!
@@ -165,7 +166,7 @@ fillHybridE()
 
 void
 PredictorMfe2dHeuristic::
-traceBack( Interaction & interaction )
+traceBack( Interaction & interaction, const OutputConstraint & outConstraint  )
 {
 	// check if something to trace
 	if (interaction.basePairs.size() < 2) {

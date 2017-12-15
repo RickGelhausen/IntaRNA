@@ -42,7 +42,7 @@ public:
 			, OutputHandler & output
 			, PredictionTracker * predTracker
 			, const AllowES allowES
-			, const SeedConstraint & seedConstraint );
+			, SeedHandler * seedHandler);
 
 
 	/**
@@ -102,6 +102,22 @@ protected:
 protected:
 
 	/**
+	 * Initializes the hybridE_pq table for the computation for interactions
+	 * ending in p=j1 and q=j2
+	 *
+	 * @param j1 end of the interaction within seq 1
+	 * @param j2 end of the interaction within seq 2
+	 * @param outConstraint constrains the interactions reported to the output handler
+	 * @param i1init smallest value for i1
+	 * @param i2init smallest value for i2
+	 */
+	void
+	initHybridE_seed( const size_t j1, const size_t j2
+			, const OutputConstraint & outConstraint
+			, const size_t i1init=0, const size_t i2init=0
+	);
+
+	/**
 	 * does nothing but to ignore the calls from fillHybridE()
 	 *
 	 * @param i1 the index of the first sequence interacting with i2
@@ -126,10 +142,12 @@ protected:
 	 * @param j2 end of the interaction within seq 2
 	 * @param i1min smallest value for i1
 	 * @param i2min smallest value for i2
+	 * @param outConstraint constrains the interactions reported to the output handler
 	 *
 	 */
 	void
-	fillHybridE_seed( const size_t j1, const size_t j2, const size_t i1min=0, const size_t i2min=0  );
+	fillHybridE_seed( const size_t j1, const size_t j2, const size_t i1min, const size_t i2min
+					, const OutputConstraint & outConstraint  );
 
 	/**
 	 * Recurse into HybridO to find the index k2 for which k1 returns the minimal energy contribution.
@@ -142,9 +160,11 @@ protected:
 	 * Fills a given interaction (boundaries given) with the according
 	 * hybridizing base pairs using hybridE_seed.
 	 * @param interaction IN/OUT the interaction to fill
+	 * @param outConstraint constrains the interactions reported to the output handler
 	 */
+	virtual
 	void
-	traceBack( Interaction & interaction );
+	traceBack( Interaction & interaction, const OutputConstraint & outConstraint  );
 
 	/**
 	 * Identifies the next best interaction with an energy equal to or higher

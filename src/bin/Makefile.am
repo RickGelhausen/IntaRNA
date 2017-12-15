@@ -9,6 +9,10 @@ AUTOMAKE_OPTIONS = std-options subdir-objects
 
 AM_DEFAULT_SOURCE_EXT = .cpp
 
+###############################################################################
+
+# the programs to be build
+bin_PROGRAMS = IntaRNA
 
 # the program to build
 bin_PROGRAMS = IntaRNA IntaRNA-mi
@@ -23,13 +27,12 @@ nodist_IntaRNA_SOURCES = 	\
 					IntaRNA/intarna_config.h
 
 # intaRNA sources
-IntaRNA_SOURCES =	\
-					../easylogging++.h \
+IntaRNA_SOURCES =	IntaRNA.cpp \
 					CommandLineParsing.h \
-					CommandLineParsing.cpp \
-					IntaRNA.cpp
+					CommandLineParsing.cpp
 					
-IntaRNA_LDADD =  $(top_builddir)/src/IntaRNA/libIntaRNA.a
+IntaRNA_LDADD = 	$(top_builddir)/src/IntaRNA/libIntaRNA.a \
+					$(top_builddir)/src/libeasylogging.a
 
 
 ###############################################################################
@@ -42,13 +45,13 @@ nodist_IntaRNA_mi_SOURCES = 	\
 					IntaRNA/intarna_config.h
 
 # intaRNA sources
-IntaRNA_mi_SOURCES =	\
-					../easylogging++.h \
+IntaRNA_mi_SOURCES = IntaRNA.cpp \
 					CommandLineParsing.h \
-					CommandLineParsing.cpp \
-					IntaRNA.cpp
+					CommandLineParsing.cpp
+
 					
-IntaRNA_mi_LDADD =  $(top_builddir)/src/IntaRNA/libIntaRNA.a
+IntaRNA_mi_LDADD =  $(top_builddir)/src/IntaRNA/libIntaRNA.a \
+                    $(top_builddir)/src/libeasylogging.a
 
 IntaRNA_mi_CPPFLAGS = -DINTARNA_MI_BINARY $(AM_CPPFLAGS)
 

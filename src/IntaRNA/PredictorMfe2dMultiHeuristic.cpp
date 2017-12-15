@@ -306,7 +306,7 @@ traceHybridO( const size_t i1, const size_t j1
 
 void
 PredictorMfe2dMultiHeuristic::
-traceBack( Interaction & interaction )
+traceBack( Interaction & interaction, const OutputConstraint & outConstraint   )
 {
 	// check if something to trace
 	if (interaction.basePairs.size() < 2) {
