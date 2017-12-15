@@ -104,23 +104,6 @@ namespace IntaRNA {
 	protected:
 
 		/**
-		 * disables tracker update for mfe updates
-		 *
-		 * @param i1 the index of the first sequence interacting with i2
-		 * @param j1 the index of the first sequence interacting with j2
-		 * @param i2 the index of the second sequence interacting with i1
-		 * @param j2 the index of the second sequence interacting with j1
-		 * @param energy ignored
-		 * @param isHybridE ignored
-		 */
-		virtual
-		void
-		updateOptima( const size_t i1, const size_t j1
-				, const size_t i2, const size_t j2
-				, const E_type energy
-				, const bool isHybridE );
-
-		/**
 		 * Removes all temporary data structures and resets the predictor
 		 */
 		void
@@ -168,24 +151,6 @@ namespace IntaRNA {
 //////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////
 
-inline
-void
-PredictorMfe4dMultiSeed::
-updateOptima( const size_t i1, const size_t j1
-		, const size_t i2, const size_t j2
-		, const E_type energy
-		, const bool isHybridE )
-{
-	// temporarily disable tracker
-	PredictionTracker * curPredTracker = this->predTracker;
-	this->predTracker = NULL;
-	// update optimum information
-	PredictorMfe4d::updateOptima(i1,j1,i2,j2,energy,isHybridE);
-	// reenable tracker
-	this->predTracker = curPredTracker;
-}
-
-//////////////////////////////////////////////////////////////////////////
 
 
 } // namespace
