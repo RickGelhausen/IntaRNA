@@ -48,7 +48,7 @@ public:
 	};
 
 	/**
-	 * Provides information on multi-side gaps
+	 * Provides information on multi-site gaps
 	 */
 	class Gap {
 	public:
@@ -83,7 +83,7 @@ public:
 	//! optional: seed information
 	Seed * seed;
 
-	//! optional: multi-side gap information
+	//! optional: multi-site gap information
 	Gap * gap;
 
 	/**

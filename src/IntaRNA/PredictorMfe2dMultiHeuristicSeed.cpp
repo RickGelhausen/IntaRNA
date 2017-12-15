@@ -39,7 +39,7 @@ predict( const IndexRange & r1
 #if INTARNA_MULITHREADING
 #pragma omp critical(intarna_omp_logOutput)
 #endif
-	{ VLOG(2) <<"predicting mfe multi-side interactions with seed heuristically in O(n^2) space and O(n^3) time..."; }
+	{ VLOG(2) <<"predicting mfe multi-site interactions with seed heuristically in O(n^2) space and O(n^3) time..."; }
 	// measure timing
 	TIMED_FUNC_IF(timerObj,VLOG_IS_ON(9));
 
@@ -540,7 +540,7 @@ traceBack( Interaction & interaction, const OutputConstraint & outConstraint  )
 			} // k2
 			} // k1
 
-			///////////////  multi-side trace  ///////////////////
+			///////////////  multi-site trace  ///////////////////
 
 			// Both-sided structure
 			if (traceNotFound && allowES == ES_both) {

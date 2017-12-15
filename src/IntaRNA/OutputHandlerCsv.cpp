@@ -223,7 +223,7 @@ add( const Interaction & i )
 					out <<std::numeric_limits<E_type>::signaling_NaN();
 				} else {
 					out <<(i.seed->bp_i.first+1);
-					// print info for remaining (multi-side) seeds
+					// print info for remaining (multi-site) seeds
 					if (i.gap != NULL) {
 						for (auto s = i.gap->seeds.rbegin(); s!=i.gap->seeds.rend(); s++) {
 							out <<','<<(s->bp_i.first+1);
@@ -237,7 +237,7 @@ add( const Interaction & i )
 					out <<std::numeric_limits<E_type>::signaling_NaN();
 				} else {
 					out <<(i.seed->bp_j.first+1);
-					// print info for remaining (multi-side) seeds
+					// print info for remaining (multi-site) seeds
 					if (i.gap != NULL) {
 						for (auto s = i.gap->seeds.rbegin(); s!=i.gap->seeds.rend(); s++) {
 							out <<','<<(s->bp_j.first+1);
@@ -251,7 +251,7 @@ add( const Interaction & i )
 					out <<std::numeric_limits<E_type>::signaling_NaN();
 				} else {
 					out <<(i.seed->bp_j.second+1);
-					// print info for remaining (multi-side) seeds
+					// print info for remaining (multi-site) seeds
 					if (i.gap != NULL) {
 						for (auto s = i.gap->seeds.rbegin(); s!=i.gap->seeds.rend(); s++) {
 							out <<','<<(s->bp_j.second+1);
@@ -265,7 +265,7 @@ add( const Interaction & i )
 					out <<std::numeric_limits<E_type>::signaling_NaN();
 				} else {
 					out <<(i.seed->bp_i.second+1);
-					// print info for remaining (multi-side) seeds
+					// print info for remaining (multi-site) seeds
 					if (i.gap != NULL) {
 						for (auto s = i.gap->seeds.rbegin(); s!=i.gap->seeds.rend(); s++) {
 							out <<','<<(s->bp_i.second+1);
@@ -279,7 +279,7 @@ add( const Interaction & i )
 					out <<std::numeric_limits<E_type>::signaling_NaN();
 				} else {
 					out <<i.seed->energy;
-					// print info for remaining (multi-side) seeds
+					// print info for remaining (multi-site) seeds
 					if (i.gap != NULL) {
 						for (auto s = i.gap->seeds.rbegin(); s!=i.gap->seeds.rend(); s++) {
 							out <<','<<(s->energy);
@@ -293,7 +293,7 @@ add( const Interaction & i )
 					out <<std::numeric_limits<E_type>::signaling_NaN();
 				} else {
 					out <<energy.getED1( i.seed->bp_i.first, i.seed->bp_j.first );
-					// print info for remaining (multi-side) seeds
+					// print info for remaining (multi-site) seeds
 					if (i.gap != NULL) {
 						for (auto s = i.gap->seeds.rbegin(); s!=i.gap->seeds.rend(); s++) {
 							out <<','<<energy.getED1( s->bp_i.first, s->bp_j.first );
@@ -307,7 +307,7 @@ add( const Interaction & i )
 					out <<std::numeric_limits<E_type>::signaling_NaN();
 				} else {
 					out <<energy.getAccessibility2().getAccessibilityOrigin().getED( i.seed->bp_j.second, i.seed->bp_i.second );
-					// print info for remaining (multi-side) seeds
+					// print info for remaining (multi-site) seeds
 					if (i.gap != NULL) {
 						for (auto s = i.gap->seeds.rbegin(); s!=i.gap->seeds.rend(); s++) {
 							out <<','<<energy.getAccessibility2().getAccessibilityOrigin().getED( s->bp_j.second, s->bp_i.second );
@@ -321,7 +321,7 @@ add( const Interaction & i )
 					out <<std::numeric_limits<E_type>::signaling_NaN();
 				} else {
 					out <<std::exp( - energy.getED1( i.seed->bp_i.first, i.seed->bp_j.first ) / energy.getRT() );
-					// print info for remaining (multi-side) seeds
+					// print info for remaining (multi-site) seeds
 					if (i.gap != NULL) {
 						for (auto s = i.gap->seeds.rbegin(); s!=i.gap->seeds.rend(); s++) {
 							out <<','<<std::exp( - energy.getED1( s->bp_i.first, s->bp_j.first ) / energy.getRT() );
@@ -335,7 +335,7 @@ add( const Interaction & i )
 					out <<std::numeric_limits<E_type>::signaling_NaN();
 				} else {
 					out <<std::exp( - energy.getAccessibility2().getAccessibilityOrigin().getED( i.seed->bp_j.second, i.seed->bp_i.second ) / energy.getRT() );
-					// print info for remaining (multi-side) seeds
+					// print info for remaining (multi-site) seeds
 					if (i.gap != NULL) {
 						for (auto s = i.gap->seeds.rbegin(); s!=i.gap->seeds.rend(); s++) {
 							out <<','<<std::exp( - energy.getAccessibility2().getAccessibilityOrigin().getED( s->bp_j.second, s->bp_i.second ) / energy.getRT() );

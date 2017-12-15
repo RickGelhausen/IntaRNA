@@ -61,8 +61,8 @@ public:
 		seedED2, //!< ED value of seq2 of the seed only (excluding rest)
 		seedPu1, //!< probability of seed region to be accessible for seq1
 		seedPu2, //!< probability of seed region to be accessible for seq2
-		gaps1, //!< list of multi-side gaps in seq1
-		gaps2, //!< list of multi-side gaps in seq2
+		gaps1, //!< list of multi-site gaps in seq1
+		gaps2, //!< list of multi-site gaps in seq2
 		ColTypeNumber //!< number of column types
 	};
 
