@@ -175,33 +175,32 @@ fillHybridE( const size_t j1, const size_t j2
 	for (i1=hybridErange.r1.to+1; i1-- > hybridErange.r1.from; ) {
 		w1 = j1-i1+1;
 		// w1 width check obsolete due to hybridErange setup
-		// get maximal w2 for this w1
-		const size_t maxW2 = getMaxInteractionWidth( w1, energy.getMaxInternalLoopSize1());
+//		// get maximal w2 for this w1
+//		const size_t maxW2 = getMaxInteractionWidth( w1, energy.getMaxInternalLoopSize1());
 		// screen for left boundaries in seq2
 		for (i2=hybridErange.r2.to+1; i2-- > hybridErange.r2.from; ) {
 			w2 = j2 - i2 + 1;
 
+			// fill hybridO matrix
+			if (allowES != ES_target)
+				// compute entry, since (i1,i2) complementary
+			{
+				// init
+				curMinO = E_INF;
+
+				for (k2 = j2; k2 > i2 + InteractionEnergy::minDistES; k2--) {
+					if (E_isNotINF(hybridE_pq(i1, k2))) {
+						curMinO = std::min(curMinO,
+										   energy.getE_multiRight(i1, i2, k2)
+										   + hybridE_pq(i1, k2));
+					}
+				}
+
+				hybridO(i1, i2) = curMinO;
+			}
+
 			// check if this cell is to be computed (!=E_INF)
 			if (E_isNotINF(hybridE_pq(i1, i2))) {
-
-				// fill hybridO matrix
-				if (allowES != ES_target)
-					// compute entry, since (i1,i2) complementary
-				{
-					// init
-					curMinO = E_INF;
-
-
-					for (k2 = j2; k2 > i2 + InteractionEnergy::minDistES; k2--) {
-						if (E_isNotINF(hybridE_pq(i1, k2))) {
-							curMinO = std::min(curMinO,
-											   energy.getE_multiRight(i1, i2, k2)
-											   + hybridE_pq(i1, k2));
-						}
-					}
-
-					hybridO(i1, i2) = curMinO;
-				}
 
 				// compute entry
 				curMinE = E_INF;

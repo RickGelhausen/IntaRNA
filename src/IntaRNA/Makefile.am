@@ -14,7 +14,7 @@ AM_DEFAULT_SOURCE_EXT = .cpp
 ###############################################################################
 
 # the library names to build (note we are building static libs only)
-lib_LIBRARIES = libIntaRNA.a
+lib_LIBRARIES = libIntaRNA.a libIntaRNAmi.a
 
 # where to install the headers on the system
 libIntaRNA_adir = $(includedir)/IntaRNA
@@ -55,18 +55,10 @@ libIntaRNA_a_HEADERS =    \
 					PredictorMfe.h \
 					PredictorMfe2d.h \
 					PredictorMfe2dSeed.h \
-					PredictorMfe2dMulti.h \
-                    PredictorMfe2dMultiSeed.h \
 					PredictorMfe2dHeuristic.h \
-					PredictorMfe2dMultiHeuristic.h \
-                    PredictorMfe2dMultiHeuristicSeed.h \
 					PredictorMfe2dHeuristicSeed.h \
 					PredictorMfe4d.h \
 					PredictorMfe4dSeed.h \
-					PredictorMfe4dMulti.h \
-					PredictorMfe4dMultiSeed.h \
-					PredictorMfe4dMultiSimple.h \
-					PredictorMfe4dMultiSeedSimple.h \
 					ReverseAccessibility.h \
 					RnaSequence.h \
 					SeedConstraint.h \
@@ -107,18 +99,10 @@ libIntaRNA_a_SOURCES =    \
 					PredictorMfe.cpp \
 					PredictorMfe2d.cpp \
                     PredictorMfe2dSeed.cpp \
-					PredictorMfe2dMulti.cpp \
-					PredictorMfe2dMultiSeed.cpp \
 					PredictorMfe2dHeuristic.cpp \
-					PredictorMfe2dMultiHeuristic.cpp \
 					PredictorMfe2dHeuristicSeed.cpp \
-					PredictorMfe2dMultiHeuristicSeed.cpp \
 					PredictorMfe4d.cpp \
 					PredictorMfe4dSeed.cpp \
-					PredictorMfe4dMulti.cpp \
-					PredictorMfe4dMultiSeed.cpp \
-					PredictorMfe4dMultiSimple.cpp \
-					PredictorMfe4dMultiSeedSimple.cpp \
 					ReverseAccessibility.cpp \
 					RnaSequence.cpp \
 					SeedConstraint.cpp \
@@ -126,11 +110,31 @@ libIntaRNA_a_SOURCES =    \
 					SeedHandlerMfe.cpp \
 					VrnaHandler.cpp
 
+# where to install the headers on the system
+libIntaRNAmi_adir = $(includedir)/IntaRNA
 
-# generated intaRNA sources 
-nodist_libIntaRNA_a_SOURCES = 	\
-					../config.h \
-					intarna_config.h
+# the list of header files that belong to the library (to be installed later)
+libIntaRNAmi_a_HEADERS =    \
+					PredictorMfe2dMulti.h \
+                    PredictorMfe2dMultiSeed.h \
+					PredictorMfe2dMultiHeuristic.h \
+                    PredictorMfe2dMultiHeuristicSeed.h \
+					PredictorMfe4dMulti.h \
+					PredictorMfe4dMultiSeed.h \
+					PredictorMfe4dMultiSimple.h \
+					PredictorMfe4dMultiSeedSimple.h 
+
+# the sources to add to the library and to add to the source distribution
+libIntaRNAmi_a_SOURCES =    \
+					PredictorMfe2dMulti.cpp \
+					PredictorMfe2dMultiSeed.cpp \
+					PredictorMfe2dMultiHeuristic.cpp \
+					PredictorMfe2dMultiHeuristicSeed.cpp \
+					PredictorMfe4dMulti.cpp \
+					PredictorMfe4dMultiSeed.cpp \
+					PredictorMfe4dMultiSimple.cpp \
+					PredictorMfe4dMultiSeedSimple.cpp
+
 						
 ################################################################
 # pkg-config

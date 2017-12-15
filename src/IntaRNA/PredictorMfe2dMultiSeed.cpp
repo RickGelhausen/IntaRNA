@@ -97,7 +97,7 @@ predict( const IndexRange & r1
 			if (!energy.areComplementary( j1, j2 ))
 				continue;
 
-			// compute hybridE_pq_seed and update mfe via PredictorMfe2d::updateOptima()
+			// compute hybridE_pq_seed and update mfe
 			fillHybridE_seed( j1, j2, 0, 0, outConstraint );
 		}
 	}
@@ -145,8 +145,6 @@ initHybridE_seed( const size_t j1, const size_t j2
 				// mark as NOT to be computed
 				hybridE_pq_seed(i1,i2) = E_INF;
 			}
-			// init hybridO
-			hybridO(i1,i2) = hybridE_pq_seed(i1,i2);
 		}
 	}
 
@@ -202,29 +200,30 @@ fillHybridE_seed( const size_t j1, const size_t j2, const size_t i1min, const si
 		// screen for left boundaries i2 in seq2
 		for (i2=j2+1; i2-- > i2min; ) {
 
+			///////////////////////////////////////////////////
+			// hybridO(i1,i2) computation
+			///////////////////////////////////////////////////
+
+			if (allowES != ES_target)
+				// compute entry, since (i1,i2) complementary
+			{
+				// init
+				curMinO = E_INF;
+
+
+				for (k2 = j2; k2 > i2 + InteractionEnergy::minDistES; k2--) {
+					if (E_isNotINF(hybridE_pq_seed(i1, k2))) {
+						curMinO = std::min(curMinO,
+										   energy.getE_multiRight(i1, i2, k2)
+										   + hybridE_pq_seed(i1, k2));
+					}
+				}
+
+				hybridO(i1, i2) = curMinO;
+			}
+
 			// check if this cell is to be computed (!=E_INF)
 			if( E_isNotINF( hybridE_pq(i1,i2) ) ) {
-				///////////////////////////////////////////////////
-				// hybridO(i1,i2) computation
-				///////////////////////////////////////////////////
-
-				if (allowES != ES_target)
-					// compute entry, since (i1,i2) complementary
-				{
-					// init
-					curMinO = E_INF;
-
-
-					for (k2 = j2; k2 > i2 + InteractionEnergy::minDistES; k2--) {
-						if (E_isNotINF(hybridE_pq_seed(i1, k2))) {
-							curMinO = std::min(curMinO,
-											   energy.getE_multiRight(i1, i2, k2)
-											   + hybridE_pq_seed(i1, k2));
-						}
-					}
-
-					hybridO(i1, i2) = curMinO;
-				}
 
 				// compute entry
 				curMinE = hybridE_pq(i1, i2);
@@ -335,7 +334,7 @@ fillHybridE_seed( const size_t j1, const size_t j2, const size_t i1min, const si
 
 				// update mfe if needed (call super class)
 				if (E_isNotINF(curMinE_seed)) {
-					PredictorMfe2dMulti::updateOptima(i1, j1, i2, j2, curMinE_seed, true);
+					updateOptima(i1, j1, i2, j2, curMinE_seed, true);
 				}
 			}
 		}
