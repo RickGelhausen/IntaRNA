@@ -87,7 +87,6 @@ if (!(r1.isAscending() && r2.isAscending()) )
 	hybridE_seed.resize( hybridEsize1, hybridEsize2 );
 	hybridO.resize( hybridEsize1, hybridEsize2 );
 
-
 	bool i1blocked, i1or2blocked;
 	// initialize 3rd and 4th dimension of the matrix
 	for (size_t i1=0; i1<hybridEsize1; i1++) {
@@ -111,32 +110,15 @@ if (!(r1.isAscending() && r2.isAscending()) )
 				hybridE(i1,i2) = NULL;
 				hybridE_seed(i1,i2) = NULL;
 			}
+			// check if i1 blocked : has to be paired with something in i2..j2
+			if ( i1blocked ) {
+				hybridO(i1,i2) = NULL;
+			} else {
+				hybridO(i1,i2) = new E2dMatrix(
+						/*w1 = */ std::min(energy.getAccessibility1().getMaxLength(), hybridEsize1-i1 ),
+						/*w2 = */ std::min(energy.getAccessibility2().getMaxLength(), hybridEsize2-i2 ));
+			}
 		}
-	}
-
-	for (size_t i1=0; i1<hybridO.size1(); i1++) {
-		for (size_t i2=0; i2<hybridO.size2(); i2++) {
-			hybridO(i1,i2) = new E2dMatrix(
-					/*w1 = */ std::min(energy.getAccessibility1().getMaxLength(), hybridO.size1()-i1 ),
-					/*w2 = */ std::min(energy.getAccessibility2().getMaxLength(), hybridO.size2()-i2 ));
-		}
-	}
-	// init mfe without seed condition
-	OutputConstraint tmpOutConstraint(1, outConstraint.reportOverlap, outConstraint.maxE, outConstraint.deltaE);
-	initOptima( tmpOutConstraint );
-
-	// fill matrix
-	// compute hybridization energies WITHOUT seed condition
-	// sets also -energy -hybridE
-	// -> no tracker update since updateOptima overwritten
-	PredictorMfe4d::fillHybridE( );
-
-	// check if any interaction possible
-	// if not no seed-containing interaction is possible neither
-	if (!(this->mfeInteractions.begin()->energy < tmpOutConstraint.maxE)) {
-		// stop computation since no favorable interaction found
-		reportOptima(tmpOutConstraint);
-		return;
 	}
 
 	// initialize mfe interaction with seed for updates
@@ -194,18 +176,21 @@ fillHybridE_seed( )
 
 	// current minimal value
 	E_type curMinE = E_INF, curMinE_seed = E_INF, curMinO = E_INF;
+
 	// iterate increasingly over all window sizes w1 (seq1) and w2 (seq2)
 	// minimal size == number of seed base pairs
 	for (w1=0; w1<energy.getAccessibility1().getMaxLength(); w1++) {
 	for (w2=0; w2<energy.getAccessibility2().getMaxLength(); w2++) {
+
+		// fill hybridO matrix
+
 		// iterate over all window starts i1 (seq1) and i2 (seq2)
 		// TODO PARALLELIZE THIS DOUBLE LOOP ?!
-
 		if (allowES != ES_target) {
 			for (i1 = 0; i1 + w1 < hybridO.size1(); i1++) {
 			for (i2 = 0; i2 + w2 < hybridO.size2(); i2++) {
 				// and widths are possible (ie available within data structure)
-				if (hybridO(i1, i2)->size1() <= w1 || hybridO(i1, i2)->size2() <= w2) {
+				if ( hybridO(i1, i2)==NULL || hybridO(i1, i2)->size1() <= w1 || hybridO(i1, i2)->size2() <= w2) {
 					// interaction not possible: nothing to do, since no storage reserved
 					continue;
 				}
@@ -215,15 +200,11 @@ fillHybridE_seed( )
 				j2 = i2 + w2;
 
 				// check if right boundary is complementary
-				if (hybridO(j1, j2) == NULL) {
+				if (hybridE(j1, j2) == NULL) {
 					// not complementary -> ignore this entry
 					(*hybridO(i1, i2))(w1, w2) = E_INF;
-					continue;
 				}
-
-
-				// fill hybridO matrix
-
+				else
 				// compute entry, since (i1,i2) complementary
 				{
 					// init
@@ -242,7 +223,6 @@ fillHybridE_seed( )
 					}
 
 					(*hybridO(i1, i2))(w1, w2) = curMinO;
-					continue;
 				}
 			}
 			}
@@ -263,20 +243,29 @@ fillHybridE_seed( )
 			}
 			assert(hybridE(i1,i2)->size1() > w1);
 			assert(hybridE(i1,i2)->size2() > w2);
-			// check if no interaction without seed possible -> none with neither
-			if ( E_isINF((*hybridE(i1,i2))(w1,w2))
-				 // check if seed base pairs fit not into interaction window
-				 || w1+1 < seedHandler.getConstraint().getBasePairs()
-				 || w2+1 < seedHandler.getConstraint().getBasePairs() )
-			{
-				// ignore this entry
-				(*hybridE_seed(i1,i2))(w1,w2) = E_INF;
+
+			// set E_init if needed
+			if ( w1==0 && w2==0 ) {
+				(*hybridE(i1,i2))(w1,w2) = energy.getE_init();
+				(*hybridE_seed(i1, i2))(w1, w2) = E_INF;
+				// continue with next indices, nothing else to be be computed
 				continue;
+			} else {
+				// otherwise init with infinity for optimization
+				(*hybridE(i1,i2))(w1,w2) = E_INF;
 			}
 
 			// get window ends j1 (seq1) and j2 (seq2)
 			j1=i1+w1;
 			j2=i2+w2;
+
+			// check if right boundary is complementary
+			if (hybridE(j1, j2) == NULL) {
+				// not complementary -> ignore this entry
+				(*hybridE(i1, i2))(w1, w2) = E_INF;
+				(*hybridE_seed(i1, i2))(w1, w2) = E_INF;
+				continue;
+			}
 
 			// compute entry hybridE_seed ///////////////////////////
 			curMinE = (*hybridE(i1, i2))(w1,w2);
@@ -393,7 +382,7 @@ fillHybridE_seed( )
 			// update mfe if needed (call super class)
 			if (E_isNotINF(curMinE_seed)) {
 				// call superclass function to do final reporting
-				PredictorMfe4d::updateOptima( i1,j1,i2,j2, curMinE_seed, true );
+				updateOptima( i1,j1,i2,j2, curMinE_seed, true );
 			}
 
 		}
@@ -410,6 +399,9 @@ PredictorMfe4dMultiSeed::
 traceHybridO( const size_t i1, const size_t j1
 		, const size_t i2, const size_t j2 ) const
 {
+	if (hybridO(i1,i2)==NULL) {
+		throw std::runtime_error("PredictorMfe4dMultiSeed::traceHybridO() : hybridO("+toString(i1)+","+toString(i2)+" == NULL");
+	}
 	E_type curE = (*hybridO(i1,i2))(j1-i1, j2-i2);
 
 	size_t k2;
