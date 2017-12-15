@@ -11,9 +11,6 @@ AM_DEFAULT_SOURCE_EXT = .cpp
 
 ###############################################################################
 
-# the programs to be build
-bin_PROGRAMS = IntaRNA
-
 # the program to build
 bin_PROGRAMS = IntaRNA IntaRNA-mi
 
@@ -50,7 +47,8 @@ IntaRNA_mi_SOURCES = IntaRNA.cpp \
 					CommandLineParsing.cpp
 
 					
-IntaRNA_mi_LDADD =  $(top_builddir)/src/IntaRNA/libIntaRNA.a \
+IntaRNA_mi_LDADD =  $(top_builddir)/src/IntaRNA/libIntaRNAmi.a \
+					$(top_builddir)/src/IntaRNA/libIntaRNA.a \
                     $(top_builddir)/src/libeasylogging.a
 
 IntaRNA_mi_CPPFLAGS = -DINTARNA_MI_BINARY $(AM_CPPFLAGS)
