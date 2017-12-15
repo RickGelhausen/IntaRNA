@@ -357,7 +357,7 @@ predict( const IndexRange & r1
 
 		// update mfe if needed (call superclass update routine)
 		if (curCellS != NULL && E_isNotINF(curCellS->E)) {
-			PredictorMfe2dMultiHeuristic::updateOptima( i1,curCellS->j1, i2,curCellS->j2, curCellS_Etotal, false );
+			updateOptima( i1,curCellS->j1, i2,curCellS->j2, curCellS_Etotal, false );
 		}
 
 	} // i2

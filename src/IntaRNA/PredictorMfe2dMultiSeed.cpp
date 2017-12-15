@@ -97,7 +97,7 @@ predict( const IndexRange & r1
 			if (!energy.areComplementary( j1, j2 ))
 				continue;
 
-			// compute hybridE_pq_seed and update mfe via PredictorMfe2d::updateOptima()
+			// compute hybridE_pq_seed and update mfe
 			fillHybridE_seed( j1, j2, 0, 0, outConstraint );
 		}
 	}
@@ -334,7 +334,7 @@ fillHybridE_seed( const size_t j1, const size_t j2, const size_t i1min, const si
 
 				// update mfe if needed (call super class)
 				if (E_isNotINF(curMinE_seed)) {
-					PredictorMfe2dMulti::updateOptima(i1, j1, i2, j2, curMinE_seed, true);
+					updateOptima(i1, j1, i2, j2, curMinE_seed, true);
 				}
 			}
 		}
