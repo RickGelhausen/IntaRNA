@@ -85,14 +85,15 @@ throw std::runtime_error("PredictorMfe4d::predict("+toString(r1)+","+toString(r2
                 // reduce memory consumption and avoid computation for this start index combination
                 hybridE(i1,i2) = NULL;
             }
-        }
-    }
-
-    for (size_t i1=0; i1<hybridO.size1(); i1++) {
-        for (size_t i2=0; i2<hybridO.size2(); i2++) {
-            hybridO(i1,i2) = new E2dMatrix(
+            // init hybridO
+            if (i1blocked) {
+            	// i1 has to be accessible for forming a base pair with some k2 in i2..j2
+            	hybridO(i1,i2) = NULL;
+            } else {
+            	hybridO(i1,i2) = new E2dMatrix(
                     /*w1 = */ std::min(energy.getAccessibility1().getMaxLength(), hybridO.size1()-i1 ),
                     /*w2 = */ std::min(energy.getAccessibility2().getMaxLength(), hybridO.size2()-i2 ));
+            }
         }
     }
 
@@ -152,13 +153,16 @@ fillHybridE( ) {
     // iterate increasingly over all window sizes w1 (seq1) and w2 (seq2)
     for (w1 = 0; w1 < energy.getAccessibility1().getMaxLength(); w1++) {
 	for (w2 = 0; w2 < energy.getAccessibility2().getMaxLength(); w2++) {
+
+		// fill hybridO matrix
+
 		// iterate over all window starts i1 (seq1) and i2 (seq23)
 		// TODO PARALLELIZE THIS DOUBLE LOOP ?!
 		if (allowES != ES_target) {
 		for (i1 = 0; i1 + w1 < hybridO.size1(); i1++) {
 		for (i2 = 0; i2 + w2 < hybridO.size2(); i2++) {
 			// and widths are possible (ie available within data structure)
-			if (hybridO(i1, i2)->size1() <= w1 || hybridO(i1, i2)->size2() <= w2) {
+			if ( hybridO(i1, i2)==NULL || hybridO(i1, i2)->size1() <= w1 || hybridO(i1, i2)->size2() <= w2) {
 				// interaction not possible: nothing to do, since no storage reserved
 				continue;
 			}
@@ -168,15 +172,11 @@ fillHybridE( ) {
 			j2 = i2 + w2;
 
 			// check if right boundary is complementary
-			if (hybridO(j1, j2) == NULL) {
+			if (hybridE(j1, j2) == NULL) {
 				// not complementary -> ignore this entry
 				(*hybridO(i1, i2))(w1, w2) = E_INF;
-				continue;
 			}
-
-
-			// fill hybridO matrix
-
+			else
 			// compute entry, since (i1,i2) complementary
 			{
 				// init
@@ -195,14 +195,14 @@ fillHybridE( ) {
 				}
 
 				(*hybridO(i1, i2))(w1, w2) = curMinO;
-				continue;
-			}
 			}
 		}
 		}
+		} // if (allowES != ES_target)
 
 		for (i1 = 0; i1 + w1 < hybridE.size1(); i1++) {
 		for (i2 = 0; i2 + w2 < hybridE.size2(); i2++) {
+
 			// check if left boundary is complementary
 			if (hybridE(i1, i2) == NULL) {
 				// interaction not possible: nothing to do, since no storage reserved
@@ -332,6 +332,9 @@ PredictorMfe4dMulti::
 traceHybridO( const size_t i1, const size_t j1
 				, const size_t i2, const size_t j2 ) const
 {
+	if (hybridO(i1,i2)==NULL) {
+		throw std::runtime_error("PredictorMfe4dMultiSeed::traceHybridO() : hybridO("+toString(i1)+","+toString(i2)+" == NULL");
+	}
 	E_type curE = (*hybridO(i1,i2))(j1-i1, j2-i2);
 
 	size_t k2;
