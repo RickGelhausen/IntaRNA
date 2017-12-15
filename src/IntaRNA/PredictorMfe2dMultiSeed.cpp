@@ -145,6 +145,8 @@ initHybridE_seed( const size_t j1, const size_t j2
 				// mark as NOT to be computed
 				hybridE_pq_seed(i1,i2) = E_INF;
 			}
+			// init hybridO
+			hybridO(i1,i2) = hybridE_pq_seed(i1,i2);
 		}
 	}
 
