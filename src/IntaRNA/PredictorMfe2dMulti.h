@@ -97,7 +97,7 @@ protected:
 	void
 	initHybridE( const size_t j1, const size_t j2
 			, const OutputConstraint & outConstraint
-			, const size_t i1init=0, const size_t i2init=0
+			, const size_t i1init, const size_t i2init
 	);
 
 	/**
@@ -114,7 +114,7 @@ protected:
 	void
 	fillHybridE( const size_t j1, const size_t j2
 			, const OutputConstraint & outConstraint
-			, const size_t i1init=0, const size_t i2init=0
+			, const size_t i1init, const size_t i2init
 	);
 
 	/**
