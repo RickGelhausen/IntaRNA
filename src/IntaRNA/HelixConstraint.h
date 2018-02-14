@@ -25,13 +25,21 @@ public:
 	 * @param maxUnpaired2 the maximal number of unpaired bases within seq2
 	 * 		  allowed within an helix
 	 */
-	HelixConstraint( const size_t maxBp
-				, const size_t maxUnpairedOverall
+	HelixConstraint( const size_t minBp
+				, const size_t maxBp
 				, const size_t maxUnpaired1
-				, const size_t maxUnpaired2
+			 	, const size_t maxUnpaired2
 				);
 
 	virtual ~HelixConstraint();
+
+	/**
+	 *  Provides the minimum number of base pairs allowed within an helix (>=2)
+	 *
+	 * @return the minimum number of base pairs an helix is allowed to have (>=2)
+	 */
+	size_t
+	getMinBasePairs() const;
 
 	/**
 	 *  Provides the maximum number of base pairs allowed within an helix
@@ -40,15 +48,6 @@ public:
 	 */
 	size_t
 	getMaxBasePairs() const;
-
-	/**
-	 * Provides the overall maximal number of unpaired bases within an helix
-	 *
-	 * @return the overall maximal number of unpaired bases which
-	 *         an helix is allowed to have
-	 */
-	size_t
-	getMaxUnpairedOverall() const;
 
 	/**
 	 * Provides the maximal number of unpaired bases within the first sequence
@@ -80,11 +79,11 @@ public:
 
 protected:
 
+	//! the minimal number of base pairs allowed in the helix (>=2)
+	size_t minBp;
+
 	//! the maximal number of base pairs allowed in the helix
 	size_t maxBp;
-
-	//! the overall summed maximally allowed number of unpaired bases in an helix
-	size_t maxUnpairedOverall;
 
 	//! the maximally allowed number of unpaired bases in helix seq1
 	size_t maxUnpaired1;
@@ -100,15 +99,15 @@ protected:
 
 inline
 HelixConstraint::HelixConstraint(
-		const size_t maxBp_
-		, const size_t maxUnpairedOverall_
+		const size_t minBp_
+		, const size_t maxBp_
 		, const size_t maxUnpaired1_
 		, const size_t maxUnpaired2_)
 	:
-		maxBp(maxBp_)
-      , maxUnpairedOverall(maxUnpairedOverall_)
-      , maxUnpaired1(std::min(maxUnpaired1_, maxUnpairedOverall_)) // exclude too large boundaries
-      , maxUnpaired2(std::min(maxUnpaired2_, maxUnpairedOverall_))
+		minBp(minBp_)
+	  , maxBp(maxBp_)
+      , maxUnpaired1(maxUnpaired1_) // exclude too large boundaries
+      , maxUnpaired2(maxUnpaired2_)
 {
 	// TODO: Check if 0 helix allowed
 }
@@ -117,6 +116,15 @@ HelixConstraint::HelixConstraint(
 
 inline
 HelixConstraint::~HelixConstraint() {
+}
+
+/////////////////////////////////////////////////////////////////////////////
+
+inline
+size_t
+HelixConstraint::
+getMinBasePairs() const {
+	return minBp;
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -147,21 +155,13 @@ getMaxUnpaired2() const {
 }
 
 /////////////////////////////////////////////////////////////////////////////
-inline
-size_t
-HelixConstraint::
-getMaxUnpairedOverall() const {
-	return maxUnpairedOverall;
-}
-
-/////////////////////////////////////////////////////////////////////////////
 
 inline
 std::ostream&
 operator<<(std::ostream& out, const HelixConstraint& c)
 {
-	out <<"HelixConstraint( maxBp="<<c.getMaxBasePairs()
-			<<", up="<<c.getMaxUnpairedOverall()
+	out <<"HelixConstraint( minBp="<<c.getMinBasePairs()
+			<<", maxBp="<<c.getMaxBasePairs()
 		    <<", up1="<<c.getMaxUnpaired1()
 		    <<", up2="<<c.getMaxUnpaired2()
 		    <<")";
