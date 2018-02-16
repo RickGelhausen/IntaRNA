@@ -94,6 +94,9 @@ CommandLineParsing::CommandLineParsing()
 	tRegionString(""),
 	tRegion(),
 
+	// TODO: ADD HELIX CONSTRAINT VARIABLES
+	helixConstraint(NULL),
+
 	noSeedRequired(false),
 	seedBP(2,20,7),
 	seedMaxUP(0,20,0),
@@ -472,7 +475,8 @@ CommandLineParsing::CommandLineParsing()
 
 CommandLineParsing::~CommandLineParsing() {
 
-	 INTARNA_CLEANUP(seedConstraint);
+	INTARNA_CLEANUP(helixConstraint);
+	INTARNA_CLEANUP(seedConstraint);
 
 	// reset output stream
 	deleteOutputStream( outStream );
@@ -1575,6 +1579,19 @@ CommandLineParsing::
 updateParsingCode( const ReturnCode currentParsingCode )
 {
 	parsingCode = std::max( parsingCode, currentParsingCode );
+}
+
+////////////////////////////////////////////////////////////////////////////
+
+const HelixConstraint &
+CommandLineParsing::
+getHelixConstraint(const InteractionEnergy &energy) const
+{
+	// TODO: INIT WITH CORRECT VALUES
+	if (helixConstraint == NULL) {
+		// setup according to user data
+		//helixConstraint = HelixConstraint();
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////

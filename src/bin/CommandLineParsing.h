@@ -15,6 +15,7 @@
 
 #include "IntaRNA/Accessibility.h"
 #include "IntaRNA/InteractionEnergy.h"
+#include "IntaRNA/HelixConstraint.h"
 #include "IntaRNA/OutputHandler.h"
 #include "IntaRNA/Predictor.h"
 #include "IntaRNA/SeedConstraint.h"
@@ -146,6 +147,13 @@ public:
 	 */
 	Predictor* getPredictor( const InteractionEnergy & energy
 			, OutputHandler & output ) const;
+
+	/**
+	 * Provides the seed constraint according to the user settings
+	 * @param energy the interaction energy handler to be used
+	 * @return the user defined seed constraints
+	 */
+	const HelixConstraint & getHelixConstraint( const InteractionEnergy & energy ) const;
 
 
 	/**
@@ -383,6 +391,9 @@ protected:
 	std::string tRegionString;
 	//! the list of interaction intervals for each target sequence
 	IndexRangeListVec tRegion;
+
+	//! the final helix constraint to be used
+	mutable HelixConstraint * helixConstraint;
 
 	//! whether or not a seed is to be required for an interaction or not
 	bool noSeedRequired;

@@ -17,16 +17,15 @@ public:
 	/**
 	 *  Constructor
 	 *
-	 * @param maxBp maximal number of base pairs a helix is allowed to have (>= 2)
-	 * @param maxUnpairedOverall the maximal (summed) number of unpaired bases
-	 * 		  within both seq1 and seq2 allowed within an helix
+	 * @param bpMin minimal number of base pairs a helix is allowed to have (>= 2)
+	 * @param bpMax maximal number of base pairs a helix is allowed to have (>= bpMin)
 	 * @param maxUnpaired1 the maximal number of unpaired bases within seq1
 	 * 		  allowed within an helix
 	 * @param maxUnpaired2 the maximal number of unpaired bases within seq2
 	 * 		  allowed within an helix
 	 */
-	HelixConstraint( const size_t minBp
-				, const size_t maxBp
+	HelixConstraint( const size_t bpMin
+				, const size_t bpMax
 				, const size_t maxUnpaired1
 			 	, const size_t maxUnpaired2
 				);
@@ -42,9 +41,9 @@ public:
 	getMinBasePairs() const;
 
 	/**
-	 *  Provides the maximum number of base pairs allowed within an helix
+	 *  Provides the maximum number of base pairs allowed within an helix (>=bpMin)
 	 *
-	 * @return the maximum number of base pairs an helix is allowed to have
+	 * @return the maximum number of base pairs an helix is allowed to have (>=bpMin)
 	 */
 	size_t
 	getMaxBasePairs() const;
@@ -70,6 +69,20 @@ public:
 	getMaxUnpaired2() const;
 
 	/**
+     * Provides the maximal length of the helix in seq1
+     * @return the maximal length of the helix in seq1
+     */
+	size_t
+	getMaxLength1() const;
+
+	/**
+	 * Provides the maximal length of the helix in seq2
+	 * @return the maximal length of the helix in seq2
+	 */
+	size_t
+	getMaxLength2() const;
+
+	/**
 	 * Prints the helix constraint details to stream
 	 * @param out the ostream to write to
 	 * @param c the object to add
@@ -80,10 +93,10 @@ public:
 protected:
 
 	//! the minimal number of base pairs allowed in the helix (>=2)
-	size_t minBp;
+	size_t bpMin;
 
-	//! the maximal number of base pairs allowed in the helix
-	size_t maxBp;
+	//! the maximal number of base pairs allowed in the helix (>=bpMin)
+	size_t bpMax;
 
 	//! the maximally allowed number of unpaired bases in helix seq1
 	size_t maxUnpaired1;
@@ -99,13 +112,13 @@ protected:
 
 inline
 HelixConstraint::HelixConstraint(
-		const size_t minBp_
-		, const size_t maxBp_
+		const size_t bpMin_
+		, const size_t bpMax_
 		, const size_t maxUnpaired1_
 		, const size_t maxUnpaired2_)
 	:
-		minBp(minBp_)
-	  , maxBp(maxBp_)
+		bpMin(bpMin_)
+	  , bpMax(bpMax_)
       , maxUnpaired1(maxUnpaired1_) // exclude too large boundaries
       , maxUnpaired2(maxUnpaired2_)
 {
@@ -124,7 +137,7 @@ inline
 size_t
 HelixConstraint::
 getMinBasePairs() const {
-	return minBp;
+	return bpMin;
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -133,7 +146,7 @@ inline
 size_t
 HelixConstraint::
 getMaxBasePairs() const {
-	return maxBp;
+	return bpMax;
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -155,13 +168,31 @@ getMaxUnpaired2() const {
 }
 
 /////////////////////////////////////////////////////////////////////////////
+// TODO: Maybe change this. Might not be the right max length
+inline
+size_t
+HelixConstraint::
+getMaxLength1() const {
+	return getBasePairs() + getMaxUnpaired1();
+}
+
+/////////////////////////////////////////////////////////////////////////////
+
+inline
+size_t
+HelixConstraint::
+getMaxLength2() const {
+	return getBasePairs() + getMaxUnpaired2();
+}
+
+/////////////////////////////////////////////////////////////////////////////
 
 inline
 std::ostream&
 operator<<(std::ostream& out, const HelixConstraint& c)
 {
-	out <<"HelixConstraint( minBp="<<c.getMinBasePairs()
-			<<", maxBp="<<c.getMaxBasePairs()
+	out <<"HelixConstraint( bpMin="<<c.getMinBasePairs()
+			<<", bpMax="<<c.getMaxBasePairs()
 		    <<", up1="<<c.getMaxUnpaired1()
 		    <<", up2="<<c.getMaxUnpaired2()
 		    <<")";

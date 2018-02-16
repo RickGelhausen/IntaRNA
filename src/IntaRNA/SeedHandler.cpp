@@ -34,7 +34,7 @@ fillSeed( const size_t i1min, const size_t i1max, const size_t i2min, const size
 	offset2 = i2min;
 
 	// temporary variables
-	size_t i1, i2, bpIn, u1, u2, j1, j2, u1p, u2p, k1,k2, u1best, u2best;
+	size_t i1, i2, bpIn, u1, u2, bp, j1, j2, u1p, u2p, k1,k2, u1best, u2best;
 	E_type curE, bestE;
 
 	size_t seedCountNotInf = 0, seedCount = 0;

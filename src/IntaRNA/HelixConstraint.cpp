@@ -1,4 +1,4 @@
-#include "HelixConstraint.h"
+#include "IntaRNA/HelixConstraint.h"
 #include "IntaRNA/general.h"
 
 #include <cmath>
