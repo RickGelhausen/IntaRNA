@@ -78,13 +78,6 @@ protected:
 	//! energy of all interaction hybrids starting in i1,i2
 	using PredictorMfe2dHeuristic::hybridE;
 
-
-	//! maximal number of continues stackings within an interaction
-	size_t maxHelixLength;
-
-	//! maximal bulge size
-	size_t maxBulgeSize;
-
 	HelixHandler helixHandler;
 
 protected:

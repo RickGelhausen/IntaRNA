@@ -231,7 +231,7 @@ traceBackSeed( Interaction & interaction
 		if (bpIn==0) {
 			// add left base pair if not left seed boundary
 			if (i1 != i1_) {
-				interaction.basePairs.push_back( energy.getBasePair(i1+offset1,i2+offset2) );
+				interaction.basePairs.push_back( energy.getBasePair(i1+offset1, i2+offset2) );
 			}
 
 		} else {
