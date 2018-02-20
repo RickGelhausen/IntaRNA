@@ -20,7 +20,6 @@ fillHelix(const size_t i1min, const size_t i1max, const size_t i2min, const size
 
 
 	helix.resize( i1max-i1min+1, i2max-i2min+1 );
-	// TODO: bp
 	helixE_rec.resize( HelixIndex({{
 				   (HelixRecMatrix::index)(helix.size1())
 				   , (HelixRecMatrix::index)(helix.size2())
@@ -56,6 +55,8 @@ fillHelix(const size_t i1min, const size_t i1max, const size_t i2min, const size
 		}
 
 		// TODO: Update conditions (min = 2 to max) (max > min)
+		// TODO: CHANGE DEPENDING ON DEFINITION. Minimum allowed bp ?
+		// TODO: IF minimum on bp allowed -> cannot simply change bpIn for loop as it is recursive. Might have to add additional bp differently
 		// Calculate energy for all different numbers of base pairs (bpMin to bpMax)
 		for (bp=helixConstraint.getMinBasePairs(); bp < helixConstraint.getMaxBasePairs()+1; bp++) {
 
@@ -198,7 +199,7 @@ traceBackHelix( Interaction & interaction
 
 	// trace helices
 	// trace each helix base pair (excluding right most)
-	for ( size_t bp=bpMax; bp-- >= bpMin; ) {
+	for ( size_t bp=1+bpMax; bp-- > bpMin; ) {
 		for ( size_t bpIn=1+bp-2; bpIn-- > 0; ) {
 
 			// base case: only left and right base pair present

@@ -42,11 +42,11 @@ public:
 	 *         tracking is to be done; if non-NULL, the tracker gets deleted
 	 *         on this->destruction.
 	 */
-	PredictorMfe2dLimStackHeuristicVA( const InteractionEnergy & energy
+	PredictorMfe2dLimStackHeuristic( const InteractionEnergy & energy
 			, OutputHandler & output
 			, PredictionTracker * predTracker );
 
-	virtual ~PredictorMfe2dLimStackHeuristicVA();
+	virtual ~PredictorMfe2dLimStackHeuristic();
 
 	/**
 	 * Computes the mfe for the given sequence ranges (i1-j1) in the first

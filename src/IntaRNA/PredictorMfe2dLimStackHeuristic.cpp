@@ -8,14 +8,12 @@ namespace IntaRNA {
 ////////////////////////////////////////////////////////////////////////////
 
 PredictorMfe2dLimStackHeuristic::
-PredictorMfe2dLimStackHeuristic(
-		const InteractionEnergy & energy
-		, OutputHandler & output
-		, PredictionTracker * predTracker )
+PredictorMfe2dLimStackHeuristic( const InteractionEnergy & energy
+								, OutputHandler & output
+								, PredictionTracker * predTracker
+								, const HelixConstraint & helixConstraint )
 		: PredictorMfe(energy,output,predTracker)
-		, maxHelixLength( 10 )
-		, maxBulgeSize( 0 )
-		, helixHandler( energy )
+		, helixHandler( energy, helixConstraint )
 {
 }
 
@@ -40,6 +38,7 @@ predict( const IndexRange & r1
 #if INTARNA_MULITHREADING
 #pragma omp critical(intarna_omp_logOutput)
 #endif
+	// TODO: Change
 	{ VLOG(2) <<"predicting mfe interactions heuristically in O(n^2) space and time..."; }
 	// measure timing
 	TIMED_FUNC_IF(timerObj,VLOG_IS_ON(9));
@@ -148,7 +147,6 @@ fillHybridE()
 				continue;
 			}
 
-			// TODO: getE_interLeft(i1+helixLength, i1+helixLength+w1, i2+helixLength, i2+helixLength+w2) ???
 			// compute energy for this loop sizes
 			curE = leftStackingE + energy.getE_interLeft(i1,i1+w1,i2,i2+w2) + rightExt->E;
 

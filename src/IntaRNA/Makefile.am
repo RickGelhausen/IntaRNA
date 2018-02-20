@@ -31,6 +31,7 @@ libIntaRNA_a_HEADERS =    \
 					AccessibilityBasePair.h \
 					HelixConstraint.h \
 					HelixHandler.h \
+					HelixHandlerIdxOffset.h \
 					IndexRange.h \
 					IndexRangeList.h \
 					Interaction.h \
@@ -80,6 +81,7 @@ libIntaRNA_a_SOURCES =    \
 					AccessibilityBasePair.cpp \
 					HelixConstraint.cpp \
 					HelixHandler.cpp \
+					HelixHandlerIdxOffset.cpp \
 					IndexRange.cpp \
 					IndexRangeList.cpp \
 					Interaction.cpp \
