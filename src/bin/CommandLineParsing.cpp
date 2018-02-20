@@ -33,6 +33,7 @@
 #include "IntaRNA/PredictorMfe4d.h"
 #include "IntaRNA/PredictorMaxProb.h"
 
+#include "IntaRNA/PredictorMfe2dLimStackHeuristic.h"
 #include "IntaRNA/PredictorMfe2dHeuristicSeed.h"
 #include "IntaRNA/PredictorMfe2dSeed.h"
 #include "IntaRNA/PredictorMfe4dSeed.h"
