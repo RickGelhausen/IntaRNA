@@ -73,7 +73,6 @@ fillHybridE()
 			/////////// stop interaction AFTER stacking
 
 			// compute energy for this loop sizes
-			curE = leftStackingE + energy.getE_init();
 
 			// check if this combination yields better energy
 			curEtotal = energy.getE(i1,i1+helixLength,i2,i2+helixLength,curE);

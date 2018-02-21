@@ -9,10 +9,11 @@ namespace IntaRNA {
 
 PredictorMfe2dLimStackHeuristic::
 PredictorMfe2dLimStackHeuristic( const InteractionEnergy & energy
-								, OutputHandler & output
-								, PredictionTracker * predTracker
-								, const HelixConstraint & helixConstraint )
-		: PredictorMfe(energy,output,predTracker)
+		, OutputHandler & output
+		, PredictionTracker * predTracker
+		, const HelixConstraint & helixConstraint
+		)
+	: PredictorMfe2dHeuristic(energy,output,predTracker)
 		, helixHandler( energy, helixConstraint )
 {
 }
@@ -116,7 +117,7 @@ fillHybridE()
 	// compute entries
 	// current minimal value
 	E_type curE = E_INF, curEtotal = E_INF, curCellEtotal = E_INF;
-	size_t i1,i2,w1,w2;
+	size_t i1,i2,h1,h2,w1,w2;
 	BestInteraction * curCell = NULL;
 	const BestInteraction * rightExt = NULL;
 	// iterate (decreasingly) over all left interaction starts
@@ -135,8 +136,8 @@ fillHybridE()
 		// check if helix is possible for this left boundary
 		if (E_isNotINF( helixHandler.getHelixE(i1,i2) ) ) {
 			// get right extension
-			h1 = helixHandler.getHelixLength1(i1,i2)-1; assert(i1+w1 < hybridE.size1());
-			h2 = helixHandler.getHelixLength2(i1,i2)-1; assert(i2+w2 < hybridE.size2());
+			h1 = helixHandler.getHelixLength1(i1,i2)-1; assert(i1+h1 < hybridE.size1());
+			h2 = helixHandler.getHelixLength2(i1,i2)-1; assert(i2+h2 < hybridE.size2());
 
 			curE = helixHandler.getHelixE(i1,i2) + energy.getE_init();
 
@@ -144,6 +145,7 @@ fillHybridE()
 			curEtotal = energy.getE(i1, i1+h1, i2, i2+h2, curE);
 			if ( curEtotal < curCellEtotal )
 			{
+				// TODO: Check this "right" boundary
 				// update current best for this left boundary
 				// set right boundary
 				curCell->j1 = i1+h1;
@@ -179,7 +181,7 @@ fillHybridE()
 				}
 
 				// compute energy for this loop sizes
-				curE = gethelixE(i1,i2) + energy.getE_interLeft(i1+h1,i1+h1+w1,i2+k2,i2+k2+w2) + rightExt->E;
+				curE = helixHandler.getHelixE(i1,i2) + energy.getE_interLeft(i1+h1,i1+h1+w1,i2+h2,i2+h2+w2) + rightExt->E;
 
 				// check if this combination yields better energy
 				curEtotal = energy.getE(i1,rightExt->j1,i2,rightExt->j2,curE);
@@ -197,8 +199,6 @@ fillHybridE()
 			} // w2
 			} // w1
 		} // helix
-
-
 
 		// update mfe if needed
 		updateOptima( i1,curCell->j1, i2,curCell->j2, curCellEtotal, false );
@@ -257,57 +257,51 @@ traceBack( Interaction & interaction )
 
 	// trace back
 	// temp variables
-	size_t k1,k2;
+	size_t h1,h2,k1,k2;
 	// do until only right boundary is left over
 	while( (j1-i1) > 1 ) {
 		const BestInteraction * curCell = NULL;
 		bool traceNotFound = true;
 
-
 		assert(E_isNotINF(helixHandler.getHelixE(i1,i2)));
 		h1 = helixHandler.getHelixLength1(i1,i2)-1; assert(h1 < hybridE.size1());
 		h2 = helixHandler.getHelixLength2(i1,i2)-1; assert(h2 < hybridE.size2());
-		// TODO: COntinue here
-			// check if end AFTER stacking
-			if ( E_equal( curE, (leftStackingE + energy.getE_init() ) ) ) {
-				// stop searching
-				traceNotFound = false;
-				// store helix base pairs (exclude right-most = (j1,j2))
-				for (size_t s=1; s<helixLength; s++) {
-					interaction.basePairs.push_back( energy.getBasePair(i1+s,i2+s) );
-				}
-				// trace right part of split
-				i1=i1+h1;
-				i2=i2+h2;
-				curE = 0.0;
+
+		// init case
+		if ( E_equal(curE, helixHandler.getHelixE(i1,i2) + energy.getE_init() ) ) {
+			// stop searching
+			traceNotFound = false;
+			// traceback helix base pairs ( excluding right most = (k1,k2))
+			helixHandler.traceBackHelix(interaction, i1, i2);
+			// trace right part of split
+			i1=i1+h1;
+			i2=i2+h2;
+			curE = 0.0;
+		}
+
+		// check all combinations of decompositions into (i1,i2)..(k1,k2)-(j1,j2)
+		for (size_t w1=1; traceNotFound && w1-1 <= energy.getMaxInternalLoopSize1() && i1+h1+w1<hybridE.size1(); w1++) {
+		for (size_t w2=1; traceNotFound && w2-1 <= energy.getMaxInternalLoopSize2() && i2+h2+w2<hybridE.size2(); w2++) {
+
+			// skip stacking
+			if (w1 == 1 && w2 == 1) {
+				continue;
 			}
 
-			// check all combinations of decompositions into (i1,i2)..(k1,k2)-(j1,j2)
-			for (size_t w1=1; traceNotFound && w1-1 <= energy.getMaxInternalLoopSize1() && i1+helixLength+w1<hybridE.size1(); w1++) {
-			for (size_t w2=1; traceNotFound && w2-1 <= energy.getMaxInternalLoopSize2() && i2+helixLength+w2<hybridE.size2(); w2++) {
+			k1 = i1+h1+w1;
+			k2 = i2+h2+w2;
 
-				// skip stacking
-				if (w1 == 1 && w2 == 1) {
-					continue;
-				}
-
-				k1 = i1+helixLength+w1;
-				k2 = i2+helixLength+w2;
-
-				// temp access to current cell
-				curCell = &(hybridE(k1,k2));
-				// check if right boundary is equal (part of the heuristic)
-				if ( curCell->j1 == j1 && curCell->j2 == j2 &&
-					 // and energy is the source of curE
-					 E_equal( curE, (leftStackingE + energy.getE_interLeft(i1+helixLength,k1,i2+helixLength,k2) + curCell->E ) ) )
-//						E_equal( curE, (energy.getE_interLeft(i1,k1,i2,k2) + curCell->E ) ) )
-				{
+			// temp access to current cell
+			curCell = &(hybridE(k1,k2));
+			// check if right boundary is equal (part of the heuristic)
+			if ( curCell->j1 == j1 && curCell->j2 == j2 &&
+				 // and energy is the source of curE
+				 E_equal( curE, (helixHandler.getHelixE(i1,i2) + energy.getE_interLeft(i1+h1,k1,i2+h2,k2) + curCell->E ) ) )
+			{
 					// stop searching
 					traceNotFound = false;
 					// store helix base pairs
-					for (size_t s=1; s<=helixLength; s++) {
-						interaction.basePairs.push_back( energy.getBasePair(i1+s,i2+s) );
-					}
+					helixHandler.traceBackHelix( interaction, i1, i2 );
 					// store splitting base pair if not last one of interaction range
 					if ( k1 < j1 ) {
 						interaction.basePairs.push_back( energy.getBasePair(k1,k2) );
@@ -319,7 +313,7 @@ traceBack( Interaction & interaction )
 				}
 			} // w1
 			} // w2
-		} // helices
+
 		assert( !traceNotFound );
 	}
 #if INTARNA_IN_DEBUG_MODE

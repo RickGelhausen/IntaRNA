@@ -20,6 +20,8 @@ namespace IntaRNA {
 class HelixHandlerIdxOffset
 {
 
+public:
+
 	/**
 	 * Construction
 	 * @param energy the energy function to be used for helix prediction (already offset)
@@ -187,6 +189,7 @@ HelixHandlerIdxOffset::~HelixHandlerIdxOffset()
 }
 
 ////////////////////////////////////////////////////////////////////////////
+
 inline
 const HelixConstraint&
 HelixHandlerIdxOffset::
@@ -196,6 +199,17 @@ getConstraint() const
 }
 
 ////////////////////////////////////////////////////////////////////////////
+
+inline
+size_t
+HelixHandlerIdxOffset::
+fillHelix(const size_t i1min, const size_t i1max, const size_t i2min, const size_t i2max)
+{
+	return helixHandlerOriginal.fillHelix( i1min+idxOffset1, i1max+idxOffset1, i2min+idxOffset2, i2max+idxOffset2 );
+}
+
+////////////////////////////////////////////////////////////////////////////
+
 inline
 void
 HelixHandlerIdxOffset::
@@ -262,7 +276,7 @@ getOffset2() const
 inline
 void
 HelixHandlerIdxOffset::
-setOffset1( const size_t offset1 )
+setOffset1( const size_t offset )
 {
 #if INTARNA_IN_DEBUG_MODE
 	if (offset >= helixHandlerOriginal.getInteractionEnergy().size1()) {
@@ -279,7 +293,7 @@ setOffset1( const size_t offset1 )
 inline
 void
 HelixHandlerIdxOffset::
-setOffset2( const size_t offset2 )
+setOffset2( const size_t offset )
 {
 #if INTARNA_IN_DEBUG_MODE
 	if (offset >= helixHandlerOriginal.getInteractionEnergy().size2()) {

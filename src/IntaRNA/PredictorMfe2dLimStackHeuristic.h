@@ -2,8 +2,9 @@
 #ifndef INTARNA_PREDICTORMFE2DLIMSTACKHEURISTIC_H_
 #define INTARNA_PREDICTORMFE2DLIMSTACKHEURISTIC_H_
 
-#include "IntaRNA/PredictorMfe.h"
+#include "IntaRNA/PredictorMfe2dHeuristic.h"
 #include "IntaRNA/Interaction.h"
+#include "IntaRNA/HelixHandlerIdxOffset.h"
 
 #include <boost/numeric/ublas/matrix.hpp>
 
@@ -44,7 +45,8 @@ public:
 	 */
 	PredictorMfe2dLimStackHeuristic( const InteractionEnergy & energy
 			, OutputHandler & output
-			, PredictionTracker * predTracker );
+			, PredictionTracker * predTracker
+			, const HelixConstraint & helixConstraint );
 
 	virtual ~PredictorMfe2dLimStackHeuristic();
 
@@ -78,7 +80,8 @@ protected:
 	//! energy of all interaction hybrids starting in i1,i2
 	using PredictorMfe2dHeuristic::hybridE;
 
-	HelixHandler helixHandler;
+	//! handler to generate and access helix information with idx offset
+	HelixHandlerIdxOffset helixHandler;
 
 protected:
 

@@ -392,6 +392,12 @@ protected:
 	//! the list of interaction intervals for each target sequence
 	IndexRangeListVec tRegion;
 
+
+	//! the minimal number of base pairs allowed in the helix (>2)
+	NumberParameter<int> helixMinBP;
+	//! the maximal number of base pairs allowed in the helix (>helixMinBP)
+	NumberParameter<int> helixMaxBP;
+	//! max
 	//! the final helix constraint to be used
 	mutable HelixConstraint * helixConstraint;
 

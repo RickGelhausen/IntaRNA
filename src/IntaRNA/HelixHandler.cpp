@@ -33,7 +33,7 @@ fillHelix(const size_t i1min, const size_t i1max, const size_t i2min, const size
 	offset2 = i2min;
 
 	// temporary variables
-	size_t i1, i2, bpIn, u1, u2, j1, j2, u1p, u2p, k1, k2, u1best, u2best;
+	size_t i1, i2, bp, bpIn, u1, u2, j1, j2, u1p, u2p, k1, k2, u1best, u2best;
 	E_type curE, bestE;
 
 	size_t  helixCountNotInf = 0, helixCount = 0;
@@ -55,7 +55,6 @@ fillHelix(const size_t i1min, const size_t i1max, const size_t i2min, const size
 		}
 
 		// TODO: Update conditions (min = 2 to max) (max > min)
-		// TODO: CHANGE DEPENDING ON DEFINITION. Minimum allowed bp ?
 		// TODO: IF minimum on bp allowed -> cannot simply change bpIn for loop as it is recursive. Might have to add additional bp differently
 		// Calculate energy for all different numbers of base pairs (bpMin to bpMax)
 		for (bp=helixConstraint.getMinBasePairs(); bp < helixConstraint.getMaxBasePairs()+1; bp++) {
@@ -188,14 +187,14 @@ traceBackHelix( Interaction & interaction
 
 	// get boundaries
 	size_t 	  i1 = i1_
-			, i2 = i2__
+			, i2 = i2_
 			, u1max = u1_
 			, u2max = u2_
 			, u1, u2
 			, k1, k2;
 
 	// get energy of provided helix
-	E_type cureE = getHelixE(i1_,i2_,maxBp, maxBP-2, u1_, u2_);
+	E_type curE = getHelixE(i1_,i2_,bpMax,bpMax-2,u1_,u2_);
 
 	// trace helices
 	// trace each helix base pair (excluding right most)
@@ -206,7 +205,7 @@ traceBackHelix( Interaction & interaction
 			if (bpIn==0) {
 				// add left base pair if not left helix boundary
 				if (i1 != i1_) {
-					interaction.basePairs.push_back( energy.getBasePair(i1+offset1, i2+offset2) );
+					interaction.basePairs.push_back( energy.getBasePair( i1+offset1, i2+offset2 ) );
 				}
 
 			} else {
