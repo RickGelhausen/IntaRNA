@@ -95,7 +95,10 @@ CommandLineParsing::CommandLineParsing()
 	tRegionString(""),
 	tRegion(),
 
-	// TODO: ADD HELIX CONSTRAINT VARIABLES
+	// Helix Constraints
+	helixMinBP(2,4,2),
+	helixMaxBP(2,10,10),
+	helixMaxUP(0,2,0),
 	helixConstraint(NULL),
 
 	noSeedRequired(false),
@@ -111,7 +114,7 @@ CommandLineParsing::CommandLineParsing()
 
 	temperature(0,100,37),
 
-	pred( "SP", 'S'),
+	pred( "SPL", 'S'),
 	predMode( "HME", 'H'),
 #if INTARNA_MULITHREADING
 	threads( 1, omp_get_max_threads(), 1),
@@ -1449,6 +1452,12 @@ getPredictor( const InteractionEnergy & energy, OutputHandler & output ) const
 	if (noSeedRequired) {
 		// predictors without seed constraint
 		switch( pred.val ) {
+		case 'L':  {
+			switch ( predMode.val ) {
+			case 'H' :	return new PredictorMfe2dLimStackHeuristic( energy, output, predTracker, getHelixConstraint( energy ));
+			default :  INTARNA_NOT_IMPLEMENTED("mode "+toString(predMode.val)+" not implemented for prediction target "+toString(pred.val));
+			}
+		}
 		// single-site mfe interactions (contain only interior loops)
 		case 'S' : {
 			switch ( predMode.val ) {
@@ -1588,11 +1597,14 @@ const HelixConstraint &
 CommandLineParsing::
 getHelixConstraint(const InteractionEnergy &energy) const
 {
-	// TODO: INIT WITH CORRECT VALUES
 	if (helixConstraint == NULL) {
 		// setup according to user data
-		//helixConstraint = HelixConstraint();
+		helixConstraint = new HelixConstraint(helixMinBP.val,
+											  helixMinBP.val,
+											  helixMaxUP.val
+		);
 	}
+	return *helixConstraint;
 }
 
 ////////////////////////////////////////////////////////////////////////////

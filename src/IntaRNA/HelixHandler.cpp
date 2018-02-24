@@ -54,8 +54,7 @@ fillHelix(const size_t i1min, const size_t i1max, const size_t i2min, const size
 			continue; // go to next helixE index
 		}
 
-		// TODO: Update conditions (min = 2 to max) (max > min)
-		// TODO: IF minimum on bp allowed -> cannot simply change bpIn for loop as it is recursive. Might have to add additional bp differently
+	    // TODO: WRONG !!! REDO (see helixHandlerSimple)
 		// Calculate energy for all different numbers of base pairs (bpMin to bpMax)
 		for (bp=helixConstraint.getMinBasePairs(); bp < helixConstraint.getMaxBasePairs()+1; bp++) {
 

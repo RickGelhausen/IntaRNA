@@ -2,7 +2,7 @@
 #ifndef INTARNA_HELIXHANDLERIDXOFFSET_H_
 #define INTARNA_HELIXHANDLERIDXOFFSET_H_
 
-#include "IntaRNA/HelixHandler.h"
+#include "IntaRNA/HelixHandlerSimple.h"
 
 #include <boost/multi_array.hpp>
 
@@ -148,7 +148,7 @@ public:
 protected:
 
 	//! the index shifted helixHandler
-	HelixHandler helixHandlerOriginal;
+	HelixHandlerSimple helixHandlerOriginal;
 
 	//! the index shifted helix constraint
 	HelixConstraint helixConstraintOffset;

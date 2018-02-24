@@ -397,7 +397,8 @@ protected:
 	NumberParameter<int> helixMinBP;
 	//! the maximal number of base pairs allowed in the helix (>helixMinBP)
 	NumberParameter<int> helixMaxBP;
-	//! max
+	//! max overall unpaired in helix
+	NumberParameter<int> helixMaxUP;
 	//! the final helix constraint to be used
 	mutable HelixConstraint * helixConstraint;
 
@@ -582,6 +583,24 @@ protected:
 	 * @param value the argument value to validate
 	 */
 	void validate_tRegion(const std::string & value);
+
+	/**
+	 * Validates the helixMinBP argument.
+	 * @param value the argument value to validate
+	 */
+	void validate_helixMinBP(const int & value);
+
+	/**
+	 * Validates the helixMaxBP argument.
+	 * @param value the argument value to validate
+	 */
+	void validate_helixMaxBP(const int & value);
+
+	/**
+	 * Validates the helixMaxUP argument.
+	 * @param value the argument value to validate
+	 */
+	void validate_helixMaxUP(const int & value);
 
 	/**
 	 * Validates the seedBP argument.
@@ -1156,6 +1175,30 @@ inline
 void CommandLineParsing::validate_tRegion(const std::string & value) {
 	// check and store region information
 	validateRegion( "tRegion", value );
+}
+
+////////////////////////////////////////////////////////////////////////////
+
+inline
+void CommandLineParsing::validate_helixMinBP(const int &value) {
+	// forward check to general method
+	validate_numberArgument("helixMinBP", helixMinBP, value);
+}
+
+////////////////////////////////////////////////////////////////////////////
+
+inline
+void CommandLineParsing::validate_helixMaxBP(const int &value) {
+	// forward check to general method
+	validate_numberArgument("helixMaxBP", helixMaxBP, value);
+}
+
+////////////////////////////////////////////////////////////////////////////
+
+inline
+void CommandLineParsing::validate_helixMaxUP(const int &value) {
+	// forward check to general method
+	validate_numberArgument("helixMaxUP", helixMaxUP, value);
 }
 
 ////////////////////////////////////////////////////////////////////////////

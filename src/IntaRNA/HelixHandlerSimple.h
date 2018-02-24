@@ -1,7 +1,6 @@
 
-#ifndef INTARNA_HELIXHANDLERSIMPLE_H
-#define INTARNA_HELIXHANDLERSIMPLE_H
-
+#ifndef INTARNA_HELIXHANDLERSIMPLE_H_
+#define INTARNA_HELIXHANDLERSIMPLE_H_
 
 #include "IntaRNA/InteractionEnergy.h"
 #include "IntaRNA/HelixConstraint.h"
@@ -14,6 +13,7 @@ namespace IntaRNA {
 
 /**
  * Handler to provide helix interaction information
+ * Simple Version without allowing unpaired regions
  */
 
 class HelixHandlerSimple {
@@ -22,14 +22,13 @@ public:
 	//! 4D matrix type to hold the mfe energies for helix interactions
 	//! of the ranges i1..(i1+bp-1) and i2..(i2+bp-1), with
 	//! i1,i2 = the start index of the helix in seq1/2
-	//! bpMax = the maximal number of base pairs within the helix (>=bpMin)
-	//! bp = the number of base pairs in the helix
-	//! using the index [i1][i2][bp][bpMax] or a HelixIndex object
-	typedef boost::multi_array<E_type,4> HelixRecMatrix;
+	//! bp = the current number of base pairs in the helix (< maxBP)
+	//! using the index [i1][i2][bpMax][bp] or a HelixIndex object
+	typedef boost::multi_array<E_type,3> HelixRecMatrix;
 
-	//! defines the helix data {{ i1, i2, bpInbetween, u1, u2, bpMax }} to acces elements of
+	//! defines the helix data {{ i1, i2, bp }} to acces elements of
 	//! the HelixRecMatrix
-	typedef boost::array<HelixRecMatrix::index, 4> HelixIndex;
+	typedef boost::array<HelixRecMatrix::index, 3> HelixIndex;
 
 	//! matrix to store the helix information for each helix left side (i1, i2)
 	//! it holds both the energy (first) as well as the length of the helix using
@@ -134,7 +133,7 @@ protected:
 	//! the recursion data for the computation of a helix interaction
 	//! bp: the number of allowed bases
 	//! i1..(i1+bp-1) and i2..(i2+bp-1)
-	//! using the indexing [i1][i2][bpMax][bp]
+	//! using the indexing [i1][i2][bp]
 	HelixRecMatrix helixE_rec;
 
 	//! the helix mfe information for helix starting at (i1, i2)
@@ -152,26 +151,33 @@ protected:
 	 *
 	 * @param i1 the helix left end in seq 1 (index including offset)
 	 * @param i2 the helix left end in seq 2 (index including offset)
-	 * @param bpMax the maximal number of currently allowed base pairs
 	 * @param bp the current number of base pairs in the helix
 	 *
 	 * @return the energy of the according helix
 	 */
 	E_type
-	getHelixE( const size_t i1, const size_t i2, const size_t bpMax, const size_t bp );
+	getHelixE( const size_t i1, const size_t i2, const size_t bp );
 
+	/**
+	 * Get the number of bp in the mfe helix
+	 * @param i1 the helix left end in seq 1
+	 * @param i2 the helix left end in seq 2
+	 *
+	 * @return the number of base pairs in the mfe helix for (i1,i2)
+	 */
+	size_t
+	getHelixBP( const size_t i1, const size_t i2 );
 
 	/**
 	 * Fills the helix energy during recursion
 	 *
 	 * @param i1 the helix left end in seq 1 (index including offset)
 	 * @param i2 the helix left end in seq 2 (index including offset)
-	 * @param bpMax the number of currently allowed base pairs
 	 * @param bp the current number of base pairs in the helix
 	 * @param E the energy value to be set
 	 */
 	void
-	setHelixE( const size_t i1, const size_t i2, const size_t bpMax, const size_t bp, const E_type E );
+	setHelixE( const size_t i1, const size_t i2, const size_t bp, const E_type E );
 
 	/**
 	 * Encodes the helix lengths into one number
@@ -214,7 +220,7 @@ protected:
 	 */
 	void
 	traceBackHelix( Interaction & interaction
-			, const size_t i1, const size_t i2, const size_t bpMin, const size_t bpMax);
+			, const size_t i1, const size_t i2, const size_t nbp);//, const size_t bpMax);
 };
 
 ////////////////////////////////////////////////////////////////////////////
@@ -229,7 +235,7 @@ HelixHandlerSimple::HelixHandlerSimple(
 		:
 		energy(energy)
 		, helixConstraint(helixConstraint)
-		, helixE_rec( HelixIndex({{ 0, 0, 0, 0, 0, 0 }}))
+		, helixE_rec( HelixIndex({{ 0, 0, 0 }}))
 		, helix()
 		, offset1(0)
 		, offset2(0)
@@ -280,14 +286,12 @@ HelixHandlerSimple::traceBackHelix(Interaction &interaction
 	if ( i1+getHelixLength1(i1,i2)-1-offset1 >= helix.size1() ) throw std::runtime_error("HelixHandlerSimple::traceBackHelix(i1="+toString(i1)+") helix length ("+toString(getHelixLength1(i1,i2))+") exceeds of range (<"+toString(helix.size1()+offset1)+")");
 	if ( i2+getHelixLength2(i1,i2)-1-offset2 >= helix.size2() ) throw std::runtime_error("HelixHandlerSimple::traceBackHelix(i2="+toString(i2)+") helix length ("+toString(getHelixLength2(i1,i2))+") exceeds of range (<"+toString(helix.size2()+offset2)+")");
 #endif
-	// get number of base pairs allowed within the helix
-	const size_t maxHelixBps = getConstraint().getMaxBasePairs();
-	const size_t minHelixBps = getConstraint().getMinBasePairs();
+//	// get number of base pairs allowed within the helix
+//	const size_t maxHelixBps = getConstraint().getMaxBasePairs();
+	const size_t nbp = getHelixBP(i1,i2);
 
 	// trace back the according helix
-	traceBackHelix( interaction, i1-offset1, i2-offset2
-			, minHelixBps
-			, maxHelixBps );
+	traceBackHelix( interaction, i1-offset1, i2-offset2, nbp );
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -300,6 +304,15 @@ getHelixE(const size_t i1, const size_t i2) const
 	return helix(i1-offset1, i2-offset2).first;
 }
 
+////////////////////////////////////////////////////////////////////////////
+
+inline
+size_t
+HelixHandlerSimple::
+getHelixBP(const size_t i1, const size_t i2)
+{
+	return helix(i1-offset1, i2-offset2).second;
+}
 ////////////////////////////////////////////////////////////////////////////
 
 inline
@@ -325,13 +338,12 @@ getHelixLength2(const size_t i1, const size_t i2) const
 inline
 E_type
 HelixHandlerSimple::
-getHelixE(const size_t i1, const size_t i2, const size_t bpMax, const size_t bp )
+getHelixE(const size_t i1, const size_t i2, const size_t bp )
 {
 // return helixE_rec[i1][i2][bpInbetween][u1][u2][bp]
 	return helixE_rec( HelixIndex({{
 										   (HelixRecMatrix::index) i1
 										   , (HelixRecMatrix::index) i2
-										   , (HelixRecMatrix::index) bpMax
 										   , (HelixRecMatrix::index) bp}}) );
 }
 
@@ -340,13 +352,12 @@ getHelixE(const size_t i1, const size_t i2, const size_t bpMax, const size_t bp 
 inline
 void
 HelixHandlerSimple::
-setHelixE(const size_t i1, const size_t i2, const size_t bpMax, const size_t bp, const E_type E)
+setHelixE(const size_t i1, const size_t i2, const size_t bp, const E_type E)
 {
-//	helixE_rec[i1][i2][bpInbetween][u1][u2][bp] = E
+//	helixE_rec[i1][i2][bpMax][bp] = E
 	helixE_rec( HelixIndex({{
 									(HelixRecMatrix::index) i1
 									, (HelixRecMatrix::index) i2
-									, (HelixRecMatrix::index) bpMax
 									, (HelixRecMatrix::index) bp}}) ) = E;
 }
 
@@ -377,5 +388,4 @@ decodeHelixLength2(const size_t code) const
 }
 
 } // namespace
-
-#endif //INTARNA_HELIXHANDLERSIMPLE_H
+#endif /* HELIXHANDLERSIMPLE_H_ */
