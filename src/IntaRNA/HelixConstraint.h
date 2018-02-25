@@ -23,12 +23,12 @@ public:
 	/**
 	 *  Constructor
 	 *
-	 * @param bpMin minimal number of base pairs a helix is allowed to have (>= 2)
-	 * @param bpMax maximal number of base pairs a helix is allowed to have (>= bpMin)
+	 * @param minBP minimal number of base pairs a helix is allowed to have (>= 2)
+	 * @param maxBP maximal number of base pairs a helix is allowed to have (>= bpMin)
 	 * @param maxUnpaired maximal number of unpaired bases
 	 */
-	HelixConstraint( const size_t bpMin
-				, const size_t bpMax
+	HelixConstraint( const size_t minBP
+				, const size_t maxBP
 				, const size_t maxUnpaired
 				);
 
@@ -43,9 +43,9 @@ public:
 	getMinBasePairs() const;
 
 	/**
-	 *  Provides the maximum number of base pairs allowed within an helix (>=bpMin)
+	 *  Provides the maximum number of base pairs allowed within an helix (>=minBP)
 	 *
-	 * @return the maximum number of base pairs an helix is allowed to have (>=bpMin)
+	 * @return the maximum number of base pairs an helix is allowed to have (>=maxBP)
 	 */
 	size_t
 	getMaxBasePairs() const;
@@ -84,10 +84,10 @@ public:
 protected:
 
 	//! the minimal number of base pairs allowed in the helix (>=2)
-	size_t bpMin;
+	size_t minBP;
 
-	//! the maximal number of base pairs allowed in the helix (>=bpMin)
-	size_t bpMax;
+	//! the maximal number of base pairs allowed in the helix (>=maxBP)
+	size_t maxBP;
 
 	//! the maximally allowed number of unpaired bases in the helix
 	size_t maxUnpaired;
@@ -100,15 +100,15 @@ protected:
 
 inline
 HelixConstraint::HelixConstraint(
-		const size_t bpMin_
-		, const size_t bpMax_
+		const size_t minBP_
+		, const size_t maxBP_
 		, const size_t maxUnpaired_)
 	:
-		bpMin(bpMin_)
-	  , bpMax(bpMax_)
+		minBP(minBP_)
+	  , maxBP(maxBP_)
       , maxUnpaired(maxUnpaired_) // exclude too large boundaries
 {
-	if (bpMin < 2) throw std::runtime_error("HelixConstraint() : base pair number ("+toString(bpMin)+") < 2");
+	if (minBP < 2) throw std::runtime_error("HelixConstraint() : base pair number ("+toString(minBP)+") < 2");
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -123,7 +123,7 @@ inline
 size_t
 HelixConstraint::
 getMinBasePairs() const {
-	return bpMin;
+	return minBP;
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -132,7 +132,7 @@ inline
 size_t
 HelixConstraint::
 getMaxBasePairs() const {
-	return bpMax;
+	return maxBP;
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -169,9 +169,9 @@ inline
 std::ostream&
 operator<<(std::ostream& out, const HelixConstraint& c)
 {
-	out <<"HelixConstraint( bpMin="<<c.getMinBasePairs()
-			<<", bpMax="<<c.getMaxBasePairs()
-		    <<", upMax="<<c.getMaxUnpaired()
+	out <<"HelixConstraint( minBP="<<c.getMinBasePairs()
+			<<", maxBP="<<c.getMaxBasePairs()
+		    <<", maxUP="<<c.getMaxUnpaired()
 		    <<")";
 	return out;
 

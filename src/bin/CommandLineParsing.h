@@ -328,6 +328,8 @@ protected:
 	boost::program_options::options_description opts_query;
 	//! target specific options
 	boost::program_options::options_description opts_target;
+	//! helix specific options
+	boost::program_options::options_description opts_helix;
 	//! seed specific options
 	boost::program_options::options_description opts_seed;
 	//! interaction/energy specific options

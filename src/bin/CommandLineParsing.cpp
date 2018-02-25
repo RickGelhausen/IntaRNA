@@ -277,8 +277,34 @@ CommandLineParsing::CommandLineParsing()
 			, std::string("interaction site : target regions to be considered for interaction prediction. Either given as BED file (for multi-sequence FASTA input) or in the format 'from1-to1,from2-to2,..' assuming indexing starts with 1").c_str())
 		;
 
-	////  SEED OPTIONS  ////////////////////////////////////
 
+	////  HELIX OPTIONS  ///////////////////////////////////
+
+	opts_helix.add_options()
+			("helixMinBP"
+				, value<int>(&(helixMinBP.val))
+				    ->default_value(helixMinBP.def)
+				    ->notifier(boost::bind(&CommandLineParsing::validate_helixMinBP, this,_1))
+				, std::string("minimal number of base pairs inside a helix"
+							  " (arg in range ["+toString(helixMinBP.min)+","+toString(helixMinBP.max)+"])").c_str())
+
+			("helixMaxBP"
+			, value<int>(&(helixMaxBP.val))
+					->default_value(helixMaxBP.def)
+					->notifier(boost::bind(&CommandLineParsing::validate_helixMaxBP, this,_1))
+			, std::string("maximal number of base pairs inside a helix"
+								  " (arg in range ["+toString(helixMaxBP.min)+","+toString(helixMaxBP.max)+"])").c_str())
+
+			("helixMaxUP"
+			, value<int>(&(helixMaxUP.val))
+					->default_value(helixMaxUP.def)
+					->notifier(boost::bind(&CommandLineParsing::validate_helixMaxUP, this,_1))
+			, std::string("maximal number of unpaired bases inside a helix"
+								  " (arg in range ["+toString(helixMaxUP.min)+","+toString(helixMaxUP.max)+"])").c_str())
+			;
+	opts_cmdline_short.add(opts_helix);
+
+	////  SEED OPTIONS  ////////////////////////////////////
 
 	opts_seed.add_options()
 	    ("noSeed", "if present, no seed is enforced within the predicted interactions")

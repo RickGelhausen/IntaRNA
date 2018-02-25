@@ -12,7 +12,6 @@
 
 using namespace IntaRNA;
 
-
 TEST_CASE( "PredictionTrackerProfileMinE", "[PredictionTrackerProfileMinE]" ) {
 
 	// setup dummy data
