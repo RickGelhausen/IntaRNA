@@ -320,7 +320,7 @@ size_t
 HelixHandlerSimple::
 getHelixLength1(const size_t i1, const size_t i2) const
 {
-	return decodeHelixLength1(helix(i1-offset1, i2-offset2).second);
+	return helix(i1-offset1, i2-offset2).second;
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -330,7 +330,7 @@ size_t
 HelixHandlerSimple::
 getHelixLength2(const size_t i1, const size_t i2) const
 {
-	return decodeHelixLength2(helix(i1-offset1, i2-offset2).second);
+	return helix(i1-offset1, i2-offset2).second;
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -361,31 +361,32 @@ setHelixE(const size_t i1, const size_t i2, const size_t bp, const E_type E)
 									, (HelixRecMatrix::index) bp}}) ) = E;
 }
 
+// TODO: Makes no sense when only saving number of base pairs
 ////////////////////////////////////////////////////////////////////////////
-
-inline
-size_t
-HelixHandlerSimple::
-encodeHelixLength(const size_t l1, const size_t l2) const
-{
-	return l1 + l2 * (helixConstraint.getMaxLength1()+1);
-}
-
-inline
-size_t
-HelixHandlerSimple::
-decodeHelixLength1(const size_t code) const
-{
-	return code % (helixConstraint.getMaxLength1()+1);
-}
-
-inline
-size_t
-HelixHandlerSimple::
-decodeHelixLength2(const size_t code) const
-{
-	return code / (helixConstraint.getMaxLength1()+1);
-}
+//
+//inline
+//size_t
+//HelixHandlerSimple::
+//encodeHelixLength(const size_t l1, const size_t l2) const
+//{
+//	return l1 + l2 * (helixConstraint.getMaxLength1()+1);
+//}
+//
+//inline
+//size_t
+//HelixHandlerSimple::
+//decodeHelixLength1(const size_t code) const
+//{
+//	return code % (helixConstraint.getMaxLength1()+1);
+//}
+//
+//inline
+//size_t
+//HelixHandlerSimple::
+//decodeHelixLength2(const size_t code) const
+//{
+//	return code / (helixConstraint.getMaxLength1()+1);
+//}
 
 } // namespace
 #endif /* HELIXHANDLERSIMPLE_H_ */
