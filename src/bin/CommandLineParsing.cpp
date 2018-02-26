@@ -62,6 +62,7 @@ CommandLineParsing::CommandLineParsing()
 	stdinUsed(false),
 	opts_query("Query"),
 	opts_target("Target"),
+	opts_helix("Helix"),
 	opts_seed("Seed"),
 	opts_inter("Interaction"),
 	opts_general("General"),
@@ -1483,7 +1484,7 @@ getPredictor( const InteractionEnergy & energy, OutputHandler & output ) const
 			case 'H' :	return new PredictorMfe2dLimStackHeuristic( energy, output, predTracker, getHelixConstraint( energy ));
 			default :  INTARNA_NOT_IMPLEMENTED("mode "+toString(predMode.val)+" not implemented for prediction target "+toString(pred.val));
 			}
-		}
+		} break;
 		// single-site mfe interactions (contain only interior loops)
 		case 'S' : {
 			switch ( predMode.val ) {
