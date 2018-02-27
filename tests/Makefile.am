@@ -15,7 +15,7 @@ runTests_SOURCES =	catch.hpp \
 					AccessibilityFromStream_test.cpp \
 					AccessibilityBasePair_test.cpp \
 					HelixConstraint_test.cpp \
-					HelixHandlerSimple_test.cpp \
+					HelixHandlerStackingOnly_test.cpp \
 					IndexRange_test.cpp  \
 					IndexRangeList_test.cpp  \
 					Interaction_test.cpp  \

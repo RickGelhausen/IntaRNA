@@ -30,7 +30,7 @@ libIntaRNA_a_HEADERS =    \
 					AccessibilityVrna.h \
 					AccessibilityBasePair.h \
 					HelixConstraint.h \
-					HelixHandlerSimple.h \
+					HelixHandlerStackingOnly.h \
 					HelixHandlerIdxOffset.h \
 					IndexRange.h \
 					IndexRangeList.h \
@@ -80,7 +80,7 @@ libIntaRNA_a_SOURCES =    \
 					AccessibilityVrna.cpp \
 					AccessibilityBasePair.cpp \
 					HelixConstraint.cpp \
-					HelixHandlerSimple.cpp \
+					HelixHandlerStackingOnly.cpp \
 					HelixHandlerIdxOffset.cpp \
 					IndexRange.cpp \
 					IndexRangeList.cpp \

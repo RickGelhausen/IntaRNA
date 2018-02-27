@@ -1,6 +1,6 @@
 
-#ifndef INTARNA_HELIXHANDLERSIMPLE_H_
-#define INTARNA_HELIXHANDLERSIMPLE_H_
+#ifndef INTARNA_HELIXHANDLERSTACKINGONLY_H_
+#define INTARNA_HELIXHANDLERSTACKINGONLY_H_
 
 #include "IntaRNA/InteractionEnergy.h"
 #include "IntaRNA/HelixConstraint.h"
@@ -16,7 +16,7 @@ namespace IntaRNA {
  * Simple Version without allowing unpaired regions
  */
 
-class HelixHandlerSimple {
+class HelixHandlerStackingOnly {
 
 public:
 	//! 4D matrix type to hold the mfe energies for helix interactions
@@ -41,7 +41,7 @@ public:
 	 * Constructor
 	 * @param energy the energy function to be used
 	 */
-	HelixHandlerSimple(
+	HelixHandlerStackingOnly(
 			const InteractionEnergy & energy
 			, const HelixConstraint & helixConstraint
 	);
@@ -49,7 +49,7 @@ public:
 	/**
 	 * destructor
 	 */
-	virtual ~HelixHandlerSimple();
+	virtual ~HelixHandlerStackingOnly();
 
 	/**
 	 * Access to the underlying interaction energy function
@@ -122,6 +122,8 @@ public:
 	size_t
 	getHelixLength2( const size_t i1, const size_t i2 ) const;
 
+
+
 protected:
 
 	//! the used energy function
@@ -164,9 +166,9 @@ protected:
 	 * @param i2 the helix left end in seq 2
 	 *
 	 * @return the number of base pairs in the mfe helix for (i1,i2)
-	 */
+  	 */
 	size_t
-	getHelixBP( const size_t i1, const size_t i2 );
+	getHelixBP( const size_t i1, const size_t i2 ) const;
 
 	/**
 	 * Fills the helix energy during recursion
@@ -179,48 +181,6 @@ protected:
 	void
 	setHelixE( const size_t i1, const size_t i2, const size_t bp, const E_type E );
 
-	/**
-	 * Encodes the helix lengths into one number
-	 * @param l1 the length of the helix in seq1
-	 * @param l2 the length of the helix in seq2
-	 * @return the combined encoding = (l1 + l2*(max_l1+1))
-	 */
-	size_t
-	encodeHelixLength( const size_t l1, const size_t l2 ) const;
-
-	/**
-	 * Decodes the length of the helix within sequence 1 from an encoding
-	 * generated with encodeHelixLength
-	 * @param code the lengths encoding
-	 * @return the length of the helix in seq1
-	 */
-	size_t
-	decodeHelixLength1( const size_t code ) const;
-
-
-	/**
-	 * Decodes the length of the helix within sequence 2 from an encoding
-	 * generated with encodeHelixLength
-	 * @param code the lengths encoding
-	 * @return the length of the helix in seq2
-	 */
-	size_t
-	decodeHelixLength2( const size_t code ) const;
-
-	// TODO: Might have to change this
-	/**
-	 * Fills a given interaction with the according
-	 * hybridizing base pairs of the provided helix interaction TODO:??? (excluding the right mosot helix base pair)
-	 *
-	 * @param interaction IN/OUT the interaction to fill
-	 * @param i1 the helix left end in seq 1 (index including offset)
-	 * @param i2 the helix left end in seq 2 (index including offset)
-	 * @param bpMin the minimal number of base pairs allowed within the helix
-	 * @param bpMax the maximal number of base pairs allowed within the helix
-	 */
-	void
-	traceBackHelix( Interaction & interaction
-			, const size_t i1, const size_t i2, const size_t nbp);//, const size_t bpMax);
 };
 
 ////////////////////////////////////////////////////////////////////////////
@@ -228,7 +188,7 @@ protected:
 ////////////////////////////////////////////////////////////////////////////
 
 inline
-HelixHandlerSimple::HelixHandlerSimple(
+HelixHandlerStackingOnly::HelixHandlerStackingOnly(
 		const InteractionEnergy & energy
 		, const HelixConstraint & helixConstraint
 )
@@ -245,7 +205,7 @@ HelixHandlerSimple::HelixHandlerSimple(
 ////////////////////////////////////////////////////////////////////////////
 
 inline
-HelixHandlerSimple::~HelixHandlerSimple()
+HelixHandlerStackingOnly::~HelixHandlerStackingOnly()
 {
 }
 
@@ -253,7 +213,7 @@ HelixHandlerSimple::~HelixHandlerSimple()
 
 inline
 const HelixConstraint&
-HelixHandlerSimple::getConstraint() const
+HelixHandlerStackingOnly::getConstraint() const
 {
 	return helixConstraint;
 }
@@ -262,43 +222,16 @@ HelixHandlerSimple::getConstraint() const
 
 inline
 const InteractionEnergy&
-HelixHandlerSimple::getInteractionEnergy() const
+HelixHandlerStackingOnly::getInteractionEnergy() const
 {
 	return energy;
 }
 
 ////////////////////////////////////////////////////////////////////////////
 
-// TODO: REWORK THIS
-inline
-void
-HelixHandlerSimple::traceBackHelix(Interaction &interaction
-		, const size_t i1
-		, const size_t i2
-)
-{
-#if INTARNA_IN_DEBUG_MODE
-	if ( i1 < offset1 ) throw std::runtime_error("HelixHandlerSimple::traceBackHelix(i1="+toString(i1)+") is out of range (>"+toString(offset1)+")");
-	if ( i1-offset1 >= helix.size1() ) throw std::runtime_error("HelixHandlerSimple::traceBackHelix(i1="+toString(i1)+") is out of range (<"+toString(helix.size1()+offset1)+")");
-	if ( i2 < offset2 ) throw std::runtime_error("HelixHandlerSimple::traceBackHelix(i2="+toString(i2)+") is out of range (>"+toString(offset2)+")");
-	if ( i2-offset2 >= helix.size2() ) throw std::runtime_error("HelixHandlerSimple::traceBackHelix(i2="+toString(i2)+") is out of range (<"+toString(helix.size2()+offset2)+")");
-	if ( E_isINF( getHelixE(i1,i2) ) ) throw std::runtime_error("HelixHandlerSimple::traceBackHelix(i1="+toString(i1)+",i2="+toString(i2)+") no helix known (E_INF)");
-	if ( i1+getHelixLength1(i1,i2)-1-offset1 >= helix.size1() ) throw std::runtime_error("HelixHandlerSimple::traceBackHelix(i1="+toString(i1)+") helix length ("+toString(getHelixLength1(i1,i2))+") exceeds of range (<"+toString(helix.size1()+offset1)+")");
-	if ( i2+getHelixLength2(i1,i2)-1-offset2 >= helix.size2() ) throw std::runtime_error("HelixHandlerSimple::traceBackHelix(i2="+toString(i2)+") helix length ("+toString(getHelixLength2(i1,i2))+") exceeds of range (<"+toString(helix.size2()+offset2)+")");
-#endif
-//	// get number of base pairs allowed within the helix
-//	const size_t maxHelixBps = getConstraint().getMaxBasePairs();
-	const size_t nbp = getHelixBP(i1,i2);
-
-	// trace back the according helix
-	traceBackHelix( interaction, i1-offset1, i2-offset2, nbp );
-}
-
-////////////////////////////////////////////////////////////////////////////
-
 inline
 E_type
-HelixHandlerSimple::
+HelixHandlerStackingOnly::
 getHelixE(const size_t i1, const size_t i2) const
 {
 	return helix(i1-offset1, i2-offset2).first;
@@ -308,16 +241,17 @@ getHelixE(const size_t i1, const size_t i2) const
 
 inline
 size_t
-HelixHandlerSimple::
-getHelixBP(const size_t i1, const size_t i2)
+HelixHandlerStackingOnly::
+getHelixBP(const size_t i1, const size_t i2) const
 {
 	return helix(i1-offset1, i2-offset2).second;
 }
+
 ////////////////////////////////////////////////////////////////////////////
 
 inline
 size_t
-HelixHandlerSimple::
+HelixHandlerStackingOnly::
 getHelixLength1(const size_t i1, const size_t i2) const
 {
 	return helix(i1-offset1, i2-offset2).second;
@@ -327,7 +261,7 @@ getHelixLength1(const size_t i1, const size_t i2) const
 
 inline
 size_t
-HelixHandlerSimple::
+HelixHandlerStackingOnly::
 getHelixLength2(const size_t i1, const size_t i2) const
 {
 	return helix(i1-offset1, i2-offset2).second;
@@ -337,7 +271,7 @@ getHelixLength2(const size_t i1, const size_t i2) const
 
 inline
 E_type
-HelixHandlerSimple::
+HelixHandlerStackingOnly::
 getHelixE(const size_t i1, const size_t i2, const size_t bp )
 {
 // return helixE_rec[i1][i2][bpInbetween][u1][u2][bp]
@@ -351,7 +285,7 @@ getHelixE(const size_t i1, const size_t i2, const size_t bp )
 
 inline
 void
-HelixHandlerSimple::
+HelixHandlerStackingOnly::
 setHelixE(const size_t i1, const size_t i2, const size_t bp, const E_type E)
 {
 //	helixE_rec[i1][i2][bpMax][bp] = E
@@ -361,32 +295,6 @@ setHelixE(const size_t i1, const size_t i2, const size_t bp, const E_type E)
 									, (HelixRecMatrix::index) bp}}) ) = E;
 }
 
-// TODO: Makes no sense when only saving number of base pairs
-////////////////////////////////////////////////////////////////////////////
-//
-//inline
-//size_t
-//HelixHandlerSimple::
-//encodeHelixLength(const size_t l1, const size_t l2) const
-//{
-//	return l1 + l2 * (helixConstraint.getMaxLength1()+1);
-//}
-//
-//inline
-//size_t
-//HelixHandlerSimple::
-//decodeHelixLength1(const size_t code) const
-//{
-//	return code % (helixConstraint.getMaxLength1()+1);
-//}
-//
-//inline
-//size_t
-//HelixHandlerSimple::
-//decodeHelixLength2(const size_t code) const
-//{
-//	return code / (helixConstraint.getMaxLength1()+1);
-//}
 
 } // namespace
-#endif /* HELIXHANDLERSIMPLE_H_ */
+#endif /* HELIXHANDLERSTACKINGONLY_H_ */
