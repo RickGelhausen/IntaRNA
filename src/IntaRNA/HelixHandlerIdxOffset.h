@@ -2,7 +2,7 @@
 #ifndef INTARNA_HELIXHANDLERIDXOFFSET_H_
 #define INTARNA_HELIXHANDLERIDXOFFSET_H_
 
-#include "IntaRNA/HelixHandlerStackingOnly.h"
+#include "IntaRNA/HelixHandler.h"
 
 #include <boost/multi_array.hpp>
 
@@ -24,13 +24,9 @@ public:
 
 	/**
 	 * Construction
-	 * @param energy the energy function to be used for helix prediction (already offset)
-	 * @param helixConstraint the helix constraint to be applied
+	 *
 	 */
-	HelixHandlerIdxOffset(
-			const InteractionEnergy & energy
-			, const HelixConstraint & helixConstraint
-			);
+	HelixHandlerIdxOffset( HelixHandler * helixHandler );
 
 	/**
 	 * destruction
@@ -148,7 +144,7 @@ public:
 protected:
 
 	//! the index shifted helixHandler
-	HelixHandlerStackingOnly helixHandlerOriginal;
+	HelixHandler * helixHandlerOriginal;
 
 	//! the index shifted helix constraint
 	HelixConstraint helixConstraintOffset;
@@ -168,13 +164,11 @@ protected:
 
 
 inline
-HelixHandlerIdxOffset::HelixHandlerIdxOffset(
-		const InteractionEnergy &energy
-		, const HelixConstraint &helixConstraint
-		)
+HelixHandlerIdxOffset::
+HelixHandlerIdxOffset( HelixHandler * helixHandlerInstance )
 	:
-		helixHandlerOriginal( energy, helixConstraint )
-		, helixConstraintOffset(helixConstraint)
+		helixHandlerOriginal( helixHandlerInstance )
+		, helixConstraintOffset( helixHandlerOriginal->getConstraint() )
 		, idxOffset1(0)
 		, idxOffset2(0)
 {
@@ -186,6 +180,10 @@ HelixHandlerIdxOffset::HelixHandlerIdxOffset(
 inline
 HelixHandlerIdxOffset::~HelixHandlerIdxOffset()
 {
+	if (helixHandlerOriginal != NULL) {
+		delete helixHandlerOriginal;
+		helixHandlerOriginal = NULL;
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -205,7 +203,7 @@ size_t
 HelixHandlerIdxOffset::
 fillHelix(const size_t i1min, const size_t i1max, const size_t i2min, const size_t i2max)
 {
-	return helixHandlerOriginal.fillHelix( i1min+idxOffset1, i1max+idxOffset1, i2min+idxOffset2, i2max+idxOffset2 );
+	return helixHandlerOriginal->fillHelix( i1min+idxOffset1, i1max+idxOffset1, i2min+idxOffset2, i2max+idxOffset2 );
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -218,7 +216,7 @@ traceBackHelix(Interaction &interaction
 		, const size_t i2
 		)
 {
-	helixHandlerOriginal.traceBackHelix( interaction, i1+idxOffset1, i2+idxOffset2 );
+	helixHandlerOriginal->traceBackHelix( interaction, i1+idxOffset1, i2+idxOffset2 );
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -228,7 +226,7 @@ E_type
 HelixHandlerIdxOffset::
 getHelixE(const size_t i1, const size_t i2) const
 {
-	return helixHandlerOriginal.getHelixE( i1+idxOffset1, i2+idxOffset2 );
+	return helixHandlerOriginal->getHelixE( i1+idxOffset1, i2+idxOffset2 );
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -238,7 +236,7 @@ size_t
 HelixHandlerIdxOffset::
 getHelixLength1(const size_t i1, const size_t i2) const
 {
-	return helixHandlerOriginal.getHelixLength1( i1+idxOffset1, i2+idxOffset2 );
+	return helixHandlerOriginal->getHelixLength1( i1+idxOffset1, i2+idxOffset2 );
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -248,7 +246,7 @@ size_t
 HelixHandlerIdxOffset::
 getHelixLength2(const size_t i1, const size_t i2) const
 {
-	return helixHandlerOriginal.getHelixLength2( i1+idxOffset1, i2+idxOffset2 );
+	return helixHandlerOriginal->getHelixLength2( i1+idxOffset1, i2+idxOffset2 );
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -279,9 +277,9 @@ HelixHandlerIdxOffset::
 setOffset1( const size_t offset )
 {
 #if INTARNA_IN_DEBUG_MODE
-	if (offset >= helixHandlerOriginal.getInteractionEnergy().size1()) {
+	if (offset >= helixHandlerOriginal->getInteractionEnergy().size1()) {
 		throw std::runtime_error("HelixHandlerIdxOffset.setOffset1("+toString(offset)
-		+") offset > seq1.length "+toString(helixHandlerOriginal.getInteractionEnergy().size1()));
+		+") offset > seq1.length "+toString(helixHandlerOriginal->getInteractionEnergy().size1()));
 	}
 #endif
 	// set idx offset
@@ -296,9 +294,9 @@ HelixHandlerIdxOffset::
 setOffset2( const size_t offset )
 {
 #if INTARNA_IN_DEBUG_MODE
-	if (offset >= helixHandlerOriginal.getInteractionEnergy().size2()) {
+	if (offset >= helixHandlerOriginal->getInteractionEnergy().size2()) {
 		throw std::runtime_error("HelixHandlerIdxOffset.setOffset1("+toString(offset)
-								 +") offset > seq1.length "+toString(helixHandlerOriginal.getInteractionEnergy().size2()));
+								 +") offset > seq1.length "+toString(helixHandlerOriginal->getInteractionEnergy().size2()));
 	}
 #endif
 	// set idx offset

@@ -46,7 +46,7 @@ public:
 	PredictorMfe2dLimStackHeuristic( const InteractionEnergy & energy
 			, OutputHandler & output
 			, PredictionTracker * predTracker
-			, const HelixConstraint & helixConstraint );
+			, HelixHandler * helixHandler);
 
 	virtual ~PredictorMfe2dLimStackHeuristic();
 

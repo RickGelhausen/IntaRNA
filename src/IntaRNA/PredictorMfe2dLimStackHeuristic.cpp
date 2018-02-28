@@ -11,10 +11,10 @@ PredictorMfe2dLimStackHeuristic::
 PredictorMfe2dLimStackHeuristic( const InteractionEnergy & energy
 		, OutputHandler & output
 		, PredictionTracker * predTracker
-		, const HelixConstraint & helixConstraint
+		, HelixHandler * helixHandlerInstance
 		)
 	: PredictorMfe2dHeuristic(energy,output,predTracker)
-		, helixHandler( energy, helixConstraint )
+		, helixHandler( helixHandlerInstance )
 {
 }
 

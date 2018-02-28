@@ -4,6 +4,7 @@
 
 #include "IntaRNA/InteractionEnergy.h"
 #include "IntaRNA/HelixConstraint.h"
+#include "IntaRNA/HelixHandler.h"
 
 #include <boost/multi_array.hpp>
 
@@ -16,7 +17,7 @@ namespace IntaRNA {
  * Simple Version without allowing unpaired regions
  */
 
-class HelixHandlerStackingOnly {
+class HelixHandlerStackingOnly : public HelixHandler {
 
 public:
 	//! 4D matrix type to hold the mfe energies for helix interactions
@@ -51,21 +52,6 @@ public:
 	 */
 	virtual ~HelixHandlerStackingOnly();
 
-	/**
-	 * Access to the underlying interaction energy function
-	 * @return the underlying energy function
-	 */
-	virtual
-	const InteractionEnergy&
-	getInteractionEnergy() const;
-
-	/**
-	 * Access to the underlying helix constraint
-	 * @return the used helix constraint
-	 */
-	virtual
-	const HelixConstraint&
-	getConstraint() const;
 
 	/**
 	 * Compute the helix matrix for the given interval boundaries
@@ -125,12 +111,6 @@ public:
 
 
 protected:
-
-	//! the used energy function
-	const InteractionEnergy& energy;
-
-	//! the helix constraint to be applied
-	const HelixConstraint & helixConstraint;
 
 	//! the recursion data for the computation of a helix interaction
 	//! bp: the number of allowed bases
@@ -193,8 +173,7 @@ HelixHandlerStackingOnly::HelixHandlerStackingOnly(
 		, const HelixConstraint & helixConstraint
 )
 		:
-		energy(energy)
-		, helixConstraint(helixConstraint)
+		HelixHandler(energy, helixConstraint)
 		, helixE_rec( HelixIndex({{ 0, 0, 0 }}))
 		, helix()
 		, offset1(0)
@@ -207,24 +186,6 @@ HelixHandlerStackingOnly::HelixHandlerStackingOnly(
 inline
 HelixHandlerStackingOnly::~HelixHandlerStackingOnly()
 {
-}
-
-////////////////////////////////////////////////////////////////////////////
-
-inline
-const HelixConstraint&
-HelixHandlerStackingOnly::getConstraint() const
-{
-	return helixConstraint;
-}
-
-////////////////////////////////////////////////////////////////////////////
-
-inline
-const InteractionEnergy&
-HelixHandlerStackingOnly::getInteractionEnergy() const
-{
-	return energy;
 }
 
 ////////////////////////////////////////////////////////////////////////////

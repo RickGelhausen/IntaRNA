@@ -25,6 +25,8 @@
 #include "IntaRNA/AccessibilityVrna.h"
 #include "IntaRNA/AccessibilityBasePair.h"
 
+#include "IntaRNA/HelixHandlerStackingOnly.h"
+
 #include "IntaRNA/InteractionEnergyBasePair.h"
 #include "IntaRNA/InteractionEnergyVrna.h"
 
@@ -115,6 +117,7 @@ CommandLineParsing::CommandLineParsing()
 
 	temperature(0,100,37),
 
+	helixMode("SU",'S'),
 	pred( "SPL", 'S'),
 	predMode( "HME", 'H'),
 #if INTARNA_MULITHREADING
@@ -1481,7 +1484,7 @@ getPredictor( const InteractionEnergy & energy, OutputHandler & output ) const
 		switch( pred.val ) {
 		case 'L':  {
 			switch ( predMode.val ) {
-			case 'H' :	return new PredictorMfe2dLimStackHeuristic( energy, output, predTracker, getHelixConstraint( energy ));
+			case 'H' :	return new PredictorMfe2dLimStackHeuristic( energy, output, predTracker, getHelixHandler( energy ));
 			default :  INTARNA_NOT_IMPLEMENTED("mode "+toString(predMode.val)+" not implemented for prediction target "+toString(pred.val));
 			}
 		} break;
@@ -1632,6 +1635,24 @@ getHelixConstraint(const InteractionEnergy &energy) const
 		);
 	}
 	return *helixConstraint;
+}
+
+////////////////////////////////////////////////////////////////////////////
+
+HelixHandler *
+CommandLineParsing::
+getHelixHandler(const InteractionEnergy &energy) const {
+	// get helix constraint
+	const HelixConstraint &helixConstr = getHelixConstraint(energy);
+
+	switch (helixMode.val) {
+	case 'S' :
+		// create new helix handler with stackings only
+		return new HelixHandlerStackingOnly(energy, helixConstr);
+
+	}
+
+	// TODO: Add helixModes
 }
 
 ////////////////////////////////////////////////////////////////////////////

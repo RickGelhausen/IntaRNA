@@ -1,4 +1,4 @@
-#include "IntaRNA/HelixHandler.h"
+#include "IntaRNA/HelixHandlerUnpaired.h"
 
 namespace IntaRNA {
 

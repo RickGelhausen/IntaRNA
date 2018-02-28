@@ -16,6 +16,7 @@
 #include "IntaRNA/Accessibility.h"
 #include "IntaRNA/InteractionEnergy.h"
 #include "IntaRNA/HelixConstraint.h"
+#include "IntaRNA/HelixHandler.h"
 #include "IntaRNA/OutputHandler.h"
 #include "IntaRNA/Predictor.h"
 #include "IntaRNA/SeedConstraint.h"
@@ -154,6 +155,13 @@ public:
 	 * @return the user defined seed constraints
 	 */
 	const HelixConstraint & getHelixConstraint( const InteractionEnergy & energy ) const;
+
+	/**
+	 * Provides a newly allocated helix handler object according to the user settings
+	 * @param energy the interaction energy handler to be used
+	 * @return a newly allocated helix handler respective to the user defined helix mode setting
+	 */
+	HelixHandler * getHelixHandler(const InteractionEnergy& energy ) const;
 
 
 	/**
@@ -428,6 +436,8 @@ protected:
 	//! the temperature to be used for energy computations
 	NumberParameter<T_type> temperature;
 
+	//! the helix handler to be used
+	CharParameter helixMode;
 	//! the prediction target (mfe-single-site, max-prob-site, ..)
 	CharParameter pred;
 	//! the prediction mode (heuristic, space-efficient, exact)
@@ -657,6 +667,12 @@ protected:
 	 * @param value the argument value to validate
 	 */
 	void validate_temperature(const T_type & value);
+
+	/**
+	 * Validates the helix handler argument
+	 * @param value the argument value for validation
+	 */
+	void validate_helixMode(const char & value);
 
 	/**
 	 * Validates the prediction target argument.
