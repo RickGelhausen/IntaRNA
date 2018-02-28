@@ -95,6 +95,7 @@ fillHelix(const size_t i1min, const size_t i1max, const size_t i2min, const size
 
 		// find best combination in helix for i1,i2,bp
 		bestE = E_INF;
+		bestBP = 0;
 
 		// Check all base pair combinations to find the best (> minBP)
 		for ( size_t bp = helixConstraint.getMinBasePairs(); bp < helixConstraint.getMaxBasePairs()+1
@@ -107,11 +108,6 @@ fillHelix(const size_t i1min, const size_t i1max, const size_t i2min, const size
 			// energy for current number of base pairs
 			curE = energy.getE(i1, j1, i2, j2, getHelixE(i1-offset1,i2-offset2, bp)) + energy.getE_init();
 
-			// TODO: Count all possible helices ??
-//			if E_isNotINF(curE) {
-//				// count true helix
-//				helixCountNotInf++;
-//			}
 			// check if better than what is known so far
 			if ( curE < bestE ) {
 				bestE = curE;
