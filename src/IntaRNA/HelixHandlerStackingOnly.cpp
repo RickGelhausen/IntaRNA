@@ -14,10 +14,11 @@ fillHelix(const size_t i1min, const size_t i1max, const size_t i2min, const size
 	if ( i2min > i2max ) throw std::runtime_error("HelixHandlerStackingOnly::fillHelix: i2min("+toString(i2min)+") > i2max("+toString(i2max)+")");
 	if ( i1max > energy.size1() ) throw std::runtime_error("HelixHandlerStackingOnly::fillHelix: i1max("+toString(i1max)+") > energy.size1("+toString(energy.size1())+")");
 	if ( i2max > energy.size2() ) throw std::runtime_error("HelixHandlerStackingOnly::fillHelix: i2max("+toString(i2max)+") > energy.size2("+toString(energy.size2())+")");
-	if ( helixConstraint.getMinBasePairs() <= helixConstraint.getMaxBasePairs() )
+	if ( helixConstraint.getMinBasePairs() > helixConstraint.getMaxBasePairs() )
 		throw std::runtime_error("HelixHandlerStackingOnly::fillHelix: bpMin("+toString(helixConstraint.getMinBasePairs()) +") > bpMax("+toString(helixConstraint.getMaxBasePairs())+")");
 #endif
 
+	LOG(DEBUG) << "helixConstraints min max unpaired: " << helixConstraint.getMinBasePairs() << " " << helixConstraint.getMaxBasePairs() << " " << helixConstraint.getMaxUnpaired();
 
 	helix.resize( i1max-i1min+1, i2max-i2min+1 );
 	helixE_rec.resize( HelixIndex({{
@@ -158,10 +159,8 @@ traceBackHelix( Interaction & interaction
 	if (numberOfBP >= helixConstraint.getMinBasePairs() && numberOfBP <= helixConstraint.getMaxBasePairs()) {
 		// trace helices
 		// trace each helix base pair (excluding right most)
-		for (size_t bp = 0; bp < numberOfBP - 1; bp++) {
-			interaction.basePairs.push_back(energy.getBasePair(i1 + offset1, i2 + offset2));
-			i1++;
-			i2++;
+		for (size_t bp = 1; bp < numberOfBP; bp++) {
+			interaction.basePairs.push_back(energy.getBasePair(i1 + bp + offset1, i2 + bp + offset2));
 		}
 	}
 }

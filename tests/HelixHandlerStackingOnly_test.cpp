@@ -2,7 +2,6 @@
 #include "catch.hpp"
 
 #undef NDEBUG
-#define protected public
 
 #include "IntaRNA/RnaSequence.h"
 #include "IntaRNA/AccessibilityDisabled.h"
@@ -12,11 +11,6 @@
 #include "IntaRNA/Interaction.h"
 #include "IntaRNA/ReverseAccessibility.h"
 
-//! type of a base pair index encoding
-typedef std::pair<size_t,size_t> BasePair;
-
-//! type of a vector encoding base pair indices that are interacting
-typedef std::vector<BasePair> PairingVec;
 
 using namespace IntaRNA;
 
@@ -321,7 +315,6 @@ TEST_CASE( "HelixHandlerStackingOnly", "[HelixHandlerStackingOnly]") {
 		// Case (0,0)
 		//////////////////////
 		Interaction interaction1(r1,r2);
-
 		hhS.traceBackHelix(interaction1, 0, 0);
 
 
@@ -442,7 +435,6 @@ TEST_CASE( "HelixHandlerStackingOnly", "[HelixHandlerStackingOnly]") {
 		// Case (0,0)
 		//////////////////////
 		Interaction interaction1(r1,r2);
-
 		hhS.traceBackHelix(interaction1, 0, 0);
 
 		REQUIRE(interaction1.basePairs.size() == 2);
@@ -457,16 +449,13 @@ TEST_CASE( "HelixHandlerStackingOnly", "[HelixHandlerStackingOnly]") {
 		//////////////////////
 
 		Interaction interaction2(r1,r2);
-
 		hhS.traceBackHelix(interaction2, 2, 1);
-
 		REQUIRE(interaction2.basePairs.size() == 0);
 
 		// Case (5,5)
 		//////////////////////
 
 		Interaction interaction3(r1,r2);
-
 		hhS.traceBackHelix(interaction2, 5, 5);
 
 		REQUIRE(interaction2.basePairs.size() == 1);

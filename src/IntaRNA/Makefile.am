@@ -82,7 +82,6 @@ libIntaRNA_a_SOURCES =    \
 					AccessibilityBasePair.cpp \
 					HelixConstraint.cpp \
 					HelixHandlerStackingOnly.cpp \
-					HelixHandlerIdxOffset.cpp \
 					IndexRange.cpp \
 					IndexRangeList.cpp \
 					Interaction.cpp \

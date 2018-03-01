@@ -123,8 +123,11 @@ fillHybridE()
 	// iterate (decreasingly) over all left interaction starts
 	for (i1=hybridE.size1(); i1-- > 0;) {
 	for (i2=hybridE.size2(); i2-- > 0;) {
+		LOG(DEBUG) << "(i1,i2) " << "(" << i1 << "," << i2 << ")";
 		// direct cell access
 		curCell = &(hybridE(i1,i2));
+		LOG(DEBUG) << "HelixE " << helixHandler.getHelixE(i1,i2);
+
 		// check if left side can pair
 		if (E_isINF(curCell->E)) {
 			continue;
@@ -139,7 +142,8 @@ fillHybridE()
 			h1 = helixHandler.getHelixLength1(i1,i2)-1; assert(i1+h1 < hybridE.size1());
 			h2 = helixHandler.getHelixLength2(i1,i2)-1; assert(i2+h2 < hybridE.size2());
 
-			curE = helixHandler.getHelixE(i1,i2) + energy.getE_init();
+			// TODO: Maybe I add getE_init() too often
+			curE = helixHandler.getHelixE(i1,i2); //+ energy.getE_init();
 
 			// check if this combination yields better energy
 			curEtotal = energy.getE(i1, i1+h1, i2, i2+h2, curE);
@@ -198,11 +202,10 @@ fillHybridE()
 
 			} // w2
 			} // w1
+
+			// update mfe if needed
+			updateOptima( i1,curCell->j1, i2,curCell->j2, curCellEtotal, false );
 		} // helix
-
-		// update mfe if needed
-		updateOptima( i1,curCell->j1, i2,curCell->j2, curCellEtotal, false );
-
 	} // i2
 	} // i1
 
@@ -214,6 +217,8 @@ void
 PredictorMfe2dLimStackHeuristic::
 traceBack( Interaction & interaction )
 {
+	LOG(DEBUG) << "";
+	LOG(DEBUG) << "TRACEBACK START";
 	// check if something to trace
 	if (interaction.basePairs.size() < 2) {
 		return;
@@ -254,6 +259,9 @@ traceBack( Interaction & interaction )
 	assert( i2 <= j2 );
 	assert( j1 < hybridE.size1() );
 	assert( j2 < hybridE.size2() );
+
+	LOG(DEBUG) << "(i1,i2) " << "(" <<i1 << "," << i2 << ")";
+	LOG(DEBUG) << "(j1,j2) " << "(" <<j1 << "," << j2 << ")";
 
 	// trace back
 	// temp variables

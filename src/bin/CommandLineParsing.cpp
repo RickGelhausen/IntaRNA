@@ -1630,7 +1630,7 @@ getHelixConstraint(const InteractionEnergy &energy) const
 	if (helixConstraint == NULL) {
 		// setup according to user data
 		helixConstraint = new HelixConstraint(helixMinBP.val,
-											  helixMinBP.val,
+											  helixMaxBP.val,
 											  helixMaxUP.val
 		);
 	}

@@ -16,12 +16,14 @@ runTests_SOURCES =	catch.hpp \
 					AccessibilityBasePair_test.cpp \
 					HelixConstraint_test.cpp \
 					HelixHandlerStackingOnly_test.cpp \
+					HelixHandlerIdxOffset_test.cpp \
 					IndexRange_test.cpp  \
 					IndexRangeList_test.cpp  \
 					Interaction_test.cpp  \
 					InteractionEnergyBasePair_test.cpp  \
 					InteractionRange_test.cpp  \
 					PredictionTrackerProfileMinE_test.cpp \
+					PredictorMfe2dLimStackHeuristic_test.cpp \
 					NussinovHandler_test.cpp \
 					RnaSequence_test.cpp \
 					OutputHandlerRangeOnly_test.cpp \
