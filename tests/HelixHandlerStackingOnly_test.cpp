@@ -530,4 +530,76 @@ TEST_CASE( "HelixHandlerStackingOnly", "[HelixHandlerStackingOnly]") {
 
 	}
 
+	SECTION("fillHelix 5: Example from LimStackHeuristic test", "[HelixHandlerStackingOnly]") {
+		// Case 5 (3 length helix at the end)
+		RnaSequence r1("r1", "gggaaggg");
+		RnaSequence r2("r2", "cccaaccc");
+		AccessibilityDisabled acc1(r1, 0, NULL);
+		AccessibilityDisabled acc2(r2, 0, NULL);
+		ReverseAccessibility racc(acc2);
+		InteractionEnergyBasePair energy(acc1, racc);
+
+		HelixConstraint hC(2, 4, 0);
+		HelixHandlerStackingOnly hhS(energy, hC);
+
+		// No helix is possibles
+		REQUIRE(hhS.fillHelix(0, energy.size1() - 1, 0, energy.size2() - 1) == 16);
+
+		// Possible helices
+		// (5,5)
+		REQUIRE(hhS.getHelixE(5, 5) == -2);
+		REQUIRE(hhS.getHelixLength1(5, 5) == 3);
+		REQUIRE(hhS.getHelixLength2(5, 5) == hhS.getHelixLength1(5, 5));
+
+		// (0,0)
+		REQUIRE(hhS.getHelixE(0, 0) == -2);
+		REQUIRE(hhS.getHelixLength1(0, 0) == 3);
+		REQUIRE(hhS.getHelixLength2(0, 0) == hhS.getHelixLength1(0, 0));
+
+	}
+
+	SECTION("traceBackHelix 5: Example from LimStackHeuristic test") {
+		// Case 5 (3 length helix at the end)
+		RnaSequence r1("r1", "gggaaggg");
+		RnaSequence r2("r2", "cccaaccc");
+		AccessibilityDisabled acc1(r1, 0, NULL);
+		AccessibilityDisabled acc2(r2, 0, NULL);
+		ReverseAccessibility racc(acc2);
+		InteractionEnergyBasePair energy(acc1, racc);
+
+		HelixConstraint hC(2, 4, 0);
+		HelixHandlerStackingOnly hhS(energy, hC);
+
+		// No helix is possibles
+		REQUIRE(hhS.fillHelix(0, energy.size1() - 1, 0, energy.size2() - 1) == 16);
+
+		// Case (0,0)
+		//////////////////////
+		Interaction interaction1(r1,r2);
+
+		hhS.traceBackHelix(interaction1, 0, 0);
+
+		REQUIRE(interaction1.basePairs.size() == 2);
+		// First / last base pair of helix
+		REQUIRE(interaction1.basePairs.begin()->first == 0);
+		REQUIRE(interaction1.basePairs.begin()->second == 7);
+
+		REQUIRE(interaction1.basePairs.rbegin()->first == 1);
+		REQUIRE(interaction1.basePairs.rbegin()->second == 6);
+
+		// Case (0,0)
+		//////////////////////
+		Interaction interaction2(r1,r2);
+
+		hhS.traceBackHelix(interaction2, 5, 5);
+
+		REQUIRE(interaction2.basePairs.size() == 2);
+		// First / last base pair of helix
+		REQUIRE(interaction2.basePairs.begin()->first == 5);
+		REQUIRE(interaction2.basePairs.begin()->second == 2);
+
+		REQUIRE(interaction2.basePairs.rbegin()->first == 6);
+		REQUIRE(interaction2.basePairs.rbegin()->second == 1);
+	}
+
 }

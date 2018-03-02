@@ -268,6 +268,7 @@ traceBack( Interaction & interaction )
 	size_t h1,h2,k1,k2;
 	// do until only right boundary is left over
 	while( (j1-i1) > 1 ) {
+		LOG(DEBUG) << "Current (i1,i2): " << i1 << " " << i2;
 		const BestInteraction * curCell = NULL;
 		bool traceNotFound = true;
 
@@ -275,8 +276,9 @@ traceBack( Interaction & interaction )
 		h1 = helixHandler.getHelixLength1(i1,i2)-1; assert(h1 < hybridE.size1());
 		h2 = helixHandler.getHelixLength2(i1,i2)-1; assert(h2 < hybridE.size2());
 
+		LOG(DEBUG) << "(E, h1, h2) " << helixHandler.getHelixE(i1,i2) << " " << h1 << " " << h2;
 		// init case
-		if ( E_equal(curE, helixHandler.getHelixE(i1,i2) + energy.getE_init() ) ) {
+		if ( E_equal(curE, helixHandler.getHelixE(i1,i2)) ) { //+ energy.getE_init() ) ) {
 			// stop searching
 			traceNotFound = false;
 			// traceback helix base pairs ( excluding right most = (k1,k2))
@@ -318,9 +320,10 @@ traceBack( Interaction & interaction )
 					i1=k1;
 					i2=k2;
 					curE = curCell->E;
-				}
-			} // w1
-			} // w2
+
+			}
+		} // w1
+		} // w2
 
 		assert( !traceNotFound );
 	}
