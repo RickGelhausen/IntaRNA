@@ -142,8 +142,7 @@ fillHybridE()
 			h1 = helixHandler.getHelixLength1(i1,i2)-1; assert(i1+h1 < hybridE.size1());
 			h2 = helixHandler.getHelixLength2(i1,i2)-1; assert(i2+h2 < hybridE.size2());
 
-			// TODO: Maybe I add getE_init() too often
-			curE = helixHandler.getHelixE(i1,i2); //+ energy.getE_init();
+			curE = helixHandler.getHelixE(i1,i2) + energy.getE_init();
 
 			// check if this combination yields better energy
 			curEtotal = energy.getE(i1, i1+h1, i2, i2+h2, curE);
@@ -278,7 +277,7 @@ traceBack( Interaction & interaction )
 
 		LOG(DEBUG) << "(E, h1, h2) " << helixHandler.getHelixE(i1,i2) << " " << h1 << " " << h2;
 		// init case
-		if ( E_equal(curE, helixHandler.getHelixE(i1,i2)) ) { //+ energy.getE_init() ) ) {
+		if ( E_equal(curE, helixHandler.getHelixE(i1,i2) + energy.getE_init())  ) {
 			// stop searching
 			traceNotFound = false;
 			// traceback helix base pairs ( excluding right most = (k1,k2))
