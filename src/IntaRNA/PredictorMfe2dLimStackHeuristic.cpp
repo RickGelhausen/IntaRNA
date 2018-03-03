@@ -282,6 +282,8 @@ traceBack( Interaction & interaction )
 			traceNotFound = false;
 			// traceback helix base pairs ( excluding right most = (k1,k2))
 			helixHandler.traceBackHelix(interaction, i1, i2);
+			// TODO: ASK MARTIN!! WORKAROUND!!!
+			interaction.basePairs.pop_back();
 			// trace right part of split
 			i1=i1+h1;
 			i2=i2+h2;
@@ -311,6 +313,7 @@ traceBack( Interaction & interaction )
 					traceNotFound = false;
 					// store helix base pairs
 					helixHandler.traceBackHelix( interaction, i1, i2 );
+
 					// store splitting base pair if not last one of interaction range
 					if ( k1 < j1 ) {
 						interaction.basePairs.push_back( energy.getBasePair(k1,k2) );

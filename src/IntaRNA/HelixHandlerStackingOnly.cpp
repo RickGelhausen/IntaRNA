@@ -159,7 +159,7 @@ traceBackHelix( Interaction & interaction
 	if (numberOfBP >= helixConstraint.getMinBasePairs() && numberOfBP <= helixConstraint.getMaxBasePairs()) {
 		// trace helices
 		// trace each helix base pair (excluding right most)
-		for (size_t bp = 0; bp < numberOfBP - 1; bp++) {
+		for (size_t bp = 0; bp < numberOfBP; bp++) {
 			if (i1 != i1_) {
 				interaction.basePairs.push_back(energy.getBasePair(i1 + offset1, i2 + offset2));
 			}
