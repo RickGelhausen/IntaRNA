@@ -123,10 +123,9 @@ fillHybridE()
 	// iterate (decreasingly) over all left interaction starts
 	for (i1=hybridE.size1(); i1-- > 0;) {
 	for (i2=hybridE.size2(); i2-- > 0;) {
-		LOG(DEBUG) << "(i1,i2) " << "(" << i1 << "," << i2 << ")";
+
 		// direct cell access
 		curCell = &(hybridE(i1,i2));
-		LOG(DEBUG) << "HelixE " << helixHandler.getHelixE(i1,i2);
 
 		// check if left side can pair
 		if (E_isINF(curCell->E)) {
@@ -201,7 +200,6 @@ fillHybridE()
 
 			} // w2
 			} // w1
-
 			// update mfe if needed
 			updateOptima( i1,curCell->j1, i2,curCell->j2, curCellEtotal, false );
 		} // helix
@@ -216,8 +214,7 @@ void
 PredictorMfe2dLimStackHeuristic::
 traceBack( Interaction & interaction )
 {
-	LOG(DEBUG) << "";
-	LOG(DEBUG) << "TRACEBACK START";
+
 	// check if something to trace
 	if (interaction.basePairs.size() < 2) {
 		return;
@@ -259,36 +256,17 @@ traceBack( Interaction & interaction )
 	assert( j1 < hybridE.size1() );
 	assert( j2 < hybridE.size2() );
 
-	LOG(DEBUG) << "(i1,i2) " << "(" <<i1 << "," << i2 << ")";
-	LOG(DEBUG) << "(j1,j2) " << "(" <<j1 << "," << j2 << ")";
-
 	// trace back
 	// temp variables
 	size_t h1,h2,k1,k2;
 	// do until only right boundary is left over
 	while( (j1-i1) > 1 ) {
-		LOG(DEBUG) << "Current (i1,i2): " << i1 << " " << i2;
 		const BestInteraction * curCell = NULL;
 		bool traceNotFound = true;
 
 		assert(E_isNotINF(helixHandler.getHelixE(i1,i2)));
 		h1 = helixHandler.getHelixLength1(i1,i2)-1; assert(h1 < hybridE.size1());
 		h2 = helixHandler.getHelixLength2(i1,i2)-1; assert(h2 < hybridE.size2());
-
-		LOG(DEBUG) << "(E, h1, h2) " << helixHandler.getHelixE(i1,i2) << " " << h1 << " " << h2;
-		// init case
-		if ( E_equal(curE, helixHandler.getHelixE(i1,i2) + energy.getE_init())  ) {
-			// stop searching
-			traceNotFound = false;
-			// traceback helix base pairs ( excluding right most = (k1,k2))
-			helixHandler.traceBackHelix(interaction, i1, i2);
-			// TODO: ASK MARTIN!! WORKAROUND!!!
-			interaction.basePairs.pop_back();
-			// trace right part of split
-			i1=i1+h1;
-			i2=i2+h2;
-			curE = 0.0;
-		}
 
 		// check all combinations of decompositions into (i1,i2)..(k1,k2)-(j1,j2)
 		for (size_t w1=1; traceNotFound && w1-1 <= energy.getMaxInternalLoopSize1() && i1+h1+w1<hybridE.size1(); w1++) {
@@ -326,6 +304,20 @@ traceBack( Interaction & interaction )
 			}
 		} // w1
 		} // w2
+
+		// init case
+		if ( traceNotFound && E_equal(curE, helixHandler.getHelixE(i1,i2) + energy.getE_init())  ) {
+			// stop searching
+			traceNotFound = false;
+			// traceback helix base pairs ( excluding right most = (k1,k2))
+			helixHandler.traceBackHelix(interaction, i1, i2);
+			// TODO: ASK MARTIN!! WORKAROUND!!!
+			interaction.basePairs.pop_back();
+			// trace right part of split
+			i1=i1+h1;
+			i2=i2+h2;
+			curE=0.0;
+		}
 
 		assert( !traceNotFound );
 	}

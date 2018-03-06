@@ -363,7 +363,19 @@ CommandLineParsing::CommandLineParsing()
 		;
 
 	////  INTERACTION/ENERGY OPTIONS  ////////////////////////
+	opts_inter.add_options()
+			("helixMode"
+					, value<char>(&(helixMode.val))
+					   ->default_value(helixMode.def)
+					   ->notifier(boost::bind(&CommandLineParsing::validate_helixMode,this,_1))
+					, std::string("helix prediction mode : "
+								  "\n 'S' stacking only, "
+								  "\n 'U' unpaired bases allowed in helix"
 
+
+			 ).c_str())
+			;
+	opts_cmdline_short.add(opts_inter);
 	opts_inter.add_options()
 		("mode,m"
 			, value<char>(&(predMode.val))
@@ -614,6 +626,20 @@ parse(int argc, char** argv)
 			// valide accessibility input from file (requires parsed sequences)
 			validate_qAccFile( qAccFile );
 			validate_tAccFile( tAccFile );
+
+			// check helix setup
+			// check for minimal sequence length
+			for(size_t i=0; i<query.size(); i++) {
+				if (query.at(i).size() < helixMinBP.val) {
+					throw error("length of query sequence "+toString(i+1)+" is below minimal number of helix base pairs (helixMinBP="+toString(helixMinBP.val)+")");
+				}
+			}
+
+			for(size_t i=0; i<target.size(); i++) {
+				if (target.at(i).size() < helixMinBP.val) {
+					throw error("length of target sequence "+toString(i+1)+" is below minimal number of helix base pairs (helixMinBP="+toString(helixMinBP.val)+")");
+				}
+			}
 
 			// check seed setup
 			noSeedRequired = vm.count("noSeed") > 0;

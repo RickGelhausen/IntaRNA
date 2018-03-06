@@ -18,8 +18,6 @@ fillHelix(const size_t i1min, const size_t i1max, const size_t i2min, const size
 		throw std::runtime_error("HelixHandlerStackingOnly::fillHelix: bpMin("+toString(helixConstraint.getMinBasePairs()) +") > bpMax("+toString(helixConstraint.getMaxBasePairs())+")");
 #endif
 
-	LOG(DEBUG) << "helixConstraints min max unpaired: " << helixConstraint.getMinBasePairs() << " " << helixConstraint.getMaxBasePairs() << " " << helixConstraint.getMaxUnpaired();
-
 	helix.resize( i1max-i1min+1, i2max-i2min+1 );
 	helixE_rec.resize( HelixIndex({{
 				   (HelixRecMatrix::index)(helix.size1())
@@ -77,7 +75,7 @@ fillHelix(const size_t i1min, const size_t i1max, const size_t i2min, const size
 				k2 = i2+1;
 
 				// check if split pair is complementary
-				// and recursed entry is < E_INF // TODO: j1-1, j2-1 should always be complementary
+				// and recursed entry is < E_INF
 				if (! ( energy.areComplementary(k1,k2) && E_isNotINF( getHelixE( k1-offset1, k2-offset2, curBP-1) ) ) ) {
 					continue; // not complementary -> skip
 				}

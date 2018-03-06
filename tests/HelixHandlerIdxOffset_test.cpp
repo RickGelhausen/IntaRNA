@@ -63,6 +63,6 @@ TEST_CASE( "HelixHandlerIdxOffset", "[HelixHandlerIdxOffset]") {
 		hhIO.setOffset2(2);
 
 		// possible helices
-		//REQUIRE(hhIO.fillHelix(0, energy.size1()-1, 0, energy.size2()-1)==6);
+		REQUIRE(hhIO.fillHelix(0, energy.size1()-1, 0, energy.size2()-2)==6);
 	}
 }

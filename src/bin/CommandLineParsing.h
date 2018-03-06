@@ -1304,6 +1304,15 @@ void CommandLineParsing::validate_temperature(const T_type & value) {
 ////////////////////////////////////////////////////////////////////////////
 
 inline
+void CommandLineParsing::validate_helixMode(const char &value)
+{
+	// forward check to general method
+	validate_charArgument("mode", helixMode, value);
+}
+
+////////////////////////////////////////////////////////////////////////////
+
+inline
 void CommandLineParsing::validate_pred(const char & value)
 {
 	// forward check to general method
