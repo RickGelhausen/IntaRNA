@@ -512,7 +512,7 @@ CommandLineParsing::CommandLineParsing()
 
 	////  GENERAL OPTIONS  ////////////////////////////////////
 
-	opts_cmdline_all.add(opts_query).add(opts_target).add(opts_seed).add(opts_inter).add(opts_output).add(opts_general);
+	opts_cmdline_all.add(opts_query).add(opts_target).add(opts_helix).add(opts_seed).add(opts_inter).add(opts_output).add(opts_general);
 
 
 }
