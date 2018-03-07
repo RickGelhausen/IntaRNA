@@ -375,7 +375,6 @@ CommandLineParsing::CommandLineParsing()
 
 			 ).c_str())
 			;
-	opts_cmdline_short.add(opts_inter);
 	opts_inter.add_options()
 		("mode,m"
 			, value<char>(&(predMode.val))
@@ -512,7 +511,7 @@ CommandLineParsing::CommandLineParsing()
 
 	////  GENERAL OPTIONS  ////////////////////////////////////
 
-	opts_cmdline_all.add(opts_query).add(opts_target).add(opts_seed).add(opts_inter).add(opts_output).add(opts_general);
+	opts_cmdline_all.add(opts_query).add(opts_target).add(opts_helix).add(opts_seed).add(opts_inter).add(opts_output).add(opts_general);
 
 
 }
@@ -641,6 +640,10 @@ parse(int argc, char** argv)
 				}
 			}
 
+			// Ensure that min is smaller than max.
+			if (helixMinBP.val > helixMaxBP.val) {
+				throw error("the minimum number of base pairs (" +toString(helixMinBP.val)+") is higher than the maximum number of base pairs (" +toString(helixMaxBP.val)+")");
+			}
 			// check seed setup
 			noSeedRequired = vm.count("noSeed") > 0;
 			if (noSeedRequired) {

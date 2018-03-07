@@ -153,13 +153,14 @@ traceBackHelix( Interaction & interaction
 	// Get base pair length of best interaction
 	size_t numberOfBP = getHelixBP(i1_,i2_);
 
+	std::cout << offset1 << " " << offset2 << std::endl;
 	// Check whether this trace is within the allowed boundaries
 	if (numberOfBP >= helixConstraint.getMinBasePairs() && numberOfBP <= helixConstraint.getMaxBasePairs()) {
 		// trace helices
 		// trace each helix base pair (excluding right most)
 		for (size_t bp = 0; bp < numberOfBP; bp++) {
 			if (i1 != i1_) {
-				interaction.basePairs.push_back(energy.getBasePair(i1 + offset1, i2 + offset2));
+				interaction.basePairs.push_back(energy.getBasePair(i1, i2));
 			}
 			i1++;
 			i2++;

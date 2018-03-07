@@ -3,8 +3,6 @@
 
 #undef NDEBUG
 
-#define protected public
-
 #include "IntaRNA/RnaSequence.h"
 #include "IntaRNA/AccessibilityDisabled.h"
 #include "IntaRNA/HelixConstraint.h"
