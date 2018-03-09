@@ -76,7 +76,6 @@ predict( const IndexRange & r1
 	// temp vars
 	size_t i1,i2,w1,w2;
 
-	LOG(DEBUG) << "TEST";
 	// init matrix
 	bool isValidCell = true;
 	for (i1=0; i1<hybridE.size1(); i1++) {
@@ -137,7 +136,7 @@ fillHybridE()
 		curCellEtotal = energy.getE(i1,curCell->j1,i2,curCell->j2,curCell->E);
 
 		// check if helix is possible for this left boundary
-		if (E_isNotINF( helixHandler.getHelixE(i1,i2) ) ) {
+		if ( E_isNotINF( helixHandler.getHelixE(i1,i2) ) ) {
 			// get right extension
 			h1 = helixHandler.getHelixLength1(i1,i2)-1; assert(i1+h1 < hybridE.size1());
 			h2 = helixHandler.getHelixLength2(i1,i2)-1; assert(i2+h2 < hybridE.size2());
@@ -224,10 +223,10 @@ traceBack( Interaction & interaction )
 #if INTARNA_IN_DEBUG_MODE
 	// sanity checks
 	if ( ! interaction.isValid() ) {
-		throw std::runtime_error("PredictorMfeLimStack2dHeuristic::traceBack() : given interaction not valid");
+		throw std::runtime_error("PredictorMfe2dLimStackHeuristic::traceBack() : given interaction not valid");
 	}
 	if ( interaction.basePairs.size() != 2 ) {
-		throw std::runtime_error("PredictorMfeLimStack2dHeuristic::traceBack() : given interaction does not contain boundaries only");
+		throw std::runtime_error("PredictorMfe2dLimStackHeuristic::traceBack() : given interaction does not contain boundaries only");
 	}
 #endif
 
@@ -340,6 +339,82 @@ traceBack( Interaction & interaction )
 		(*bps.rbegin()) = energy.getBasePair( j1, j2 );
 	}
 
+}
+
+////////////////////////////////////////////////////////////////////////////
+
+void
+PredictorMfe2dLimStackHeuristic::
+getNextBest( Interaction & curBest )
+{
+
+	// get original
+	const E_type curBestE = curBest.energy;
+
+	// TODO replace index iteration with something based on ranges from reportedInteractions
+
+	// identify cell with next best non-overlapping interaction site
+	// iterate (decreasingly) over all left interaction starts
+	size_t i1,i2;
+	BestInteraction * curBestCell = NULL;
+	E_type curBestCellE = E_INF;
+	Interaction::BasePair curBestCellStart;
+	BestInteraction * curCell = NULL;
+	E_type curCellE = E_INF;
+	IndexRange r1,r2;
+	for (i1=hybridE.size1(); i1-- > 0;) {
+		// ensure interaction site start is not covered
+		if (reportedInteractions.first.covers(i1)) {
+			continue;
+		}
+		for (i2=hybridE.size2(); i2-- > 0;) {
+			// ensure interaction site start is not covered
+			if (reportedInteractions.second.covers(i2)) {
+				continue;
+			}
+			// direct cell access
+			curCell = &(hybridE(i1,i2));
+			// check if left side can pair
+			if (E_isINF(curCell->E))
+			{
+				continue;
+			}
+			// get overall energy of the interaction
+			curCellE = energy.getE(i1,curCell->j1,i2,curCell->j2,curCell->E);
+			// or energy is too low to be considered
+			// or energy is higher than current best found so far
+			if (curCellE < curBestE || curCellE >= curBestCellE )
+			{
+				continue;
+			}
+			// ensure site is not overlapping
+			r1.from = i1;
+			r1.to = curCell->j1;
+			if ( reportedInteractions.first.overlaps( r1 )) {
+				continue;
+			}
+			r2.from = i2;
+			r2.to = curCell->j2;
+			if ( reportedInteractions.second.overlaps( r2 )) {
+				continue;
+			}
+			//// FOUND THE NEXT BETTER SOLUTION
+			// overwrite current best found so far
+			curBestCell = curCell;
+			curBestCellE = curCellE;
+			curBestCellStart.first = i1;
+			curBestCellStart.second = i2;
+
+		} // i2
+	} // i1
+
+	// overwrite curBest
+	curBest.energy = curBestCellE;
+	curBest.basePairs.resize(2);
+	if (E_isNotINF(curBestCellE)) {
+		curBest.basePairs[0] = energy.getBasePair( curBestCellStart.first, curBestCellStart.second );
+		curBest.basePairs[1] = energy.getBasePair( curBestCell->j1, curBestCell->j2 );
+	}
 }
 ////////////////////////////////////////////////////////////////////////////
 

@@ -1,4 +1,3 @@
-
 #ifndef COMMANDLINEPARSING_H_
 #define COMMANDLINEPARSING_H_
 
@@ -251,8 +250,8 @@ protected:
 		if (prefLC == "tacc")	{ return OutPrefixCode::OP_tAcc; } else
 		if (prefLC == "qpu")	{ return OutPrefixCode::OP_qPu; } else
 		if (prefLC == "tpu")	{ return OutPrefixCode::OP_tPu; } else
-		// not known
-		return OutPrefixCode::OP_UNKNOWN;
+			// not known
+			return OutPrefixCode::OP_UNKNOWN;
 	}
 
 	/**
@@ -262,33 +261,33 @@ protected:
 	class NumberParameter {
 	public:
 		//! the value of the parameter
-	  T val;
+		T val;
 		//! the minimally allowed value
-	  const T min;
+		const T min;
 		//! the maximally allowed value
-	  const T max;
+		const T max;
 		//! the default value
-	  const T def;
+		const T def;
 		/**
 		 * construction feeding the members
 		 * @param min the minimally allowed value
 		 * @param max the maximally allowed value
 		 * @param def the default value
 		 */
-	  NumberParameter( const T min, const T max, const T def )
-	   : val(def), min(min), max(max), def(def)
-	  {}
-	    //! checks if the given value is in the allowed range [min,max]
-	    //! @param value the value to check
-	    //! @return true if in range; false otherwise
-	  bool isInRange(const T& value) const {
-		  return value >= min && value <= max;
-	  }
-	    //! checks whether or not val is in the allowed range [min,max]
-	    //! @return true if in range; false otherwise
-	  bool isInRange() const {
-		  return isInRange(val);
-	  }
+		NumberParameter( const T min, const T max, const T def )
+				: val(def), min(min), max(max), def(def)
+		{}
+		//! checks if the given value is in the allowed range [min,max]
+		//! @param value the value to check
+		//! @return true if in range; false otherwise
+		bool isInRange(const T& value) const {
+			return value >= min && value <= max;
+		}
+		//! checks whether or not val is in the allowed range [min,max]
+		//! @return true if in range; false otherwise
+		bool isInRange() const {
+			return isInRange(val);
+		}
 	};
 
 	/**
@@ -296,11 +295,11 @@ protected:
 	 */
 	class CharParameter {
 	public:
-		  //! the value of the parameter
+		//! the value of the parameter
 		char val;
-		  //! the set of allowed values for this parameter as a string
+		//! the set of allowed values for this parameter as a string
 		const std::string alphabet;
-		  //! the default value of the parameter
+		//! the default value of the parameter
 		const char def;
 		/**
 		 * Construction and member setup
@@ -308,7 +307,7 @@ protected:
 		 * @param def the default value (has to be part of the alphabet)
 		 */
 		CharParameter( const std::string& alphabet, const char def )
-		  : val(def), alphabet(alphabet), def(def)
+				: val(def), alphabet(alphabet), def(def)
 		{
 			if (alphabet.find(def) == std::string::npos) {
 				throw std::runtime_error("CharParameter() : default value '"+toString(def)+"' is not within alphabet '"+alphabet+"'");
@@ -318,12 +317,12 @@ protected:
 		//! @param value the value to check
 		//! @return true if in alphabet; false otherwise
 		bool isInAlphabet(const char value) const {
-		  return alphabet.find(value) != std::string::npos;
+			return alphabet.find(value) != std::string::npos;
 		}
 		//! checks whether or not val is in the allowed alphabet
 		//! @return true if in alphabet; false otherwise
 		bool isInAlphabet() const {
-		  return isInAlphabet(val);
+			return isInAlphabet(val);
 		}
 
 	};
@@ -787,9 +786,9 @@ protected:
 	 * @param indexMax the maximal value of an index allowed
 	 */
 	void validate_indexRangeList(const std::string & argName
-								, const std::string & value
-								, const size_t indexMin
-								, const size_t indexMax );
+			, const std::string & value
+			, const size_t indexMin
+			, const size_t indexMax );
 
 	/**
 	 * Validates a sequence arguments.
@@ -815,8 +814,8 @@ protected:
 	 * @param sequences the container to fill
 	 */
 	void parseSequences(const std::string & paramName,
-					const std::string& paramArg,
-					RnaSequenceVec& sequences );
+						const std::string& paramArg,
+						RnaSequenceVec& sequences );
 
 	/**
 	 * Parses the parameter input stream from FASTA format and returns all
@@ -826,8 +825,8 @@ protected:
 	 * @param sequences the container to fill
 	 */
 	void parseSequencesFasta( const std::string & paramName,
-					std::istream& input,
-					RnaSequenceVec& sequences);
+							  std::istream& input,
+							  RnaSequenceVec& sequences);
 
 	/**
 	 * Checks whether or not a sequence container holds a specific number of
@@ -840,9 +839,9 @@ protected:
 	 * @return true if the constraint is met; false otherwise
 	 * */
 	bool validateSequenceNumber(const std::string & paramName
-						, const RnaSequenceVec & sequences
-						, const size_t min
-						, const size_t max );
+			, const RnaSequenceVec & sequences
+			, const size_t min
+			, const size_t max );
 
 	/**
 	 * Checks whether or not the sequences in the container conform to the
@@ -854,7 +853,7 @@ protected:
 	 * @return true if the constraint is met; false otherwise
 	 * */
 	bool validateSequenceAlphabet(const std::string & paramName
-						, const RnaSequenceVec & sequences );
+			, const RnaSequenceVec & sequences );
 
 
 	/**
@@ -873,7 +872,7 @@ protected:
 	 */
 	bool
 	validateRegion( const std::string & argName
-					, const std::string & value );
+			, const std::string & value );
 
 	/**
 	 * Validates whether or not a given output target value is either STDOUT,
@@ -892,9 +891,9 @@ protected:
 	 */
 	void
 	parseRegion( const std::string & argName
-				, const std::string & value
-				, const RnaSequenceVec & sequences
-				, IndexRangeListVec & rangeList );
+			, const std::string & value
+			, const RnaSequenceVec & sequences
+			, IndexRangeListVec & rangeList );
 
 	/**
 	 * Checks whether or not any command line argument were parsed. Throws a
@@ -934,8 +933,8 @@ protected:
 	 */
 	std::string
 	getFullFilename( const std::string & fileName
-					, const RnaSequence * target
-					, const RnaSequence * query ) const;
+			, const RnaSequence * target
+			, const RnaSequence * query ) const;
 
 
 };
@@ -1391,47 +1390,47 @@ void CommandLineParsing::validate_out(const std::vector<std::string> & list) {
 		OutPrefixCode curPrefCode = getCodeForOutPrefix( curPref );
 
 		switch (curPrefCode) {
-		// handle unknown prefix
-		case OutPrefixCode::OP_UNKNOWN : {
-			LOG(ERROR) <<"--out : prefix '"<<curPref<<"' is not supported.. maybe misspelled?";
-			updateParsingCode(ReturnCode::STOP_PARSING_ERROR);
-			break;
-		}
-		// handle empty prefix
-		case OutPrefixCode::OP_EMPTY : {
-			// check if already seen
-			if (emptyPrefixSeen) {
-				LOG(ERROR) <<"--out : specified more than once without prefix";
+			// handle unknown prefix
+			case OutPrefixCode::OP_UNKNOWN : {
+				LOG(ERROR) <<"--out : prefix '"<<curPref<<"' is not supported.. maybe misspelled?";
 				updateParsingCode(ReturnCode::STOP_PARSING_ERROR);
 				break;
 			}
-			// keep track that empty prefix was already seen
-			emptyPrefixSeen = true;
-			// cut of leading ':' if needed
-			std::string streamName = (v->find(':')==std::string::npos ? *v : v->substr(v->find(':')+1));
-			// forward check to general method
-			validate_outputTarget( "--out", streamName );
-			// store stream name
-			outPrefix2streamName[curPrefCode] = streamName;
-			// proceed to next argument
-			break;
-		}
-		// handle all other prefixes
-		default : {
-			// check if prefix was already seen
-			if ( !outPrefix2streamName.at(curPrefCode).empty()) {
-				LOG(ERROR) <<"--out : specified more than once with prefix '"<<curPref<<"'";
-				updateParsingCode(ReturnCode::STOP_PARSING_ERROR);
+				// handle empty prefix
+			case OutPrefixCode::OP_EMPTY : {
+				// check if already seen
+				if (emptyPrefixSeen) {
+					LOG(ERROR) <<"--out : specified more than once without prefix";
+					updateParsingCode(ReturnCode::STOP_PARSING_ERROR);
+					break;
+				}
+				// keep track that empty prefix was already seen
+				emptyPrefixSeen = true;
+				// cut of leading ':' if needed
+				std::string streamName = (v->find(':')==std::string::npos ? *v : v->substr(v->find(':')+1));
+				// forward check to general method
+				validate_outputTarget( "--out", streamName );
+				// store stream name
+				outPrefix2streamName[curPrefCode] = streamName;
+				// proceed to next argument
 				break;
 			}
-			// store prefix to identify another existence
-			std::string streamName = v->substr(v->find(':')+1);
-			// forward check to general method
-			validate_outputTarget( "--out="+curPref+":", streamName );
-			// store stream name
-			outPrefix2streamName[curPrefCode] = streamName;
-			break;
-		}
+				// handle all other prefixes
+			default : {
+				// check if prefix was already seen
+				if ( !outPrefix2streamName.at(curPrefCode).empty()) {
+					LOG(ERROR) <<"--out : specified more than once with prefix '"<<curPref<<"'";
+					updateParsingCode(ReturnCode::STOP_PARSING_ERROR);
+					break;
+				}
+				// store prefix to identify another existence
+				std::string streamName = v->substr(v->find(':')+1);
+				// forward check to general method
+				validate_outputTarget( "--out="+curPref+":", streamName );
+				// store stream name
+				outPrefix2streamName[curPrefCode] = streamName;
+				break;
+			}
 		} // switch curPrefCode
 	} // for all arguments
 }
@@ -1573,7 +1572,7 @@ getFullFilename( const std::string & fileNamePath, const RnaSequence * target, c
 			}
 		}
 	} else
-	// generate query only
+		// generate query only
 	if (query != NULL && target == NULL) {
 		if (getQuerySequences().size() > 1) {
 			fileID += "s";
@@ -1588,7 +1587,7 @@ getFullFilename( const std::string & fileNamePath, const RnaSequence * target, c
 			}
 		}
 	} else
-	// generate combined part
+		// generate combined part
 	{
 		if (getQuerySequences().size() > 1 || getTargetSequences().size() > 1) {
 			fileID += "t";
@@ -1621,8 +1620,8 @@ getFullFilename( const std::string & fileNamePath, const RnaSequence * target, c
 
 		// return compiled file name including file ID
 		return fileNamePath.substr(0,startOfExtension)
-				+ "-" + fileID
-				+ fileNamePath.substr(startOfExtension);
+			   + "-" + fileID
+			   + fileNamePath.substr(startOfExtension);
 	}
 }
 
