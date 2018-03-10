@@ -30,12 +30,12 @@ public:
 	 * @param predTracker the prediction tracker to be used or NULL if no
 	 *         tracking is to be done; if non-NULL, the tracker gets deleted
 	 *         on this->destruction.
-	 * @param seedConstraint the seed constraint to be used for seed identification
+	 * @param seedHandler the seed handler to be used for seed identification
 	 */
 	PredictorMfe4dSeed( const InteractionEnergy & energy
 						, OutputHandler & output
 						, PredictionTracker * predTracker
-						, const SeedConstraint & seedConstraint );
+						, SeedHandler * seedHandler );
 
 	virtual ~PredictorMfe4dSeed();
 
@@ -90,6 +90,23 @@ protected:
 protected:
 
 	/**
+	 * optima update without tracker notification
+	 *
+	 * @param i1 the index of the first sequence interacting with i2
+	 * @param j1 the index of the first sequence interacting with j2
+	 * @param i2 the index of the second sequence interacting with i1
+	 * @param j2 the index of the second sequence interacting with j1
+	 * @param energy ignored
+	 * @param isHybridE ignored
+	 */
+	virtual
+	void
+	updateOptima( const size_t i1, const size_t j1
+			, const size_t i2, const size_t j2
+			, const E_type energy
+			, const bool isHybridE );
+
+	/**
 	 * Removes all temporary data structures and resets the predictor
 	 */
 	void
@@ -105,9 +122,11 @@ protected:
 	 * Fills a given interaction (boundaries given) with the according
 	 * hybridizing base pairs.
 	 * @param interaction IN/OUT the interaction to fill
+	 * @param outConstraint constrains the interactions reported to the output handler
 	 */
+	virtual
 	void
-	traceBack( Interaction & interaction );
+	traceBack( Interaction & interaction, const OutputConstraint & outConstraint  );
 
 
 	/**
@@ -125,6 +144,29 @@ protected:
 	getNextBest( Interaction & curBest );
 
 };
+
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+
+inline
+void
+PredictorMfe4dSeed::
+updateOptima( const size_t i1, const size_t j1
+		, const size_t i2, const size_t j2
+		, const E_type energy
+		, const bool isHybridE )
+{
+	// temporarily disable tracker
+	PredictionTracker * curPredTracker = this->predTracker;
+	this->predTracker = NULL;
+	// update optimum information
+	PredictorMfe4d::updateOptima(i1,j1,i2,j2,energy,isHybridE);
+	// reenable tracker
+	this->predTracker = curPredTracker;
+}
+
+//////////////////////////////////////////////////////////////////////////
 
 } // namespace
 

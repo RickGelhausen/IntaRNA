@@ -11,10 +11,10 @@ PredictorMfe2dHeuristicSeed::
 PredictorMfe2dHeuristicSeed( const InteractionEnergy & energy
 		, OutputHandler & output
 		, PredictionTracker * predTracker
-		, const SeedConstraint & seedConstraint
+		, SeedHandler * seedHandlerInstance
 		)
  : PredictorMfe2dHeuristic(energy,output,predTracker)
-	, seedHandler( energy, seedConstraint )
+	, seedHandler( seedHandlerInstance )
 {
 }
 
@@ -107,7 +107,7 @@ predict( const IndexRange & r1
 
 	// compute hybridization energies WITHOUT seed condition
 	// sets also -energy -hybridE
-	// -> no hybrid update since updateOptima overwritten
+	// -> no tracker update since updateOptima overwritten
 	PredictorMfe2dHeuristic::fillHybridE();
 
 	// check if any interaction possible
@@ -118,7 +118,7 @@ predict( const IndexRange & r1
 		return;
 	}
 
-	// init mfe for later updates
+	// reinit mfe for later updates with final information
 	initOptima( outConstraint );
 
 	// compute entries
@@ -139,6 +139,10 @@ predict( const IndexRange & r1
 		curCell = &(hybridE_seed(i1,i2));
 		// reset temporary variables
 		curEtotal = E_INF;
+		// current best total energy value
+		// NOTE: by setting to E_INF instead of getE(curCell->E) we ignore the
+		// single intermolecular bp case to avoid the effect of extremely low
+		// EDs of single positions
 		curCellEtotal = E_INF;
 
 		///////////////////////////////////////////////////////////////////
@@ -221,7 +225,7 @@ predict( const IndexRange & r1
 
 void
 PredictorMfe2dHeuristicSeed::
-traceBack( Interaction & interaction )
+traceBack( Interaction & interaction, const OutputConstraint & outConstraint  )
 {
 	// check if something to trace
 	if (interaction.basePairs.size() < 2) {
@@ -315,7 +319,7 @@ traceBack( Interaction & interaction )
 				Interaction bpsRight(*(interaction.s1), *(interaction.s2) );
 				bpsRight.basePairs.push_back( energy.getBasePair(i1,i2) );
 				bpsRight.basePairs.push_back( energy.getBasePair(j1,j2) );
-				PredictorMfe2dHeuristic::traceBack( bpsRight );
+				PredictorMfe2dHeuristic::traceBack( bpsRight, outConstraint );
 				// copy remaining base pairs
 				Interaction::PairingVec & bps = bpsRight.basePairs;
 				// copy all base pairs excluding the right most
