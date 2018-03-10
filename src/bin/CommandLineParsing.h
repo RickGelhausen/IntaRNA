@@ -1353,6 +1353,7 @@ void CommandLineParsing::validate_helixMaxUP(const int &value) {
 
 ///////////////////////////////////////////////////////////////////////////
 
+inline
 void CommandLineParsing::validate_seedTQ(const std::string & value) {
 	if (!value.empty()) {
 		// split by commas

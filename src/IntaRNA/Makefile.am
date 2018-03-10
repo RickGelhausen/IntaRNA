@@ -28,10 +28,9 @@ libIntaRNA_a_HEADERS =    \
 					AccessibilityFromStream.h \
 					AccessibilityVrna.h \
 					AccessibilityBasePair.h \
-					HelixConstraint.h \
 					HelixHandler.h \
-					HelixHandlerStackingOnly.h \
 					HelixHandlerIdxOffset.h \
+					HelixHandlerStackingOnly.h \
 					IndexRange.h \
 					IndexRangeList.h \
 					Interaction.h \
@@ -46,6 +45,7 @@ libIntaRNA_a_HEADERS =    \
 					OutputHandlerCsv.h \
 					OutputHandlerHub.h \
 					OutputHandlerIntaRNA1.h \
+					OutputHandlerInteractionList.h \
 					OutputHandlerRangeOnly.h \
 					OutputHandlerText.h \
 					PredictionTracker.h \
@@ -62,12 +62,13 @@ libIntaRNA_a_HEADERS =    \
 					PredictorMfe2dLimStackHeuristic.h \
 					PredictorMfe4d.h \
 					PredictorMfe4dSeed.h \
-					PredictorMfeLimStack2dHeuristic.h \
 					ReverseAccessibility.h \
 					RnaSequence.h \
 					SeedConstraint.h \
 					SeedHandler.h \
+					SeedHandlerExplicit.h \
 					SeedHandlerIdxOffset.h \
+					SeedHandlerMfe.h \
 					VrnaHandler.h
 
 # the sources to add to the library and to add to the source distribution
@@ -79,7 +80,6 @@ libIntaRNA_a_SOURCES =    \
 					AccessibilityFromStream.cpp \
 					AccessibilityVrna.cpp \
 					AccessibilityBasePair.cpp \
-					HelixConstraint.cpp \
 					HelixHandlerStackingOnly.cpp \
 					IndexRange.cpp \
 					IndexRangeList.cpp \
@@ -94,6 +94,7 @@ libIntaRNA_a_SOURCES =    \
 					OutputHandler.cpp \
 					OutputHandlerCsv.cpp \
 					OutputHandlerIntaRNA1.cpp \
+					OutputHandlerInteractionList.cpp \
 					OutputHandlerRangeOnly.cpp \
 					OutputHandlerText.cpp \
 					PredictionTrackerPairMinE.cpp \
@@ -107,12 +108,11 @@ libIntaRNA_a_SOURCES =    \
 					PredictorMfe2dLimStackHeuristic.cpp \
 					PredictorMfe4d.cpp \
 					PredictorMfe4dSeed.cpp \
-					PredictorMfeLimStack2dHeuristic.cpp \
 					ReverseAccessibility.cpp \
 					RnaSequence.cpp \
 					SeedConstraint.cpp \
-					SeedHandler.cpp \
-					SeedHandlerIdxOffset.cpp \
+					SeedHandlerExplicit.cpp \
+					SeedHandlerMfe.cpp \
 					VrnaHandler.cpp
 
 

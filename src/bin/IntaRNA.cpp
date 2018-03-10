@@ -5,7 +5,7 @@
 #include <exception>
 
 #if INTARNA_MULITHREADING
-	#include <omp.h>
+#include <omp.h>
 #endif
 
 #include <boost/foreach.hpp>
@@ -91,17 +91,17 @@ int main(int argc, char **argv){
 		// compute all query accessibilities to enable parallelization
 #if INTARNA_MULITHREADING
 		// parallelize this loop if possible; if not -> parallelize the query-loop
-		# pragma omp parallel for schedule(dynamic) num_threads( parameters.getThreads() ) shared(queryAcc,reportedInteractions,exceptionPtrDuringOmp,exceptionInfoDuringOmp)
+# pragma omp parallel for schedule(dynamic) num_threads( parameters.getThreads() ) shared(queryAcc,reportedInteractions,exceptionPtrDuringOmp,exceptionInfoDuringOmp)
 #endif
 		for (size_t qi=0; qi<queryAcc.size(); qi++) {
 			// get accessibility handler
 #if INTARNA_MULITHREADING
-			#pragma omp flush (threadAborted)
+#pragma omp flush (threadAborted)
 			// explicit try-catch-block due to missing OMP exception forwarding
 			if (!threadAborted) {
 				try {
 					// get query accessibility handler
-					#pragma omp critical(intarna_omp_logOutput)
+#pragma omp critical(intarna_omp_logOutput)
 #endif
 					VLOG(1) <<"computing accessibility for query '"<<parameters.getQuerySequences().at(qi).getId()<<"'...";
 					Accessibility * queryAccOrig = parameters.getQueryAccessibility(qi);
@@ -112,16 +112,16 @@ int main(int argc, char **argv){
 					// check if we have to warn about ambiguity
 					if (queryAccOrig->getSequence().isAmbiguous()) {
 #if INTARNA_MULITHREADING
-						#pragma omp critical(intarna_omp_logOutput)
+#pragma omp critical(intarna_omp_logOutput)
 #endif
 						LOG(INFO) <<"Sequence '"<<queryAccOrig->getSequence().getId()
-								<<"' contains ambiguous nucleotide encodings. These positions are ignored for interaction computation.";
+								  <<"' contains ambiguous nucleotide encodings. These positions are ignored for interaction computation.";
 					}
 #if INTARNA_MULITHREADING
-				////////////////////// exception handling ///////////////////////////
+					////////////////////// exception handling ///////////////////////////
 				} catch (std::exception & e) {
 					// ensure exception handling for first failed thread only
-					#pragma omp critical(intarna_omp_exception)
+#pragma omp critical(intarna_omp_exception)
 					{
 						if (!threadAborted) {
 							// store exception information
@@ -129,12 +129,12 @@ int main(int argc, char **argv){
 							exceptionInfoDuringOmp <<" #thread "<<omp_get_thread_num() <<" #query "<<qi <<" : "<<e.what();
 							// trigger abortion of all threads
 							threadAborted = true;
-							#pragma omp flush (threadAborted)
+#pragma omp flush (threadAborted)
 						}
 					} // omp critical(intarna_omp_exception)
 				} catch (...) {
 					// ensure exception handling for first failed thread only
-					#pragma omp critical(intarna_omp_exception)
+#pragma omp critical(intarna_omp_exception)
 					{
 						if (!threadAborted) {
 							// store exception information
@@ -142,7 +142,7 @@ int main(int argc, char **argv){
 							exceptionInfoDuringOmp <<" #thread "<<omp_get_thread_num() <<" #query "<<qi;
 							// trigger abortion of all threads
 							threadAborted = true;
-							#pragma omp flush (threadAborted)
+#pragma omp flush (threadAborted)
 						}
 					} // omp critical(intarna_omp_exception)
 				}
@@ -159,17 +159,17 @@ int main(int argc, char **argv){
 		// first: iterate over all target sequences
 #if INTARNA_MULITHREADING
 		// parallelize this loop if possible; if not -> parallelize the query-loop
-		# pragma omp parallel for schedule(dynamic) num_threads( parameters.getThreads() ) shared(queryAcc,reportedInteractions,exceptionPtrDuringOmp,exceptionInfoDuringOmp) if(parallelizeTargetLoop)
+# pragma omp parallel for schedule(dynamic) num_threads( parameters.getThreads() ) shared(queryAcc,reportedInteractions,exceptionPtrDuringOmp,exceptionInfoDuringOmp) if(parallelizeTargetLoop)
 #endif
 		for ( size_t targetNumber = 0; targetNumber < parameters.getTargetSequences().size(); ++targetNumber )
 		{
 #if INTARNA_MULITHREADING
-			#pragma omp flush (threadAborted)
+#pragma omp flush (threadAborted)
 			// explicit try-catch-block due to missing OMP exception forwarding
 			if (!threadAborted) {
 				try {
 					// get target accessibility handler
-					#pragma omp critical(intarna_omp_logOutput)
+#pragma omp critical(intarna_omp_logOutput)
 #endif
 					{ VLOG(1) <<"computing accessibility for target '"<<parameters.getTargetSequences().at(targetNumber).getId()<<"'..."; }
 
@@ -180,21 +180,21 @@ int main(int argc, char **argv){
 					// check if we have to warn about ambiguity
 					if (targetAcc->getSequence().isAmbiguous()) {
 #if INTARNA_MULITHREADING
-						#pragma omp critical(intarna_omp_logOutput)
+#pragma omp critical(intarna_omp_logOutput)
 #endif
 						{ LOG(INFO) <<"Sequence '"<<targetAcc->getSequence().getId()
-								<<"' contains ambiguous IUPAC nucleotide encodings. These positions are ignored for interaction computation and replaced by 'N'.";}
+									<<"' contains ambiguous IUPAC nucleotide encodings. These positions are ignored for interaction computation and replaced by 'N'.";}
 					}
 
 					// second: iterate over all query sequences
 #if INTARNA_MULITHREADING
 					// this parallelization should only be enabled if the outer target-loop is not parallelized
-					# pragma omp parallel for schedule(dynamic) num_threads( parameters.getThreads() ) shared(queryAcc,reportedInteractions,exceptionPtrDuringOmp,exceptionInfoDuringOmp,targetAcc,targetNumber) if(parallelizeQueryLoop)
+# pragma omp parallel for schedule(dynamic) num_threads( parameters.getThreads() ) shared(queryAcc,reportedInteractions,exceptionPtrDuringOmp,exceptionInfoDuringOmp,targetAcc,targetNumber) if(parallelizeQueryLoop)
 #endif
 					for ( size_t queryNumber = 0; queryNumber < parameters.getQuerySequences().size(); ++queryNumber )
 					{
 #if INTARNA_MULITHREADING
-						#pragma omp flush (threadAborted)
+#pragma omp flush (threadAborted)
 						// explicit try-catch-block due to missing OMP exception forwarding
 						if (!threadAborted) {
 							try {
@@ -220,7 +220,7 @@ int main(int argc, char **argv){
 								// and not per region combination if not requested
 								OutputHandlerInteractionList bestInteractions(
 										(parameters.reportBestPerRegion() ? std::numeric_limits<size_t>::max() : 1 )
-											* parameters.getOutputConstraint().reportMax );
+										* parameters.getOutputConstraint().reportMax );
 
 								// get interaction prediction handler
 								Predictor * predictor = parameters.getPredictor( *energy, bestInteractions );
@@ -229,48 +229,48 @@ int main(int argc, char **argv){
 								// run prediction for all range combinations
 								// TODO parallelize if only one target and query
 								BOOST_FOREACH(const IndexRange & tRange, parameters.getTargetRanges(*energy, targetNumber)) {
-								BOOST_FOREACH(const IndexRange & qRange, parameters.getQueryRanges(*energy, queryNumber)) {
+												BOOST_FOREACH(const IndexRange & qRange, parameters.getQueryRanges(*energy, queryNumber)) {
 
 #if INTARNA_MULITHREADING
-									#pragma omp critical(intarna_omp_logOutput)
+#pragma omp critical(intarna_omp_logOutput)
 #endif
-									{ VLOG(1) <<"predicting interactions for"
-											<<" target "<<targetAcc->getSequence().getId()
-											<<" (range " <<(tRange+1)<<")"
-											<<" and"
-											<<" query "<<queryAcc.at(queryNumber)->getSequence().getId()
-											<<" (range " <<(qRange+1)<<")"
-											<<"..."; }
+																{ VLOG(1) <<"predicting interactions for"
+																		  <<" target "<<targetAcc->getSequence().getId()
+																		  <<" (range " <<(tRange+1)<<")"
+																		  <<" and"
+																		  <<" query "<<queryAcc.at(queryNumber)->getSequence().getId()
+																		  <<" (range " <<(qRange+1)<<")"
+																		  <<"..."; }
 
-									predictor->predict(	  tRange
-														, queryAcc.at(queryNumber)->getReversedIndexRange(qRange)
-														, parameters.getOutputConstraint()
-														);
+																predictor->predict(	  tRange
+																		, queryAcc.at(queryNumber)->getReversedIndexRange(qRange)
+																		, parameters.getOutputConstraint()
+																);
 
-								} // target ranges
-								} // query ranges
+															} // target ranges
+											} // query ranges
 
 								// update final output handler
 								BOOST_FOREACH( const Interaction * inter, bestInteractions) {
-									// forward all reported interactions for all regions to final output handler
-									output->add(*inter);
-								}
+												// forward all reported interactions for all regions to final output handler
+												output->add(*inter);
+											}
 
 #if INTARNA_MULITHREADING
-								#pragma omp atomic update
+#pragma omp atomic update
 #endif
 								reportedInteractions += output->reported();
 
 								// garbage collection
-								 INTARNA_CLEANUP(predictor);
-								 INTARNA_CLEANUP(output);
-								 INTARNA_CLEANUP(energy);
+								INTARNA_CLEANUP(predictor);
+								INTARNA_CLEANUP(output);
+								INTARNA_CLEANUP(energy);
 
 #if INTARNA_MULITHREADING
-							////////////////////// exception handling ///////////////////////////
+								////////////////////// exception handling ///////////////////////////
 							} catch (std::exception & e) {
 								// ensure exception handling for first failed thread only
-								#pragma omp critical(intarna_omp_exception)
+#pragma omp critical(intarna_omp_exception)
 								{
 									if (!threadAborted) {
 										// store exception information
@@ -278,12 +278,12 @@ int main(int argc, char **argv){
 										exceptionInfoDuringOmp <<" #thread "<<omp_get_thread_num() <<" #target "<<targetNumber <<" #query " <<queryNumber <<" : "<<e.what();
 										// trigger abortion of all threads
 										threadAborted = true;
-										#pragma omp flush (threadAborted)
+#pragma omp flush (threadAborted)
 									}
 								} // omp critical(intarna_omp_exception)
 							} catch (...) {
 								// ensure exception handling for first failed thread only
-								#pragma omp critical(intarna_omp_exception)
+#pragma omp critical(intarna_omp_exception)
 								{
 									if (!threadAborted) {
 										// store exception information
@@ -291,7 +291,7 @@ int main(int argc, char **argv){
 										exceptionInfoDuringOmp <<" #thread "<<omp_get_thread_num() <<" #target "<<targetNumber <<" #query " <<queryNumber;
 										// trigger abortion of all threads
 										threadAborted = true;
-										#pragma omp flush (threadAborted)
+#pragma omp flush (threadAborted)
 									}
 								} // omp critical(intarna_omp_exception)
 							}
@@ -303,13 +303,13 @@ int main(int argc, char **argv){
 					parameters.writeTargetAccessibility( *targetAcc );
 
 					// garbage collection
-					 INTARNA_CLEANUP(targetAcc);
+					INTARNA_CLEANUP(targetAcc);
 
 #if INTARNA_MULITHREADING
-				////////////////////// exception handling ///////////////////////////
+					////////////////////// exception handling ///////////////////////////
 				} catch (std::exception & e) {
 					// ensure exception handling for first failed thread only
-					#pragma omp critical(intarna_omp_exception)
+#pragma omp critical(intarna_omp_exception)
 					{
 						if (!threadAborted) {
 							// store exception information
@@ -317,12 +317,12 @@ int main(int argc, char **argv){
 							exceptionInfoDuringOmp <<" #thread "<<omp_get_thread_num() <<" #target "<<targetNumber <<" : "<<e.what();
 							// trigger abortion of all threads
 							threadAborted = true;
-							#pragma omp flush (threadAborted)
+#pragma omp flush (threadAborted)
 						}
 					} // omp critical(intarna_omp_exception)
 				} catch (...) {
 					// ensure exception handling for first failed thread only
-					#pragma omp critical(intarna_omp_exception)
+#pragma omp critical(intarna_omp_exception)
 					{
 						if (!threadAborted) {
 							// store exception information
@@ -330,7 +330,7 @@ int main(int argc, char **argv){
 							exceptionInfoDuringOmp <<" #thread "<<omp_get_thread_num() <<" #target "<<targetNumber;
 							// trigger abortion of all threads
 							threadAborted = true;
-							#pragma omp flush (threadAborted)
+#pragma omp flush (threadAborted)
 						}
 					} // omp critical(intarna_omp_exception)
 				}
@@ -344,9 +344,9 @@ int main(int argc, char **argv){
 			Accessibility* queryAccOrig = &(const_cast<Accessibility&>(queryAcc[queryNumber]->getAccessibilityOrigin()) );
 			// write accessibility to file if needed
 			parameters.writeQueryAccessibility( *queryAccOrig );
-			 INTARNA_CLEANUP( queryAccOrig );
+			INTARNA_CLEANUP( queryAccOrig );
 			// cleanup (now broken) reverse accessibility object
-			 INTARNA_CLEANUP(queryAcc[queryNumber]);
+			INTARNA_CLEANUP(queryAcc[queryNumber]);
 		}
 
 #if INTARNA_MULITHREADING
@@ -360,22 +360,21 @@ int main(int argc, char **argv){
 		}
 #endif
 
-	////////////////////// exception handling ///////////////////////////
+		////////////////////// exception handling ///////////////////////////
 	} catch (std::exception & e) {
 		LOG(WARNING) <<"Exception raised : " <<e.what() <<"\n\n"
-			<<"  ==> Please report to the IntaRNA development team! Thanks!\n";
+					 <<"  ==> Please report to the IntaRNA development team! Thanks!\n";
 		el::Loggers::flushAll();
 		return -1;
 	} catch (...) {
 		std::exception_ptr eptr = std::current_exception();
 		LOG(WARNING) <<"Unknown exception raised \n\n"
-			<<"  ==> Please report to the IntaRNA development team! Thanks!\n";
+					 <<"  ==> Please report to the IntaRNA development team! Thanks!\n";
 		el::Loggers::flushAll();
 		return -1;
 	}
 
-	  // all went fine
+	// all went fine
 	el::Loggers::flushAll();
 	return 0;
 }
-
