@@ -1,4 +1,3 @@
-
 ### std-options
 # check that installed programs support the --help and --version options
 # basic check that the program's run-time dependencies are satisfied
@@ -132,4 +131,3 @@ pkgconfig_DATA = $(top_srcdir)/IntaRNA.pc
 endif
 
 ###############################################################################
-

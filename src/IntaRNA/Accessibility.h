@@ -5,6 +5,7 @@
 
 #include "IntaRNA/general.h"
 #include "IntaRNA/RnaSequence.h"
+#include "IntaRNA/IndexRangeList.h"
 #include "IntaRNA/AccessibilityConstraint.h"
 
 #include <stdexcept>
@@ -115,6 +116,42 @@ public:
 	 */
 	friend std::ostream& operator<<(std::ostream& out, const Accessibility& acc);
 
+	/**
+	 * Identifies regions of high accessibility by decomposing the sequence
+	 * range at positions with lowest accessibility (highest ED value). This is
+	 * done recursively, i.e. ranges that exceed the maxRegionLength are
+	 * further decomposed (using their local max ED value) until the resulting
+	 * subregions are below the given maxRangeLength.
+	 *
+	 * @param maxRangeLength the maximal length of a resulting highly accessible
+	 *            sequence region
+	 * @param winSize the ED window size to be used to identify low accessible
+	 *            regions. The center index of the identified window is used as
+	 *            split point for decomposition. Has to be greater than 0 and
+	 *            smaller than maxRangeLength, i.e in (0,maxRangeLength)
+	 * @param minRangeLength the minimal length of a resulting sequence region
+	 *
+	 * @return the list of index ranges of highly accessible regions of the
+	 *            sequence
+	 */
+	IndexRangeList
+	decomposeByMaxED( const size_t maxRangeLength
+					, const size_t winSize
+					, const size_t minRangeLength ) const;
+
+
+	/**
+	 * Decomposes a given range list into subranges that contain only positions
+	 * where the position-wise unpaired probability is above a given threshold,
+	 * since any interaction site enclosing this positions has a lower
+	 * probability.
+	 *
+	 * @param ranges INOUT the list of ranges to decompose
+	 * @param minPu the minimal unpaired probability threshold
+	 * @param RT the relative temperature to be used for Boltzmann weight computation
+	 */
+	void
+	decomposeByMinPu( IndexRangeList & ranges, const double minPu, const E_type RT ) const;
 
 protected:
 
