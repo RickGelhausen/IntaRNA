@@ -123,10 +123,10 @@ TEST_CASE( "HelixHandlerIdxOffset", "[HelixHandlerIdxOffset]") {
 		hhIO.traceBackHelix(interaction1,0,0);
 
 		REQUIRE(interaction1.basePairs.size() == 1);
-		REQUIRE(interaction1.basePairs.begin()->first == 3);
-		REQUIRE(interaction1.basePairs.begin()->second == 3);
+		REQUIRE(interaction1.basePairs.begin()->first == 2);
+		REQUIRE(interaction1.basePairs.begin()->second == 4);
 
-		REQUIRE(interaction1.basePairs.rbegin()->first == 3);
-		REQUIRE(interaction1.basePairs.rbegin()->second == 3);
+		REQUIRE(interaction1.basePairs.rbegin()->first == 2);
+		REQUIRE(interaction1.basePairs.rbegin()->second == 4);
 	}
 }

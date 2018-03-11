@@ -100,7 +100,7 @@ protected:
 	 */
 	virtual
 	void
-	traceBack( Interaction & interaction );
+	traceBack( Interaction & interaction, const OutputConstraint & outConstraint );
 
 	/**
 	 * Identifies the next best interaction with an energy equal to or higher
