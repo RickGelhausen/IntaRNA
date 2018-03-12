@@ -84,14 +84,29 @@ public:
 	fillHelix(const size_t i1, const size_t j1, const size_t i2, const size_t j2);
 
 	/**
+	 * Computes the helix matrix for the given interval boundaries for helices containing a seed
+	 *
+	 * Note, the indices are shifted by an offset for computation.
+	 *
+	 * @param i1 the first index of seq1 that might interact
+	 * @param j1 the last index of seq1 that might interact
+	 * @param i2 the first index of seq2 that might interact
+	 * @param j2 the last index of seq2 that might interact
+	 * @return
+	 */
+	virtual
+	size_t
+	fillHelixSeed(const size_t i1, const size_t j1, const size_t i2, const size_t j2);
+
+	/**
 	 * Identifies the base pairs of the mfe helix interaction starting at i1,i2
 	 * and writes them to the provided container
 	 *
 	 * NOTE: the right most base pair is excluded!
 	 *
-	 * Note, the indeices are shifted by an offset for computation.
+	 * Note, the indices are shifted by an offset for computation.
 	 *
-	 * @param interaction the constainer to add the base pairs too
+	 * @param interaction the container to add the base pairs too
 	 * @param i1 the start of the helix in seq1
 	 * @param i2 the start of the helix in seq2
 	 */
@@ -99,6 +114,19 @@ public:
 	void
 	traceBackHelix( Interaction & interaction, const size_t i1, const size_t i2);
 
+	/**
+	 * Identifies the base pairs of the mfe helix interaction, containing a seed, starting at i1,i2
+	 * and writes them to the provided container
+	 *
+	 * Note, the indices are shifted by an offset for computation.
+	 *
+	 * @param interaction the container to add the base pairs too
+	 * @param i1 the start of the helix in seq1
+	 * @param i2 the start of the helix in seq2
+	 */
+	virtual
+	void
+	traceBackHelixSeed( Interaction & interaction, const size_t i1, const size_t i2);
 
 	/**
 	 * Access to the mfe of any helix with left-most base pair (i1,i2)
@@ -107,11 +135,24 @@ public:
 	 *
 	 * @param i1 the left most interacting base of seq1
 	 * @param i2 the left most interacting base of seq2
-	 * @return the mfe of any helix starting at (i1,i2) or E_IND if none possible
+	 * @return the mfe of any helix starting at (i1,i2) or E_INF if none possible
 	 */
 	virtual
 	E_type
 	getHelixE( const size_t i1, const size_t i2 ) const;
+
+	/**
+	 * Access to the mfe of any helix with left-most base pair (i1,i2) and containing a seed
+	 *
+	 * Note, the indices are shifted by an offset for computation
+	 *
+	 * @param i1 the left most interacting base of seq1
+	 * @param i2 the left most interacting base of seq2
+	 * @return the mfe of any helix starting at (i1,i2) or E_INF if none possible
+	 */
+	virtual
+	E_type
+	getHelixSeedE( const size_t i1, const size_t i2 ) const;
 
 	/**
 	 * Access to the length in seq1 of the mfe helix with left-most base pair (i1,i2)
@@ -140,6 +181,31 @@ public:
 	size_t
 	getHelixLength2( const size_t i1, const size_t i2 ) const;
 
+	/**
+	 * Access to the length in seq1 of the mfe helix with left-most base pair (i1,i2), containing a seed
+	 *
+	 * Note, the indices are shifted by an offset for computation.
+	 *
+	 * @param i1 the left most interaction base of seq1
+	 * @param i2 the left most interaction base of seq2
+	 * @return the length in seq1 of the mfe helix starting at (i1,i2) or 0 if none possible
+	 */
+	virtual
+	size_t
+	getHelixSeedLength1( const size_t i1, const size_t i2 ) const;
+
+	/**
+	 * Access to the length in seq2 of the mfe helix with left-most base pair (i1,i2), containing a seed
+	 *
+	 * Note, the indices are shifted by an offset for computation.
+	 *
+	 * @param i1 the left most interaction base of seq1
+	 * @param i2 the left most interaction base of seq2
+	 * @return the length in seq2 of the mfe helix starting at (i1,i2) or 0 if none possible
+	 */
+	virtual
+	size_t
+	getHelixSeedLength2( const size_t i1, const size_t i2 ) const;
 
 protected:
 
@@ -209,6 +275,16 @@ fillHelix(const size_t i1min, const size_t i1max, const size_t i2min, const size
 ////////////////////////////////////////////////////////////////////////////
 
 inline
+size_t
+HelixHandlerIdxOffset::
+fillHelixSeed(const size_t i1min, const size_t i1max, const size_t i2min, const size_t i2max)
+{
+	return helixHandlerOriginal->fillHelixSeed( i1min+idxOffset1, i1max+idxOffset1, i2min+idxOffset2, i2max+idxOffset2 );
+}
+
+////////////////////////////////////////////////////////////////////////////
+
+inline
 void
 HelixHandlerIdxOffset::
 traceBackHelix(Interaction &interaction
@@ -222,11 +298,34 @@ traceBackHelix(Interaction &interaction
 ////////////////////////////////////////////////////////////////////////////
 
 inline
+void
+HelixHandlerIdxOffset::
+traceBackHelixSeed(Interaction &interaction
+		, const size_t i1
+		, const size_t i2
+)
+{
+	helixHandlerOriginal->traceBackHelixSeed( interaction, i1+idxOffset1, i2+idxOffset2 );
+}
+
+////////////////////////////////////////////////////////////////////////////
+
+inline
 E_type
 HelixHandlerIdxOffset::
 getHelixE(const size_t i1, const size_t i2) const
 {
 	return helixHandlerOriginal->getHelixE( i1+idxOffset1, i2+idxOffset2 );
+}
+
+////////////////////////////////////////////////////////////////////////////
+
+inline
+E_type
+HelixHandlerIdxOffset::
+getHelixSeedE(const size_t i1, const size_t i2) const
+{
+	return helixHandlerOriginal->getHelixSeedE( i1+idxOffset1, i2+idxOffset2 );
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -247,6 +346,26 @@ HelixHandlerIdxOffset::
 getHelixLength2(const size_t i1, const size_t i2) const
 {
 	return helixHandlerOriginal->getHelixLength2( i1+idxOffset1, i2+idxOffset2 );
+}
+
+////////////////////////////////////////////////////////////////////////////
+
+inline
+size_t
+HelixHandlerIdxOffset::
+getHelixSeedLength1(const size_t i1, const size_t i2) const
+{
+	return helixHandlerOriginal->getHelixSeedLength1( i1+idxOffset1, i2+idxOffset2 );
+}
+
+////////////////////////////////////////////////////////////////////////////
+
+inline
+size_t
+HelixHandlerIdxOffset::
+getHelixSeedLength2(const size_t i1, const size_t i2) const
+{
+	return helixHandlerOriginal->getHelixSeedLength2( i1+idxOffset1, i2+idxOffset2 );
 }
 
 ////////////////////////////////////////////////////////////////////////////
