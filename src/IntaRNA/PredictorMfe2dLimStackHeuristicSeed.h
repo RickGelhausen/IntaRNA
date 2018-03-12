@@ -43,9 +43,8 @@ public:
 	PredictorMfe2dLimStackHeuristicSeed( const InteractionEnergy & energy
 			, OutputHandler & output
 			, PredictionTracker * predTracker
-		    , HelixHandler * helixHandlerInstance
-			, HelixHandler * helixHandlerSeedInstance
-			, const SeedConstraint & seedConstraint );
+		 	, HelixHandler * helixHandler
+	);
 
 	virtual ~PredictorMfe2dLimStackHeuristicSeed();
 
@@ -85,9 +84,6 @@ protected:
 
 	//! handler to generate and access helix information with idx offset
 	HelixHandlerIdxOffset helixHandlerSeed;
-
-	//! handler to generate and access seed information with idx offset
-	SeedHandlerIdxOffset seedHandler;
 
 protected:
 

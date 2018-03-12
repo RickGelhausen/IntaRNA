@@ -164,7 +164,7 @@ public:
 	 * @param energy the interaction energy handler to be used
 	 * @return a newly allocated helix handler respective to the user defined helix mode setting
 	 */
-	HelixHandler * getHelixHandler(const InteractionEnergy& energy ) const;
+	HelixHandler * getHelixHandler(const InteractionEnergy& energy, SeedHandler * seedHandler = NULL) const;
 
 
 	/**

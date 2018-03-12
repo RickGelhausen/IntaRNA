@@ -1816,14 +1816,14 @@ getHelixConstraint(const InteractionEnergy &energy) const
 
 HelixHandler *
 CommandLineParsing::
-getHelixHandler(const InteractionEnergy &energy) const {
+getHelixHandler(const InteractionEnergy &energy, SeedHandler * seedHandler) const {
 	// get helix constraint
 	const HelixConstraint &helixConstr = getHelixConstraint(energy);
 
 	switch (helixMode.val) {
 	case 'S' :
 		// create new helix handler with stackings only
-		return new HelixHandlerStackingOnly(energy, helixConstr);
+		return new HelixHandlerStackingOnly(energy, helixConstr, seedHandler);
 
 	}
 

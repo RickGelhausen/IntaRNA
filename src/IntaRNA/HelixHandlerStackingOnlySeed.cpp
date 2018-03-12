@@ -1,12 +1,12 @@
-#include "IntaRNA/HelixHandlerStackingOnlySeed.h"
+#include "IntaRNA/HelixHandlerStackingOnly.h"
 
 namespace IntaRNA {
 
 /////////////////////////////////////////////////////////////////////////////
 
 size_t
-HelixHandlerStackingOnlySeed::
-fillHelix(const size_t i1min, const size_t i1max, const size_t i2min, const size_t i2max)
+HelixHandlerStackingOnly::
+fillHelixSeed(const size_t i1min, const size_t i1max, const size_t i2min, const size_t i2max)
 {
 
 #if INTARNA_IN_DEBUG_MODE
@@ -21,13 +21,27 @@ fillHelix(const size_t i1min, const size_t i1max, const size_t i2min, const size
 								 +toString(helixConstraint.getMaxBasePairs())+") < seedBP( "+toString(seedHandler.getConstraint().getBasePairs())+")");
 #endif
 
-	helix_seed.resize( i1max-i1min+1, i2max-i2min+1 );
-	helixE_seed_rec.resize( HelixIndex({{
-										   (HelixRecMatrix::index)(helix_seed.size1())
-										   , (HelixRecMatrix::index)(helix_seed.size2())
+
+	// TODO: Maybe change this in order to
+	// Check whether a seedHandler is given
+	if (&seedHandler == NULL) {
+		throw std::runtime_error("HelixHandlerStackingOnlySeed::fillHelix called without valid SeedHandler!");
+	}
+
+	// compute seed interactions for whole range
+	// and check if any seed possible
+	if (seedHandler.fillSeed( i1min, i1max-1, i2min, i2max-1 ) == 0) {
+		// stop computation
+		return 0;
+	}
+
+	helixSeed.resize( i1max-i1min+1, i2max-i2min+1 );
+	helixSeedE_rec.resize( HelixIndex({{
+										   (HelixRecMatrix::index)(helixSeed.size1())
+										   , (HelixRecMatrix::index)(helixSeed.size2())
 										   , (HelixRecMatrix::index)(helixConstraint.getMaxBasePairs()+1)}}) );
 
-	std::fill_n(helixE_seed_rec.data(), helixE_seed_rec.num_elements(), E_INF);
+	std::fill_n(helixSeedE_rec.data(), helixSeedE_rec.num_elements(), E_INF);
 
 	// store index offset due to restricted matrix size generation
 	offset1 = i1min;
@@ -50,7 +64,7 @@ fillHelix(const size_t i1min, const size_t i1max, const size_t i2min, const size
 		helixCount++;
 
 		// init according to no helix interaction
-		helix_seed(i1-offset1,i2-offset2) = HelixMatrix::value_type( E_INF, 0 );
+		helixSeed(i1-offset1,i2-offset2) = HelixMatrix::value_type( E_INF, 0 );
 
 		// skip non-complementary left helix boundaries
 		if (!energy.areComplementary(i1,i2)) {
@@ -60,8 +74,8 @@ fillHelix(const size_t i1min, const size_t i1max, const size_t i2min, const size
 
 		// Calculate energy for all different numbers of base pairs (bpMin to bpMax)
 		for (curBP=2; curBP < helixConstraint.getMaxBasePairs()+1
-									  && (i1+curBP-1-offset1)<helix_seed.size1()
-									  && (i2+curBP-1-offset2)<helix_seed.size2()
+									  && (i1+curBP-1-offset1)<helixSeed.size1()
+									  && (i2+curBP-1-offset2)<helixSeed.size2()
 									  && energy.areComplementary(i1+curBP-1,i2+curBP-1); curBP++) {
 
 			// get right helix boundaries
@@ -105,8 +119,8 @@ fillHelix(const size_t i1min, const size_t i1max, const size_t i2min, const size
 
 		// Check all base pair combinations to find the best (> minBP)
 		for ( size_t bp = helixConstraint.getMinBasePairs(); bp < helixConstraint.getMaxBasePairs()+1
-															 && i1+bp-1-offset1 < helix_seed.size1()
-															 && i2+bp-1-offset2 < helix_seed.size2(); bp++) {
+															 && i1+bp-1-offset1 < helixSeed.size1()
+															 && i2+bp-1-offset2 < helixSeed.size2(); bp++) {
 			// get right helix boundaries
 			j1 = i1+bp-1;
 			j2 = i2+bp-1;
@@ -130,7 +144,7 @@ fillHelix(const size_t i1min, const size_t i1max, const size_t i2min, const size
 		}
 
 		// store best (mfe) helix for all u1/u2
-		helix_seed( i1-offset1, i2-offset2 ) = HelixMatrix::value_type( bestE
+		helixSeed( i1-offset1, i2-offset2 ) = HelixMatrix::value_type( bestE
 				, E_isINF(bestE)?0:bestBP);
 
 	} // i2
@@ -147,8 +161,8 @@ fillHelix(const size_t i1min, const size_t i1max, const size_t i2min, const size
 //////////////////////////////////////////////////////////////////////////
 
 void
-HelixHandlerStackingOnlySeed::
-traceBackHelix( Interaction & interaction
+HelixHandlerStackingOnly::
+traceBackHelixSeed( Interaction & interaction
 		, const size_t i1_
 		, const size_t i2_)
 {

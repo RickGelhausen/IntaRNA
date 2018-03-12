@@ -12,17 +12,14 @@ PredictorMfe2dLimStackHeuristicSeed( const InteractionEnergy & energy
 		, OutputHandler & output
 		, PredictionTracker * predTracker
 		, HelixHandler * helixHandlerInstance
-		, HelixHandler * helixHandlerSeedInstance
-		, const SeedConstraint & seedConstraint
 )
 		: PredictorMfe2dLimStackHeuristic(energy,output,predTracker, helixHandlerInstance)
-		, seedHandler( energy, seedConstraint )
-		, helixHandlerSeed( helixHandlerSeedInstance )
+		, helixHandlerSeed( helixHandlerInstance )
 {
-	if (helixHandlerSeed.getConstraint().getMaxBasePairs() < seedConstraint.getBasePairs())  {
-		throw std::runtime_error("PredictorMfe2dLimStackHeuristicSeed() : maximal helix length "
-								 +toString(helixHandlerSeed.getConstraint().getMaxBasePairs())+" < seedBasePairs "+toString(seedConstraint.getBasePairs()));
-	}
+//	if (helixHandlerSeed.getConstraint().getMaxBasePairs() < seedConstraint.getBasePairs())  {
+//		throw std::runtime_error("PredictorMfe2dLimStackHeuristicSeed() : maximal helix length "
+//								 +toString(helixHandlerSeed.getConstraint().getMaxBasePairs())+" < seedBasePairs "+toString(seedConstraint.getBasePairs()));
+//	}
 }
 
 
@@ -63,27 +60,25 @@ predict( const IndexRange & r1
 	energy.setOffset2(r2.from);
 	helixHandlerSeed.setOffset1(r1.from);
 	helixHandlerSeed.setOffset2(r2.from);
-	seedHandler.setOffset1(r1.from);
-	seedHandler.setOffset2(r2.from);
+
 
 	const size_t hybridEsize1 = std::min( energy.size1()
 			, (r1.to==RnaSequence::lastPos?energy.size1()-1:r1.to)-r1.from+1 );
 	const size_t hybridEsize2 = std::min( energy.size2()
 			, (r2.to==RnaSequence::lastPos?energy.size2()-1:r2.to)-r2.from+1 );
 
-	// compute seed interactions for whole range
-	// and check if any seed possible
-	if (seedHandler.fillSeed( 0, hybridEsize1-1, 0, hybridEsize2-1 ) == 0) {
+
+	// resize matrix
+	hybridE.resize( hybridEsize1, hybridEsize2 );
+	hybridE_seed.resize( hybridE.size1(), hybridE.size2() );
+
+	if (helixHandlerSeed.fillHelix( 0, hybridEsize1-1, 0, hybridEsize2-1 ) == 0) {
 		// trigger empty interaction reporting
 		initOptima(outConstraint);
 		reportOptima(outConstraint);
 		// stop computation
 		return;
 	}
-
-	// resize matrix
-	hybridE.resize( hybridEsize1, hybridEsize2 );
-	hybridE_seed.resize( hybridE.size1(), hybridE.size2() );
 
 	// temp vars
 	size_t i1,i2,h1,h2,w1,w2;
