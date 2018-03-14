@@ -16,10 +16,10 @@ fillHelixSeed(const size_t i1min, const size_t i1max, const size_t i2min, const 
 	offset2 = i2min;
 
 	// temporary variables
-	size_t i1, i2, curBP, j1, j2, seedStart1, seedStart2, seedEnd1, seedEnd2;
+	size_t i1, i2, curBP, j1, j2, seedStart1, seedStart2, seedEnd1, seedEnd2, bestTrailingBP;
 	size_t  helixCountNotInf = 0, helixCount = 0;
 
-	E_type leadingE, trailingE;
+	E_type leadingE, trailingE, bestTrailingE, totalEnergy;
 
 	// Calculate how many base pairs are possible allongside the seed.
 	size_t possibleBasePairs = getConstraint().getMaxBasePairs()-seedHandler.getConstraint().getBasePairs();
@@ -57,11 +57,14 @@ fillHelixSeed(const size_t i1min, const size_t i1max, const size_t i2min, const 
 			if (leadingBP > 0)
 				leadingE += energy.getE_interLeft(seedStart1-1,seedStart1, seedStart2-1,seedStart2);
 
-			trailingE = 0.0;
-			for (size_t trailingBP = 0; trailingBP <= possibleBasePairs - leadingBP; trailingBP++) {
 
-				seedEnd1 = seedStart1+seedHandler.getSeedLength1(seedStart1,seedStart2);
-				seedEnd2 = seedStart2+seedHandler.getSeedLength2(seedStart1,seedStart2);
+			seedEnd1 = seedStart1+seedHandler.getSeedLength1(seedStart1,seedStart2);
+			seedEnd2 = seedStart2+seedHandler.getSeedLength2(seedStart1,seedStart2);
+
+			trailingE = 0.0;
+			bestTrailingE = 0.0;
+			bestTrailingBP = 0;
+			for (size_t trailingBP = 0; trailingBP <= possibleBasePairs - leadingBP; trailingBP++) {
 
 				j1 = seedEnd1 + trailingBP;
 				j2 = seedEnd2 + trailingBP;
@@ -69,10 +72,22 @@ fillHelixSeed(const size_t i1min, const size_t i1max, const size_t i2min, const 
 				if (trailingBP > 0);
 					trailingE += energy.getE_interLeft(j1-1,j1,j2-1,j2);
 
-				// Check if energy is best so far
-
+				// only keep the best trailing energy, in order to calculate the energy in first loop
+				// TODO: bestTrailingE might be redundant
+				if (trailingE < bestTrailingE) {
+					bestTrailingE = trailingE;
+					bestTrailingBP = trailingBP;
+				}
 			}
-
+			// Check whether this energy is the overall best so far
+			// Done here to avoid problems when there are no trailingBP
+			totalEnergy = leadingE + seedHandler.getSeedE(seedStart1,seedStart2) + bestTrailingE;
+			if ( totalEnergy < helixSeed(i1,i2).first) {
+				size_t helixLength1 = leadingBP+seedHandler.getSeedLength1(seedStart1,seedStart2)+bestTrailingBP;
+				size_t helixLength2 = leadingBP+seedHandler.getSeedLength2(seedStart1,seedStart2)+bestTrailingBP;
+				helixSeed(i1,i2) = HelixMatrix::value_type(totalEnergy,
+														   encodeHelixSeedLength(helixLength1,helixLength2));
+			}
 
 		}
 	} // i2
