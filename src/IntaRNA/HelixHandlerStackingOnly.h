@@ -20,16 +20,6 @@ namespace IntaRNA {
 class HelixHandlerStackingOnly : public HelixHandler {
 
 public:
-	//! 4D matrix type to hold the mfe energies for helix interactions
-	//! of the ranges i1..(i1+bp-1) and i2..(i2+bp-1), with
-	//! i1,i2 = the start index of the helix in seq1/2
-	//! bp = the current number of base pairs in the helix (< maxBP)
-	//! using the index [i1][i2][bpMax][bp] or a HelixIndex object
-	typedef boost::multi_array<E_type,3> HelixRecMatrix;
-
-	//! defines the helix data {{ i1, i2, bp }} to acces elements of
-	//! the HelixRecMatrix
-	typedef boost::array<HelixRecMatrix::index, 3> HelixIndex;
 
 	//! matrix to store the helix information for each helix left side (i1, i2)
 	//! it holds both the energy (first) as well as the length of the helix using
@@ -45,7 +35,7 @@ public:
 	HelixHandlerStackingOnly(
 			const InteractionEnergy & energy
 			, const HelixConstraint & helixConstraint
-			, SeedHandler * seedHandler
+			, SeedHandler * seedHandler = NULL
 	);
 
 	/**
@@ -164,23 +154,12 @@ public:
 	getHelixSeedLength2( const size_t i1, const size_t i2 ) const;
 
 
+	SeedHandlerIdxOffset seedHandler;
 
 protected:
 
-	//! the recursion data for the computation of a helix interaction
-	//! bp: the number of allowed bases
-	//! i1..(i1+bp-1) and i2..(i2+bp-1)
-	//! using the indexing [i1][i2][bp]
-	HelixRecMatrix helixE_rec;
-
 	//! the helix mfe information for helix starting at (i1, i2)
 	HelixMatrix helix;
-
-	//! the recursion data for the computation of a helix interaction
-	//! bp: the number of allowed bases
-	//! i1..(i1+bp-1) and i2..(i2+bp-1)
-	//! using the indexing [i1][i2][bp]
-	HelixRecMatrix helixSeedE_rec;
 
 	//! the helix mfe information for helix starting at (i1, i2)
 	HelixMatrix helixSeed;
@@ -190,61 +169,6 @@ protected:
 
 	//! offset for seq2 indices for the current matrices
 	size_t offset2;
-
-
-	/**
-	 * Provides the helix energy during recursion
-	 *
-	 * @param i1 the helix left end in seq 1 (index including offset)
-	 * @param i2 the helix left end in seq 2 (index including offset)
-	 * @param bp the current number of base pairs in the helix
-	 *
-	 * @return the energy of the according helix
-	 */
-	E_type
-	getHelixE( const size_t i1, const size_t i2, const size_t bp );
-
-	/**
-	 * Provides the helix energy during recursion, containing a seed
-	 * @param i1 the helix left end in seq 1 (index including offset)
-	 * @param i2 the helix left end in seq 2 (index including offset)
-	 * @param bp the current number of base pairs in the helix
-	 * @return
-	 */
-	E_type
-	getHelixSeedE( const size_t i1, const size_t i2, const size_t bp );
-
-	/**
-	 * Get the number of bp in the mfe helix
-	 * @param i1 the helix left end in seq 1
-	 * @param i2 the helix left end in seq 2
-	 *
-	 * @return the number of base pairs in the mfe helix for (i1,i2)
-  	 */
-	size_t
-	getHelixBP( const size_t i1, const size_t i2 ) const;
-
-	/**
-	 * Fills the helix energy during recursion
-	 *
-	 * @param i1 the helix left end in seq 1 (index including offset)
-	 * @param i2 the helix left end in seq 2 (index including offset)
-	 * @param bp the current number of base pairs in the helix
-	 * @param E the energy value to be set
-	 */
-	void
-	setHelixE( const size_t i1, const size_t i2, const size_t bp, const E_type E );
-
-	/**
-	 * Fills the helix energy during recursion
-	 *
-	 * @param i1 the helix left end in seq 1 (index including offset)
-	 * @param i2 the helix left end in seq 2 (index including offset)
-	 * @param bp the current number of base pairs in the helix
-	 * @param E the energy value to be set
-	 */
-	void
-	setHelixSeedE( const size_t i1, const size_t i2, const size_t bp, const E_type E );
 
 	/**
 	 * Encodes the seed lengths into one number
@@ -272,6 +196,7 @@ protected:
 	 */
 	size_t
 	decodeHelixSeedLength2( const size_t code ) const;
+
 };
 
 ////////////////////////////////////////////////////////////////////////////
@@ -286,9 +211,8 @@ HelixHandlerStackingOnly::HelixHandlerStackingOnly(
 )
 		:
 		HelixHandler(energy, helixConstraint, seedHandler)
-		, helixE_rec( HelixIndex({{ 0, 0, 0 }}))
+		, seedHandler(seedHandler)
 		, helix()
-		, helixSeedE_rec( HelixIndex({{ 0, 0, 0 }}))
 		, helixSeed()
 		, offset1(0)
 		, offset2(0)
@@ -320,16 +244,6 @@ HelixHandlerStackingOnly::
 getHelixSeedE(const size_t i1, const size_t i2) const
 {
 	return helixSeed(i1-offset1, i2-offset2).first;
-}
-
-////////////////////////////////////////////////////////////////////////////
-
-inline
-size_t
-HelixHandlerStackingOnly::
-getHelixBP(const size_t i1, const size_t i2) const
-{
-	return helix(i1-offset1, i2-offset2).second;
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -371,63 +285,6 @@ getHelixSeedLength2(const size_t i1, const size_t i2) const
 {
 	return decodeHelixSeedLength2(helixSeed(i1-offset1, i2-offset2).second);
 }
-
-////////////////////////////////////////////////////////////////////////////
-
-inline
-E_type
-HelixHandlerStackingOnly::
-getHelixE(const size_t i1, const size_t i2, const size_t bp )
-{
-// return helixE_rec[i1][i2][bpInbetween][u1][u2][bp]
-	return helixE_rec( HelixIndex({{
-										   (HelixRecMatrix::index) i1
-										   , (HelixRecMatrix::index) i2
-										   , (HelixRecMatrix::index) bp}}) );
-}
-
-////////////////////////////////////////////////////////////////////////////
-
-inline
-void
-HelixHandlerStackingOnly::
-setHelixE(const size_t i1, const size_t i2, const size_t bp, const E_type E)
-{
-//	helixE_rec[i1][i2][bpMax][bp] = E
-	helixE_rec( HelixIndex({{
-									(HelixRecMatrix::index) i1
-									, (HelixRecMatrix::index) i2
-									, (HelixRecMatrix::index) bp}}) ) = E;
-}
-
-///////////////////////////////////////////////////////////////////////////
-
-inline
-E_type
-HelixHandlerStackingOnly::
-getHelixSeedE(const size_t i1, const size_t i2, const size_t bp )
-{
-	return helixSeedE_rec( HelixIndex({{
-											   (HelixRecMatrix::index) i1
-											   , (HelixRecMatrix::index) i2
-											   , (HelixRecMatrix::index) bp
-									   }}) );
-}
-
-////////////////////////////////////////////////////////////////////////////
-
-inline
-void
-HelixHandlerStackingOnly::
-setHelixSeedE(const size_t i1, const size_t i2, const size_t bp, const E_type E)
-{
-//	helixE_rec[i1][i2][bpMax][bp] = E
-	helixSeedE_rec( HelixIndex({{
-									(HelixRecMatrix::index) i1
-									, (HelixRecMatrix::index) i2
-									, (HelixRecMatrix::index) bp}}) ) = E;
-}
-
 
 ///////////////////////////////////////////////////////////////////////////
 

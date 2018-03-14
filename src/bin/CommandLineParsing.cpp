@@ -1659,7 +1659,7 @@ getPredictor( const InteractionEnergy & energy, OutputHandler & output ) const
 		switch( pred.val ) {
 		case 'L':  {
 			switch ( predMode.val ) {
-			case 'H' :	return new PredictorMfe2dLimStackHeuristic( energy, output, predTracker, getHelixHandler( energy ));
+			case 'H' :	return new PredictorMfe2dLimStackHeuristic( energy, output, predTracker, getHelixConstraint(energy));
 			default :  INTARNA_NOT_IMPLEMENTED("mode "+toString(predMode.val)+" not implemented for prediction target "+toString(pred.val));
 			}
 		} break;
@@ -1812,23 +1812,24 @@ getHelixConstraint(const InteractionEnergy &energy) const
 	return *helixConstraint;
 }
 
-////////////////////////////////////////////////////////////////////////////
-
-HelixHandler *
-CommandLineParsing::
-getHelixHandler(const InteractionEnergy &energy, SeedHandler * seedHandler) const {
-	// get helix constraint
-	const HelixConstraint &helixConstr = getHelixConstraint(energy);
-
-	switch (helixMode.val) {
-	case 'S' :
-		// create new helix handler with stackings only
-		return new HelixHandlerStackingOnly(energy, helixConstr, seedHandler);
-
-	}
-
-	// TODO: Add helixModes
-}
+// TODO: REMOVE THIS ONCE WORKING
+//////////////////////////////////////////////////////////////////////////////
+//
+//HelixHandler *
+//CommandLineParsing::
+//getHelixHandler(const InteractionEnergy &energy, SeedHandler * seedHandler) const {
+//	// get helix constraint
+//	const HelixConstraint &helixConstr = getHelixConstraint(energy);
+//
+//	switch (helixMode.val) {
+//	case 'S' :
+//		// create new helix handler with stackings only
+//		return new HelixHandlerStackingOnly(energy, helixConstr, seedHandler);
+//
+//	}
+//
+//	// TODO: Add helixModes
+//}
 
 ////////////////////////////////////////////////////////////////////////////
 

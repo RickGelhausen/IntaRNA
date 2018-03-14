@@ -159,12 +159,12 @@ public:
 	 */
 	const HelixConstraint & getHelixConstraint( const InteractionEnergy & energy ) const;
 
-	/**
-	 * Provides a newly allocated helix handler object according to the user settings
-	 * @param energy the interaction energy handler to be used
-	 * @return a newly allocated helix handler respective to the user defined helix mode setting
-	 */
-	HelixHandler * getHelixHandler(const InteractionEnergy& energy, SeedHandler * seedHandler = NULL) const;
+//	/**
+//	 * Provides a newly allocated helix handler object according to the user settings
+//	 * @param energy the interaction energy handler to be used
+//	 * @return a newly allocated helix handler respective to the user defined helix mode setting
+//	 */
+//	HelixHandler * getHelixHandler(const InteractionEnergy& energy, SeedHandler * seedHandler = NULL) const;
 
 
 	/**

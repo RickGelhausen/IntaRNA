@@ -25,8 +25,18 @@ public:
 	HelixHandler(
 			const InteractionEnergy & energy
 			, const HelixConstraint & helixConstraint
-			, SeedHandler * seedHandler
+			, SeedHandler * const seedHandler = NULL
 	);
+
+	/**
+	 * Provides a newly allocated helixHandler according to the user defined
+	 * parameters
+	 * @param energy the interaction energy handler to be used
+	 * @param helixConstraint the helixConstraint to be used
+	 * @return the newly allocated HelixHandler object
+	 */
+	HelixHandler* getHelixHandler( const InteractionEnergy & energy
+			, const HelixConstraint & helixConstraint ) const;
 
 	/**
 	 * destruction
@@ -169,8 +179,10 @@ protected:
 	//! the helix constraint to be applied
 	const HelixConstraint & helixConstraint;
 
-	//! the seed handler (with idx offset)
-	SeedHandlerIdxOffset seedHandler;
+	// TODO: Might have to handle this
+//	//! the seed handler (with idx offset)
+//	SeedHandlerIdxOffset seedHandler;
+ 	SeedHandler * const seedHandler;
 };
 
 
@@ -183,7 +195,7 @@ inline
 HelixHandler::HelixHandler(
 		const InteractionEnergy & energy
 		, const HelixConstraint & helixConstraint
-		, SeedHandler * seedHandlerInstance
+		, SeedHandler * const seedHandlerInstance
 )
 		:
 		energy(energy)
@@ -199,6 +211,13 @@ HelixHandler::~HelixHandler()
 {
 }
 
+////////////////////////////////////////////////////////////////////////////
+
+inline
+HelixHandler* HelixHandler::getHelixHandler(const InteractionEnergy &energy,
+											const HelixConstraint &helixConstraint) const {
+
+}
 ////////////////////////////////////////////////////////////////////////////
 
 inline

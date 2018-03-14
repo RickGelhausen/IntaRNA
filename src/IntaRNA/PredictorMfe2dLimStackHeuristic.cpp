@@ -11,10 +11,11 @@ PredictorMfe2dLimStackHeuristic::
 PredictorMfe2dLimStackHeuristic( const InteractionEnergy & energy
 		, OutputHandler & output
 		, PredictionTracker * predTracker
-		, HelixHandler * helixHandlerInstance
+		, const HelixConstraint & helixConstraint
 		)
 	: PredictorMfe2dHeuristic(energy,output,predTracker)
-		, helixHandler( helixHandlerInstance )
+		, helixH(energy, helixConstraint, NULL)
+		, helixHandler(helixH)
 {
 }
 
@@ -49,7 +50,6 @@ predict( const IndexRange & r1
 	if (!(r1.isAscending() && r2.isAscending()) )
 		throw std::runtime_error("PredictorMfe2dLimStackHeuristic::predict("+toString(r1)+","+toString(r2)+") is not sane");
 #endif
-
 
 	// set index offset
 	energy.setOffset1(r1.from);
