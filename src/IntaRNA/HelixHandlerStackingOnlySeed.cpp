@@ -49,6 +49,7 @@ fillHelixSeed(const size_t i1min, const size_t i1max, const size_t i2min, const 
 
 			// Check whether seed is possible for this starting position
 			// TODO: If no seed is possible from here, there should never be a possible seed anymore (so break should be alright)
+			// TODO: Might need offset for this
 			if (E_isINF(seedHandler.getSeedE(seedStart1, seedStart2))) {
 				break;
 			}
@@ -104,7 +105,82 @@ traceBackHelixSeed( Interaction & interaction
 		, const size_t i1_
 		, const size_t i2_)
 {
+	size_t i1 = i1_
+		 , i2 = i2_
+		 , seedStart1, seedEnd1
+	     , seedStart2, seedEnd2
+	     , bestTrailingBP
+	     , j1, j2;
 
-}
+	E_type curE = getHelixSeedE(i1_,i2_);
+	E_type leadingE, trailingE, bestTrailingE, totalEnergy;
+
+	// Calculate how many base pairs are possible allongside the seed.
+	size_t possibleBasePairs = getConstraint().getMaxBasePairs()-seedHandler.getConstraint().getBasePairs();
+
+	leadingE = 0.0;
+	// screen over all possible leading and trailing base pair combinations
+	for (size_t leadingBP=0; leadingBP <= possibleBasePairs; leadingBP++) {
+
+		seedStart1 = i1 + leadingBP;
+		seedStart2 = i2 + leadingBP;
+
+		// Check whether seed is possible for this starting position
+		// TODO: If no seed is possible from here, there should never be a possible seed anymore (so break should be alright)
+		// TODO: Might need offset for this
+		if (E_isINF(seedHandler.getSeedE(seedStart1, seedStart2))) {
+			break;
+		}
+
+		// Update energy for the leading base pairs
+		if (leadingBP > 0)
+			leadingE += energy.getE_interLeft(seedStart1-1,seedStart1, seedStart2-1,seedStart2);
+
+
+		seedEnd1 = seedStart1+seedHandler.getSeedLength1(seedStart1,seedStart2);
+		seedEnd2 = seedStart2+seedHandler.getSeedLength2(seedStart1,seedStart2);
+
+		trailingE = 0.0;
+		bestTrailingE = 0.0;
+		bestTrailingBP = 0;
+		for (size_t trailingBP = 0; trailingBP <= possibleBasePairs - leadingBP; trailingBP++) {
+
+			j1 = seedEnd1 + trailingBP;
+			j2 = seedEnd2 + trailingBP;
+
+			if (trailingBP > 0);
+			trailingE += energy.getE_interLeft(j1-1,j1,j2-1,j2);
+
+			// only keep the best trailing energy, in order to calculate the energy in first loop
+			// TODO: bestTrailingE might be redundant
+			if (trailingE < bestTrailingE) {
+				bestTrailingE = trailingE;
+				bestTrailingBP = trailingBP;
+			}
+		} // trailing
+		// Check whether this energy is the overall best so far
+		// Done here to avoid problems when there are no trailingBP
+		totalEnergy = leadingE + seedHandler.getSeedE(seedStart1,seedStart2) + bestTrailingE;
+		if (E_equal(totalEnergy, curE)) {
+			// Add leading bases
+			for (size_t l = 0; l < leadingBP; l++) {
+				interaction.basePairs.push_back( energy.getBasePair(i1+l, i2+l) );
+			}
+
+			// Add seed base pairs
+			seedHandler.traceBackSeed(interaction, seedStart1, seedStart2);
+
+			// Add trailing base pairs
+			for (size_t l = 0; l < bestTrailingBP; l++) {
+				interaction.basePairs.push_back( energy.getBasePair(seedEnd1+l, seedEnd2+l));
+			}
+			// Finish traceback
+			break;
+		}
+	} // leading
+
+
+
+} // traceback
 
 } // namespace
