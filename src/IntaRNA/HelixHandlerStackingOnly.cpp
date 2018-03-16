@@ -96,11 +96,11 @@ traceBackHelix( Interaction & interaction
 {
 
 	// get boundaries
-	size_t 	  i1 = i1_
-	, i2 = i2_;
+	size_t 	  i1 = i1_-offset1
+	, i2 = i2_-offset2;
 
 	// Get base pair length of best interaction
-	size_t numberOfBP = helix(i1_,i2_).second;
+	size_t numberOfBP = helix(i1,i2).second;
 
 	// TODO: This condition is likely useless maybe an "assert" instead
 	// Check whether this trace is within the allowed boundaries
@@ -108,9 +108,8 @@ traceBackHelix( Interaction & interaction
 		// trace helices
 		// trace each helix base pair (excluding right most)
 		for (size_t bp = 0; bp < numberOfBP; bp++) {
-			if (i1 != i1_) {
-				//TODO: ? interaction.basePairs.push_back(energy.getBasePair(i1+offset1, i2+offset2)
-				interaction.basePairs.push_back(energy.getBasePair(i1, i2));
+			if (i1 != i1_-offset1) {
+				interaction.basePairs.push_back(energy.getBasePair(i1+offset1, i2+offset2));
 			}
 			i1++;
 			i2++;

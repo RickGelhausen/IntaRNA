@@ -4,8 +4,7 @@
 
 #include "IntaRNA/PredictorMfe2dHeuristic.h"
 #include "IntaRNA/Interaction.h"
-// TOOD: Remove later
-#include "IntaRNA/HelixHandlerStackingOnly.h"
+#include "IntaRNA/HelixHandler.h"
 #include "IntaRNA/HelixHandlerIdxOffset.h"
 
 #include <boost/numeric/ublas/matrix.hpp>
@@ -83,8 +82,8 @@ protected:
 	using PredictorMfe2dHeuristic::hybridE;
 
 	//! helixHandler used only for creating HelixHandlerOffset
-	HelixHandlerStackingOnly helixH;
-	HelixHandlerIdxOffset helixHandler;
+	//HelixHandler helixHandler;
+	HelixHandler * helixHandler;
 
 protected:
 

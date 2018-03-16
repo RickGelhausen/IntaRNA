@@ -43,7 +43,8 @@ public:
 	PredictorMfe2dLimStackHeuristicSeed( const InteractionEnergy & energy
 			, OutputHandler & output
 			, PredictionTracker * predTracker
-		 	, HelixHandler * helixHandler
+		 	, const HelixConstraint & helixConstraint
+			, const SeedConstraint & seedConstraint
 	);
 
 	virtual ~PredictorMfe2dLimStackHeuristicSeed();

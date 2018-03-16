@@ -5,6 +5,7 @@
 #include "IntaRNA/InteractionEnergy.h"
 #include "IntaRNA/HelixConstraint.h"
 #include "IntaRNA/SeedHandlerIdxOffset.h"
+#include "HelixHandlerStackingOnly.h"
 
 namespace IntaRNA {
 
@@ -35,8 +36,10 @@ public:
 	 * @param helixConstraint the helixConstraint to be used
 	 * @return the newly allocated HelixHandler object
 	 */
+	static
 	HelixHandler* getHelixHandler( const InteractionEnergy & energy
-			, const HelixConstraint & helixConstraint ) const;
+			, const HelixConstraint & helixConstraint
+			, SeedHandler * const seedHandler=NULL);
 
 	/**
 	 * destruction
@@ -180,8 +183,7 @@ protected:
 	const HelixConstraint & helixConstraint;
 
 	// TODO: Might have to handle this
-//	//! the seed handler (with idx offset)
-//	SeedHandlerIdxOffset seedHandler;
+	//! the seed handler (with idx offset)
  	SeedHandler * const seedHandler;
 };
 
@@ -215,9 +217,16 @@ HelixHandler::~HelixHandler()
 
 inline
 HelixHandler* HelixHandler::getHelixHandler(const InteractionEnergy &energy,
-											const HelixConstraint &helixConstraint) const {
+											const HelixConstraint &helixConstraint,
+											SeedHandler * const seedHandler ) {
 
+	if (helixConstraint.getMaxUnpaired() == 0) {
+		return new HelixHandlerStackingOnly( energy, helixConstraint, seedHandler );
+	} else {
+		INTARNA_NOT_IMPLEMENTED("HelixHandlerUnpaired!!");
+	}
 }
+
 ////////////////////////////////////////////////////////////////////////////
 
 inline

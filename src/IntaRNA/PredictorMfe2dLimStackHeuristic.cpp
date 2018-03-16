@@ -14,8 +14,7 @@ PredictorMfe2dLimStackHeuristic( const InteractionEnergy & energy
 		, const HelixConstraint & helixConstraint
 		)
 	: PredictorMfe2dHeuristic(energy,output,predTracker)
-		, helixH(energy, helixConstraint, NULL)
-		, helixHandler(helixH)
+		, helixHandler(HelixHandler::getHelixHandler(energy, helixConstraint))
 {
 }
 

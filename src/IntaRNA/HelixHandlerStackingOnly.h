@@ -35,7 +35,7 @@ public:
 	HelixHandlerStackingOnly(
 			const InteractionEnergy & energy
 			, const HelixConstraint & helixConstraint
-			, SeedHandler * seedHandler = NULL
+			, SeedHandler * const seedHandler = NULL
 	);
 
 	/**
@@ -207,7 +207,7 @@ inline
 HelixHandlerStackingOnly::HelixHandlerStackingOnly(
 		const InteractionEnergy & energy
 		, const HelixConstraint & helixConstraint
-		, SeedHandler * seedHandler
+		, SeedHandler * const seedHandler
 )
 		:
 		HelixHandler(energy, helixConstraint, seedHandler)

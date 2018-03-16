@@ -153,8 +153,6 @@ TEST_CASE( "HelixHandlerStackingOnly", "[HelixHandlerStackingOnly]") {
 
 	}
 
-
-
 	SECTION("traceBackHelix 1: Everything is complementary", "[HelixHandlerStackingOnly]") {
 
 		RnaSequence r1("r1", "GGGGG");
