@@ -60,6 +60,7 @@ libIntaRNA_a_HEADERS =    \
 					PredictorMfe2dHeuristic.h \
 					PredictorMfe2dHeuristicSeed.h \
 					PredictorMfe2dLimStackHeuristic.h \
+					PredictorMfe2dLimStackHeuristicSeed.h \
 					PredictorMfe4d.h \
 					PredictorMfe4dSeed.h \
 					ReverseAccessibility.h \
@@ -80,6 +81,7 @@ libIntaRNA_a_SOURCES =    \
 					AccessibilityFromStream.cpp \
 					AccessibilityVrna.cpp \
 					AccessibilityBasePair.cpp \
+					HelixHandler.cpp \
 					HelixHandlerStackingOnly.cpp \
 					HelixHandlerStackingOnlySeed.cpp \
 					IndexRange.cpp \
@@ -107,6 +109,7 @@ libIntaRNA_a_SOURCES =    \
 					PredictorMfe2dHeuristic.cpp \
 					PredictorMfe2dHeuristicSeed.cpp \
 					PredictorMfe2dLimStackHeuristic.cpp \
+					PredictorMfe2dLimStackHeuristicSeed.cpp \
 					PredictorMfe4d.cpp \
 					PredictorMfe4dSeed.cpp \
 					ReverseAccessibility.cpp \

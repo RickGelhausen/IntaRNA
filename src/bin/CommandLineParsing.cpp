@@ -31,12 +31,13 @@
 #include "IntaRNA/InteractionEnergyVrna.h"
 
 #include "IntaRNA/PredictorMfe2dHeuristic.h"
+#include "IntaRNA/PredictorMfe2dLimStackHeuristic.h"
 #include "IntaRNA/PredictorMfe2d.h"
 #include "IntaRNA/PredictorMfe4d.h"
 #include "IntaRNA/PredictorMaxProb.h"
 
-#include "IntaRNA/PredictorMfe2dLimStackHeuristic.h"
 #include "IntaRNA/PredictorMfe2dHeuristicSeed.h"
+#include "IntaRNA/PredictorMfe2dLimStackHeuristicSeed.h"
 #include "IntaRNA/PredictorMfe2dSeed.h"
 #include "IntaRNA/PredictorMfe4dSeed.h"
 
@@ -126,7 +127,6 @@ CommandLineParsing::CommandLineParsing()
 
 	temperature(0,100,37),
 
-	helixMode("SU",'S'),
 	pred( "SPL", 'S'),
 	predMode( "HME", 'H'),
 #if INTARNA_MULITHREADING
@@ -437,18 +437,6 @@ CommandLineParsing::CommandLineParsing()
 		;
 
 	////  INTERACTION/ENERGY OPTIONS  ////////////////////////
-	opts_inter.add_options()
-			("helixMode"
-					, value<char>(&(helixMode.val))
-					   ->default_value(helixMode.def)
-					   ->notifier(boost::bind(&CommandLineParsing::validate_helixMode,this,_1))
-					, std::string("helix prediction mode : "
-								  "\n 'S' stacking only, "
-								  "\n 'U' unpaired bases allowed in helix"
-
-
-			 ).c_str())
-			;
 	opts_inter.add_options()
 		("mode,m"
 			, value<char>(&(predMode.val))
@@ -1690,6 +1678,12 @@ getPredictor( const InteractionEnergy & energy, OutputHandler & output ) const
 	} else {
 		// seed-constrained predictors
 		switch( pred.val ) {
+		case 'L' : {
+			switch  ( predMode.val ) {
+				case 'H' : return new PredictorMfe2dLimStackHeuristicSeed(energy, output, predTracker, getHelixConstraint(energy), getSeedHandler(energy));
+				default :  INTARNA_NOT_IMPLEMENTED("mode "+toString(predMode.val)+" not implemented for prediction target "+toString(pred.val));
+			}
+		} break;
 		// single-site mfe interactions (contain only interior loops)
 		case 'S' : {
 			switch ( predMode.val ) {
@@ -1811,25 +1805,6 @@ getHelixConstraint(const InteractionEnergy &energy) const
 	}
 	return *helixConstraint;
 }
-
-// TODO: REMOVE THIS ONCE WORKING
-//////////////////////////////////////////////////////////////////////////////
-//
-//HelixHandler *
-//CommandLineParsing::
-//getHelixHandler(const InteractionEnergy &energy, SeedHandler * seedHandler) const {
-//	// get helix constraint
-//	const HelixConstraint &helixConstr = getHelixConstraint(energy);
-//
-//	switch (helixMode.val) {
-//	case 'S' :
-//		// create new helix handler with stackings only
-//		return new HelixHandlerStackingOnly(energy, helixConstr, seedHandler);
-//
-//	}
-//
-//	// TODO: Add helixModes
-//}
 
 ////////////////////////////////////////////////////////////////////////////
 

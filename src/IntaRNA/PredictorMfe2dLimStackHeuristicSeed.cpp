@@ -12,10 +12,11 @@ PredictorMfe2dLimStackHeuristicSeed( const InteractionEnergy & energy
 		, OutputHandler & output
 		, PredictionTracker * predTracker
 		, const HelixConstraint & helixConstraint
-		, const SeedConstraint & seedConstraint )
+		, SeedHandler * seedHandlerInstance )
 
 	: PredictorMfe2dLimStackHeuristic(energy,output,predTracker, helixConstraint)
-		, helixHandlerSeed() //TODO PUT GETHELIXHANDLER HERE
+	  	, seedHandlerIdxOffset(seedHandlerInstance)
+		, helixHandlerSeed(HelixHandler::getHelixHandler(energy, helixConstraint,  seedHandlerIdxOffset))
 {
 //	if (helixHandlerSeed.getConstraint().getMaxBasePairs() < seedConstraint.getBasePairs())  {
 //		throw std::runtime_error("PredictorMfe2dLimStackHeuristicSeed() : maximal helix length "

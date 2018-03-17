@@ -4,7 +4,6 @@
 
 #include "IntaRNA/PredictorMfe2dHeuristic.h"
 #include "IntaRNA/Interaction.h"
-#include "IntaRNA/HelixHandler.h"
 #include "IntaRNA/HelixHandlerIdxOffset.h"
 
 #include <boost/numeric/ublas/matrix.hpp>
@@ -83,7 +82,7 @@ protected:
 
 	//! helixHandler used only for creating HelixHandlerOffset
 	//HelixHandler helixHandler;
-	HelixHandler * helixHandler;
+	HelixHandlerIdxOffset helixHandler;
 
 protected:
 

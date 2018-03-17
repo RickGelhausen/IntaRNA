@@ -154,8 +154,6 @@ public:
 	getHelixSeedLength2( const size_t i1, const size_t i2 ) const;
 
 
-	SeedHandlerIdxOffset seedHandler;
-
 protected:
 
 	//! the helix mfe information for helix starting at (i1, i2)
@@ -211,12 +209,13 @@ HelixHandlerStackingOnly::HelixHandlerStackingOnly(
 )
 		:
 		HelixHandler(energy, helixConstraint, seedHandler)
-		, seedHandler(seedHandler)
 		, helix()
 		, helixSeed()
 		, offset1(0)
 		, offset2(0)
 {
+	LOG(DEBUG) << "HelixHandlerStackingOnly constructor";
+
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -293,7 +292,7 @@ size_t
 HelixHandlerStackingOnly::
 encodeHelixSeedLength( const size_t l1, const size_t l2 ) const
 {
-	return l1 + l2*(helixConstraint.getMaxLength1() + seedHandler.getConstraint().getMaxLength1()+1);
+	return l1 + l2*(helixConstraint.getMaxLength1() + seedHandler->getConstraint().getMaxLength1()+1);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -303,7 +302,7 @@ size_t
 HelixHandlerStackingOnly::
 decodeHelixSeedLength1( const size_t code ) const
 {
-	return code % (helixConstraint.getMaxLength1() + seedHandler.getConstraint().getMaxLength1()+1);
+	return code % (helixConstraint.getMaxLength1() + seedHandler->getConstraint().getMaxLength1()+1);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -313,7 +312,7 @@ size_t
 HelixHandlerStackingOnly::
 decodeHelixSeedLength2( const size_t code ) const
 {
-	return code / (helixConstraint.getMaxLength1() + seedHandler.getConstraint().getMaxLength1()+1);
+	return code / (helixConstraint.getMaxLength1() + seedHandler->getConstraint().getMaxLength1()+1);
 }
 
 //////////////////////////////////////////////////////////////////////////

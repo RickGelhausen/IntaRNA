@@ -1,8 +1,6 @@
 
 #include "IntaRNA/PredictorMfe2dLimStackHeuristic.h"
 
-#include <stdexcept>
-
 namespace IntaRNA {
 
 ////////////////////////////////////////////////////////////////////////////

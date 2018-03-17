@@ -10,7 +10,7 @@ fillHelixSeed(const size_t i1min, const size_t i1max, const size_t i2min, const 
 {
 
 	// Fill Seed before computation
-	if (seedHandler.fillSeed(i1min,i1max, i2min,i2max) == 0) {
+	if (seedHandler->fillSeed(i1min,i1max, i2min,i2max) == 0) {
 		// No seed possible -> no helix with seed possible
 		return 0;
 	}
@@ -28,7 +28,7 @@ fillHelixSeed(const size_t i1min, const size_t i1max, const size_t i2min, const 
 	E_type leadingE, trailingE, bestTrailingE, totalEnergy;
 
 	// Calculate how many base pairs are possible allongside the seed.
-	size_t possibleBasePairs = getConstraint().getMaxBasePairs()-seedHandler.getConstraint().getBasePairs();
+	size_t possibleBasePairs = getConstraint().getMaxBasePairs()-seedHandler->getConstraint().getBasePairs();
 
 	// fill for all start indeices
 	// in decreasing index order
@@ -56,7 +56,7 @@ fillHelixSeed(const size_t i1min, const size_t i1max, const size_t i2min, const 
 			// Check whether seed is possible for this starting position
 			// TODO: If no seed is possible from here, there should never be a possible seed anymore (so break should be alright)
 			// TODO: Might need offset for this
-			if (E_isINF(seedHandler.getSeedE(seedStart1, seedStart2))) {
+			if (E_isINF(seedHandler->getSeedE(seedStart1, seedStart2))) {
 				break;
 			}
 
@@ -65,8 +65,8 @@ fillHelixSeed(const size_t i1min, const size_t i1max, const size_t i2min, const 
 				leadingE += energy.getE_interLeft(seedStart1-1,seedStart1, seedStart2-1,seedStart2);
 
 
-			seedEnd1 = seedStart1+seedHandler.getSeedLength1(seedStart1,seedStart2);
-			seedEnd2 = seedStart2+seedHandler.getSeedLength2(seedStart1,seedStart2);
+			seedEnd1 = seedStart1+seedHandler->getSeedLength1(seedStart1,seedStart2);
+			seedEnd2 = seedStart2+seedHandler->getSeedLength2(seedStart1,seedStart2);
 
 			trailingE = 0.0;
 			bestTrailingE = 0.0;
@@ -88,10 +88,10 @@ fillHelixSeed(const size_t i1min, const size_t i1max, const size_t i2min, const 
 			}
 			// Check whether this energy is the overall best so far
 			// Done here to avoid problems when there are no trailingBP
-			totalEnergy = leadingE + seedHandler.getSeedE(seedStart1,seedStart2) + bestTrailingE;
+			totalEnergy = leadingE + seedHandler->getSeedE(seedStart1,seedStart2) + bestTrailingE;
 			if ( totalEnergy < helixSeed(i1,i2).first) {
-				size_t helixLength1 = leadingBP+seedHandler.getSeedLength1(seedStart1,seedStart2)+bestTrailingBP;
-				size_t helixLength2 = leadingBP+seedHandler.getSeedLength2(seedStart1,seedStart2)+bestTrailingBP;
+				size_t helixLength1 = leadingBP+seedHandler->getSeedLength1(seedStart1,seedStart2)+bestTrailingBP;
+				size_t helixLength2 = leadingBP+seedHandler->getSeedLength2(seedStart1,seedStart2)+bestTrailingBP;
 				helixSeed(i1,i2) = HelixMatrix::value_type(totalEnergy,
 														   encodeHelixSeedLength(helixLength1,helixLength2));
 			}
@@ -122,7 +122,7 @@ traceBackHelixSeed( Interaction & interaction
 	E_type leadingE, trailingE, bestTrailingE, totalEnergy;
 
 	// Calculate how many base pairs are possible allongside the seed.
-	size_t possibleBasePairs = getConstraint().getMaxBasePairs()-seedHandler.getConstraint().getBasePairs();
+	size_t possibleBasePairs = getConstraint().getMaxBasePairs()-seedHandler->getConstraint().getBasePairs();
 
 	leadingE = 0.0;
 	// screen over all possible leading and trailing base pair combinations
@@ -134,7 +134,7 @@ traceBackHelixSeed( Interaction & interaction
 		// Check whether seed is possible for this starting position
 		// TODO: If no seed is possible from here, there should never be a possible seed anymore (so break should be alright)
 		// TODO: Might need offset for this
-		if (E_isINF(seedHandler.getSeedE(seedStart1, seedStart2))) {
+		if (E_isINF(seedHandler->getSeedE(seedStart1, seedStart2))) {
 			break;
 		}
 
@@ -143,8 +143,8 @@ traceBackHelixSeed( Interaction & interaction
 			leadingE += energy.getE_interLeft(seedStart1-1,seedStart1, seedStart2-1,seedStart2);
 
 
-		seedEnd1 = seedStart1+seedHandler.getSeedLength1(seedStart1,seedStart2);
-		seedEnd2 = seedStart2+seedHandler.getSeedLength2(seedStart1,seedStart2);
+		seedEnd1 = seedStart1+seedHandler->getSeedLength1(seedStart1,seedStart2);
+		seedEnd2 = seedStart2+seedHandler->getSeedLength2(seedStart1,seedStart2);
 
 		trailingE = 0.0;
 		bestTrailingE = 0.0;
@@ -166,7 +166,7 @@ traceBackHelixSeed( Interaction & interaction
 		} // trailing
 		// Check whether this energy is the overall best so far
 		// Done here to avoid problems when there are no trailingBP
-		totalEnergy = leadingE + seedHandler.getSeedE(seedStart1,seedStart2) + bestTrailingE;
+		totalEnergy = leadingE + seedHandler->getSeedE(seedStart1,seedStart2) + bestTrailingE;
 		if (E_equal(totalEnergy, curE)) {
 			// Add leading bases
 			for (size_t l = 0; l < leadingBP; l++) {
@@ -174,7 +174,7 @@ traceBackHelixSeed( Interaction & interaction
 			}
 
 			// Add seed base pairs
-			seedHandler.traceBackSeed(interaction, seedStart1, seedStart2);
+			seedHandler->traceBackSeed(interaction, seedStart1, seedStart2);
 
 			// Add trailing base pairs
 			for (size_t l = 0; l < bestTrailingBP; l++) {

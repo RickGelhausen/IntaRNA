@@ -44,7 +44,7 @@ public:
 			, OutputHandler & output
 			, PredictionTracker * predTracker
 		 	, const HelixConstraint & helixConstraint
-			, const SeedConstraint & seedConstraint
+			, SeedHandler * seedHandlerInstance
 	);
 
 	virtual ~PredictorMfe2dLimStackHeuristicSeed();
@@ -82,6 +82,8 @@ protected:
 
 	//! the best hybridization energy including a seed for start i1,i2
 	E2dMatrix hybridE_seed;
+
+	SeedHandlerIdxOffset seedHandlerIdxOffset;
 
 	//! handler to generate and access helix information with idx offset
 	HelixHandlerIdxOffset helixHandlerSeed;
