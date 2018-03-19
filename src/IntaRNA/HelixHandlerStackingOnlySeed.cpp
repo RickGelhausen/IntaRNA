@@ -32,8 +32,8 @@ fillHelixSeed(const size_t i1min, const size_t i1max, const size_t i2min, const 
 
 	// fill for all start indeices
 	// in decreasing index order
-	for (i1=i1min; i1 < i1max; i1++ ) {
-	for (i2=i1min; i2 < i2max; i2++ ) {
+	for (i1=i1min; i1 < i1max+1; i1++ ) {
+	for (i2=i1min; i2 < i2max+1; i2++ ) {
 
 		// count possible helices
 		helixCount++;

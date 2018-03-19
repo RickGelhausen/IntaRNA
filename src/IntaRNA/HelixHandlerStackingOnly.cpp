@@ -63,7 +63,7 @@ fillHelix(const size_t i1min, const size_t i1max, const size_t i2min, const size
 				// energy for initial stacking
 				leftHelixE = energy.getE_interLeft(i1,j1, i2,j2);
 			} else {
-				leftHelixE += leftHelixE + energy.getE_interLeft(j1-1,j1, j2-1,j2);
+				leftHelixE += energy.getE_interLeft(j1-1,j1, j2-1,j2);
 			}
 
 			// count possible helices
