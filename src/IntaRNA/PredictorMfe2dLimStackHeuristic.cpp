@@ -59,6 +59,7 @@ predict( const IndexRange & r1
 	const size_t hybridEsize2 = std::min( energy.size2()
 			, (r2.to==RnaSequence::lastPos?energy.size2()-1:r2.to)-r2.from+1 );
 
+
 	if (helixHandler.fillHelix( 0, hybridEsize1-1, 0, hybridEsize2-1 ) == 0) {
 		// trigger empty interaction reporting
 		initOptima(outConstraint);
@@ -172,6 +173,7 @@ fillHybridE()
 				if (E_isINF(rightExt->E)) {
 					continue;
 				}
+
 				// check if interaction length is within boundary
 				if ( (rightExt->j1 +1 -i1) > energy.getAccessibility1().getMaxLength()
 					 || (rightExt->j2 +1 -i2) > energy.getAccessibility2().getMaxLength() )
@@ -202,7 +204,6 @@ fillHybridE()
 		} // helix
 	} // i2
 	} // i1
-
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -211,7 +212,6 @@ void
 PredictorMfe2dLimStackHeuristic::
 traceBack( Interaction & interaction, const OutputConstraint & outConstraint )
 {
-
 	// check if something to trace
 	if (interaction.basePairs.size() < 2) {
 		return;
