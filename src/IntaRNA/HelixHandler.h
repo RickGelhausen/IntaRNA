@@ -25,7 +25,7 @@ public:
 	HelixHandler(
 			const InteractionEnergy & energy
 			, const HelixConstraint & helixConstraint
-			, SeedHandlerIdxOffset * const seedHandler = NULL
+			, SeedHandler * const seedHandler = NULL
 	);
 
 	/**
@@ -38,7 +38,7 @@ public:
 	static
 	HelixHandler* getHelixHandler( const InteractionEnergy & energy
 			, const HelixConstraint & helixConstraint
-			, SeedHandlerIdxOffset * const seedHandler = NULL
+			, SeedHandler * const seedHandler = NULL
 	);
 
 	/**
@@ -197,7 +197,7 @@ inline
 HelixHandler::HelixHandler(
 		const InteractionEnergy & energy
 		, const HelixConstraint & helixConstraint
-		, SeedHandlerIdxOffset * const seedHandlerInstance
+		, SeedHandler * const seedHandlerInstance
 )
 		:
 		energy(energy)

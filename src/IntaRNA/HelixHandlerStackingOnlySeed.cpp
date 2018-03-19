@@ -88,7 +88,6 @@ fillHelixSeed(const size_t i1min, const size_t i1max, const size_t i2min, const 
 				j1 = seedEnd1 + trailingBP;
 				j2 = seedEnd2 + trailingBP;
 
-				// TODO: if trailingBP always >= 1 remove this
 				if (trailingBP > 0) {
 					if (!energy.areComplementary(j1, j2)) {
 						break;
@@ -107,8 +106,12 @@ fillHelixSeed(const size_t i1min, const size_t i1max, const size_t i2min, const 
 			// Done here to avoid problems when there are no trailingBP
 			totalEnergy = leadingE + seedHandler->getSeedE(seedStart1,seedStart2) + bestTrailingE;
 			if ( totalEnergy < helixSeed(i1,i2).first) {
+				// Found new working helix with seed
+				helixCountNotInf++;
+				// Lengths
 				size_t helixLength1 = leadingBP+seedHandler->getSeedLength1(seedStart1,seedStart2)+bestTrailingBP;
 				size_t helixLength2 = leadingBP+seedHandler->getSeedLength2(seedStart1,seedStart2)+bestTrailingBP;
+				// Creating new entry for helixSeed matrix
 				helixSeed(i1,i2) = HelixMatrix::value_type(totalEnergy,
 														   encodeHelixSeedLength(helixLength1,helixLength2));
 			}

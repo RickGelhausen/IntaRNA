@@ -16,7 +16,7 @@ PredictorMfe2dLimStackHeuristicSeed( const InteractionEnergy & energy
 
 	: PredictorMfe2dLimStackHeuristic(energy,output,predTracker, helixConstraint)
 	  	, seedHandlerIdxOffset(seedHandlerInstance)
-		, helixHandlerSeed(HelixHandler::getHelixHandler(energy, helixConstraint,  &seedHandlerIdxOffset))
+		, helixHandlerSeed(HelixHandler::getHelixHandler(energy, helixConstraint,  seedHandlerInstance))
 {
 //	if (helixHandlerSeed.getConstraint().getMaxBasePairs() < seedConstraint.getBasePairs())  {
 //		throw std::runtime_error("PredictorMfe2dLimStackHeuristicSeed() : maximal helix length "
@@ -63,7 +63,10 @@ predict( const IndexRange & r1
 	energy.setOffset2(r2.from);
 	helixHandlerSeed.setOffset1(r1.from);
 	helixHandlerSeed.setOffset2(r2.from);
+	seedHandlerIdxOffset.setOffset1(r1.from);
+	seedHandlerIdxOffset.setOffset2(r2.from);
 
+	// TODO: Init SeedHandler here ? fillSeed
 
 	const size_t hybridEsize1 = std::min( energy.size1()
 			, (r1.to==RnaSequence::lastPos?energy.size1()-1:r1.to)-r1.from+1 );
@@ -75,7 +78,7 @@ predict( const IndexRange & r1
 	hybridE.resize( hybridEsize1, hybridEsize2 );
 	hybridE_seed.resize( hybridE.size1(), hybridE.size2() );
 
-	if (helixHandlerSeed.fillHelixSeed( 0, hybridEsize1-1, 0, hybridEsize2-1 ) == 0) {
+	if (helixHandlerSeed.fillHelixSeed( 0, hybridEsize1-1, 0, hybridEsize2-1) == 0) {
 		// trigger empty interaction reporting
 		initOptima(outConstraint);
 		reportOptima(outConstraint);
@@ -292,7 +295,7 @@ predict( const IndexRange & r1
 
 void
 PredictorMfe2dLimStackHeuristicSeed::
-traceBack( Interaction & interaction )
+traceBack( Interaction & interaction, const OutputConstraint & outConstraint )
 {
 	// check if something to trace
 	if (interaction.basePairs.size() < 2) {
