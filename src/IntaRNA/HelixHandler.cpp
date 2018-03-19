@@ -5,7 +5,7 @@ namespace IntaRNA {
 
 HelixHandler* HelixHandler::getHelixHandler(const InteractionEnergy &energy,
 											const HelixConstraint &helixConstraint,
-											SeedHandler * const seedHandler) {
+											SeedHandlerIdxOffset * const seedHandler) {
 
 	if (helixConstraint.getMaxUnpaired() == 0) {
 		LOG(DEBUG) << "getHelixHandler";

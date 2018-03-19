@@ -25,7 +25,7 @@ public:
 	HelixHandler(
 			const InteractionEnergy & energy
 			, const HelixConstraint & helixConstraint
-			, SeedHandler * const seedHandler = NULL
+			, SeedHandlerIdxOffset * const seedHandler = NULL
 	);
 
 	/**
@@ -38,7 +38,8 @@ public:
 	static
 	HelixHandler* getHelixHandler( const InteractionEnergy & energy
 			, const HelixConstraint & helixConstraint
-			, SeedHandler * const seedHandler=NULL);
+			, SeedHandlerIdxOffset * const seedHandler = NULL
+	);
 
 	/**
 	 * destruction
@@ -183,7 +184,7 @@ protected:
 
 	// TODO: Might have to handle this
 	//! the seed handler (with idx offset)
- 	SeedHandler * const seedHandler;
+ 	// SeedHandler * const seedHandler;
 };
 
 
@@ -196,12 +197,11 @@ inline
 HelixHandler::HelixHandler(
 		const InteractionEnergy & energy
 		, const HelixConstraint & helixConstraint
-		, SeedHandler * const seedHandlerInstance
+		, SeedHandlerIdxOffset * const seedHandlerInstance
 )
 		:
 		energy(energy)
 		, helixConstraint(helixConstraint)
-		, seedHandler(seedHandlerInstance)
 {
 }
 

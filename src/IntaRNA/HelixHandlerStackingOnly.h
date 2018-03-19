@@ -35,7 +35,7 @@ public:
 	HelixHandlerStackingOnly(
 			const InteractionEnergy & energy
 			, const HelixConstraint & helixConstraint
-			, SeedHandler * const seedHandler = NULL
+			, SeedHandlerIdxOffset * const seedHandler = NULL
 	);
 
 	/**
@@ -195,6 +195,7 @@ protected:
 	size_t
 	decodeHelixSeedLength2( const size_t code ) const;
 
+	SeedHandlerIdxOffset * seedHandler;
 };
 
 ////////////////////////////////////////////////////////////////////////////
@@ -205,17 +206,16 @@ inline
 HelixHandlerStackingOnly::HelixHandlerStackingOnly(
 		const InteractionEnergy & energy
 		, const HelixConstraint & helixConstraint
-		, SeedHandler * const seedHandler
+		, SeedHandlerIdxOffset * const seedHandler
 )
 		:
 		HelixHandler(energy, helixConstraint, seedHandler)
+		, seedHandler(seedHandler)
 		, helix()
 		, helixSeed()
 		, offset1(0)
 		, offset2(0)
 {
-	LOG(DEBUG) << "HelixHandlerStackingOnly constructor";
-
 }
 
 ////////////////////////////////////////////////////////////////////////////

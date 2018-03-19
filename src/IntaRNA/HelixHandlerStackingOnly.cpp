@@ -29,8 +29,8 @@ fillHelix(const size_t i1min, const size_t i1max, const size_t i2min, const size
 
 	size_t  helixCountNotInf = 0, helixCount = 0;
 
-	// fill for all start indeices
-	// in decreasing index order
+	// fill for all start indices
+	// in increasing index order
 	for (i1=i1min; i1 < i1max+1; i1++ ) {
 	for (i2=i1min; i2 < i2max+1; i2++ ) {
 

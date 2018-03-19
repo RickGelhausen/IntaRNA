@@ -16,7 +16,7 @@ PredictorMfe2dLimStackHeuristicSeed( const InteractionEnergy & energy
 
 	: PredictorMfe2dLimStackHeuristic(energy,output,predTracker, helixConstraint)
 	  	, seedHandlerIdxOffset(seedHandlerInstance)
-		, helixHandlerSeed(HelixHandler::getHelixHandler(energy, helixConstraint,  seedHandlerIdxOffset))
+		, helixHandlerSeed(HelixHandler::getHelixHandler(energy, helixConstraint,  &seedHandlerIdxOffset))
 {
 //	if (helixHandlerSeed.getConstraint().getMaxBasePairs() < seedConstraint.getBasePairs())  {
 //		throw std::runtime_error("PredictorMfe2dLimStackHeuristicSeed() : maximal helix length "
@@ -42,6 +42,7 @@ predict( const IndexRange & r1
 		, const IndexRange & r2
 		, const OutputConstraint & outConstraint )
 {
+	LOG(DEBUG) << "Predictor Seed Start";
 #if INTARNA_MULITHREADING
 #pragma omp critical(intarna_omp_logOutput)
 #endif
@@ -69,12 +70,12 @@ predict( const IndexRange & r1
 	const size_t hybridEsize2 = std::min( energy.size2()
 			, (r2.to==RnaSequence::lastPos?energy.size2()-1:r2.to)-r2.from+1 );
 
-
+	LOG(DEBUG) << "Predictor Seed Past hybridEsize";
 	// resize matrix
 	hybridE.resize( hybridEsize1, hybridEsize2 );
 	hybridE_seed.resize( hybridE.size1(), hybridE.size2() );
 
-	if (helixHandlerSeed.fillHelix( 0, hybridEsize1-1, 0, hybridEsize2-1 ) == 0) {
+	if (helixHandlerSeed.fillHelixSeed( 0, hybridEsize1-1, 0, hybridEsize2-1 ) == 0) {
 		// trigger empty interaction reporting
 		initOptima(outConstraint);
 		reportOptima(outConstraint);
@@ -82,6 +83,7 @@ predict( const IndexRange & r1
 		return;
 	}
 
+	LOG(DEBUG) << "Predictor Seed Past fillHelixSeed";
 	// temp vars
 	size_t i1,i2,h1,h2,w1,w2;
 
@@ -127,7 +129,7 @@ predict( const IndexRange & r1
 
 	// init mfe for later updates
 	initOptima( outConstraint );
-
+	LOG(DEBUG) << "Predictor INIT done";
 	// compute entries
 	// current minimal value
 	E_type curE = E_INF, curEtotal = E_INF, curCellEtotal = E_INF;
