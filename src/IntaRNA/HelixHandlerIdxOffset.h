@@ -207,6 +207,10 @@ public:
 	size_t
 	getHelixSeedLength2( const size_t i1, const size_t i2 ) const;
 
+	virtual
+	void
+	setSeedHandler( SeedHandler * const seedHandler);
+
 protected:
 
 	//! the index shifted helixHandler
@@ -424,5 +428,12 @@ setOffset2( const size_t offset )
 
 ////////////////////////////////////////////////////////////////////////////
 
+inline
+void
+HelixHandlerIdxOffset::
+setSeedHandler(SeedHandler *const seedHandler)
+{
+	helixHandlerOriginal->setSeedHandler(seedHandler);
+}
 } // namespace
 #endif /* HELIXHANDLERIDXOFFSET_H_ */

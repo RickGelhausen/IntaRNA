@@ -1,3 +1,4 @@
+
 #include "catch.hpp"
 
 #undef NDEBUG
@@ -11,8 +12,7 @@
 
 using namespace IntaRNA;
 
-TEST_CASE( "HelixHandlerStackingOnlySeed", "[HelixHandlerStackingOnlySeed]") {
-
+TEST_CASE( "HelixHandlerStackingOnly", "[HelixHandlerStackingOnly]" ) {
 
 	SECTION("fillHelixSeed", "[HelixHandlerStackingOnly]") {
 
@@ -23,9 +23,10 @@ TEST_CASE( "HelixHandlerStackingOnlySeed", "[HelixHandlerStackingOnlySeed]") {
 		ReverseAccessibility racc(acc2);
 		InteractionEnergyBasePair energy(acc1, racc);
 
-		HelixConstraint hC(2, 10, 0);
-		SeedConstraint sC();
-//		SeedHandlerMfe seedHandler(energy, sC);
-//		HelixHandlerStackingOnly hhS(energy, hC, seedHandler);
+		HelixConstraint hC(2,4,0);
+		HelixHandlerStackingOnly hhS(energy, hC);
+
+		//SeedConstraint sC(energy,3,0,-1,-1,0,0,seedQRange("","","");
+		SeedHandlerMfe sHM(energy, sC);
 	}
 }

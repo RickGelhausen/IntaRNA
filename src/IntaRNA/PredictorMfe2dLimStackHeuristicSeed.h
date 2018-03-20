@@ -68,25 +68,26 @@ public:
 protected:
 
 	//! access to the interaction energy handler of the super class
-	using PredictorMfe2dHeuristic::energy;
+	using PredictorMfe2dLimStackHeuristic::energy;
 
 	//! access to the output handler of the super class
-	using PredictorMfe2dHeuristic::output;
+	using PredictorMfe2dLimStackHeuristic::output;
 
 	//! access to the list of reported interaction ranges of the super class
-	using PredictorMfe2dHeuristic::reportedInteractions;
+	using PredictorMfe2dLimStackHeuristic::reportedInteractions;
 
 	//! energy of all interaction hybrids that end in position p (seq1) and
 	//! q (seq2)
-	using PredictorMfe2dHeuristic::hybridE;
+	using PredictorMfe2dLimStackHeuristic::hybridE;
+
+	//! handler to generate and access helix information with idx offset
+	using PredictorMfe2dLimStackHeuristic::helixHandler;
 
 	//! the best hybridization energy including a seed for start i1,i2
 	E2dMatrix hybridE_seed;
 
-	SeedHandlerIdxOffset seedHandlerIdxOffset;
-
-	//! handler to generate and access helix information with idx offset
-	HelixHandlerIdxOffset helixHandlerSeed;
+	//
+	SeedHandlerIdxOffset seedHandler;
 
 protected:
 

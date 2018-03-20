@@ -133,8 +133,10 @@ fillHybridE()
 		// E_init initialization
 		curCellEtotal = energy.getE(i1,curCell->j1,i2,curCell->j2,curCell->E);
 
+
 		// check if helix is possible for this left boundary
 		if ( E_isNotINF( helixHandler.getHelixE(i1,i2) ) ) {
+
 			// get right extension
 			h1 = helixHandler.getHelixLength1(i1,i2)-1; assert(i1+h1 < hybridE.size1());
 			h2 = helixHandler.getHelixLength2(i1,i2)-1; assert(i2+h2 < hybridE.size2());

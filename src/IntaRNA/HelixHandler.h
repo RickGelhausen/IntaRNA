@@ -174,6 +174,13 @@ public:
 	size_t
 	getHelixSeedLength2( const size_t i1, const size_t i2 ) const = 0;
 
+	/**
+	 * Set the seedHandler used in the helixHandlerSeed computation
+ 	 */
+	virtual
+	void
+	setSeedHandler( SeedHandler * const seedHandler ) = 0;
+
 protected:
 
 	//! the used energy function

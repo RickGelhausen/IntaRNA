@@ -28,19 +28,19 @@ TEST_CASE( "PredictorMfe2dLimStackHeuristc", "[PredictorMfe2dLimStackHeuristic]"
 		ReverseAccessibility racc(acc2);
 		InteractionEnergyBasePair energy(acc1, racc);
 
-		HelixConstraint hc(2, 4, 0);
-
-		std::ostream * outStream;
-		OutputHandler * out = new OutputHandlerText( *outStream, energy, 10, false);
-
-		PredictionTrackerHub * predTracker = new PredictionTrackerHub();
-		PredictorMfe2dLimStackHeuristic pLSH(energy, *out, predTracker, new HelixHandlerStackingOnly(energy, hc));
-
-		IndexRange idx1(0,r1.lastPos);
-		IndexRange idx2(0,r2.lastPos);
-		OutputConstraint outC(1,OutputConstraint::OVERLAP_SEQ2,0,100);
-
-		std::cout << "Hello" << std::endl;
+//		HelixConstraint hc(2, 4, 0);
+//
+//		std::ostream * outStream;
+//		OutputHandler * out = new OutputHandlerText( *outStream, energy, 10, false);
+//
+//		PredictionTrackerHub * predTracker = new PredictionTrackerHub();
+//		PredictorMfe2dLimStackHeuristic pLSH(energy, *out, predTracker, hc);
+//
+//		IndexRange idx1(0,r1.lastPos);
+//		IndexRange idx2(0,r2.lastPos);
+//		OutputConstraint outC(1,OutputConstraint::OVERLAP_SEQ2,0,100);
+//
+//		std::cout << "Hello" << std::endl;
 
 		//pLSH.predict(idx1,idx2,outC);
 

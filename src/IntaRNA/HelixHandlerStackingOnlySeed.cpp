@@ -9,12 +9,6 @@ HelixHandlerStackingOnly::
 fillHelixSeed(const size_t i1min, const size_t i1max, const size_t i2min, const size_t i2max)
 {
 
-	// Fill Seed before computation
-	if (seedHandler->fillSeed(i1min,i1max, i2min,i2max) == 0) {
-		// No seed possible -> no helix with seed possible
-		return 0;
-	}
-
 	helixSeed.resize( i1max-i1min+1, i2max-i2min+1 );
 
 	// store index offset due to restricted matrix size generation
@@ -214,7 +208,7 @@ traceBackHelixSeed( Interaction & interaction
 			seedHandler->traceBackSeed(interaction, seedStart1, seedStart2);
 
 			// Add trailing base pairs
-			for (size_t l = 0; l < bestTrailingBP; l++) {
+			for (size_t l = 0; l <= bestTrailingBP; l++) {
 				interaction.basePairs.push_back( energy.getBasePair(seedEnd1+l, seedEnd2+l));
 			}
 			// Finish traceback

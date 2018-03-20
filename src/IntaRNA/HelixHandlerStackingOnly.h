@@ -195,6 +195,12 @@ protected:
 	size_t
 	decodeHelixSeedLength2( const size_t code ) const;
 
+	/**
+	 * Set the seedHandler in order to compute helixSeed
+	 * @param seedHandler seedHandler to be used in the helix computation
+	 */
+	void setSeedHandler(SeedHandler * const seedHandler);
+
 	SeedHandler * seedHandler;
 };
 
@@ -313,6 +319,14 @@ HelixHandlerStackingOnly::
 decodeHelixSeedLength2( const size_t code ) const
 {
 	return code / (helixConstraint.getMaxLength1() + seedHandler->getConstraint().getMaxLength1()+1);
+}
+
+//////////////////////////////////////////////////////////////////////////
+
+inline
+void
+HelixHandlerStackingOnly::setSeedHandler(SeedHandler *const seedHandler) {
+	this->seedHandler = seedHandler;
 }
 
 //////////////////////////////////////////////////////////////////////////

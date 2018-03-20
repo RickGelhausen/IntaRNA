@@ -14,14 +14,11 @@ PredictorMfe2dLimStackHeuristicSeed( const InteractionEnergy & energy
 		, const HelixConstraint & helixConstraint
 		, SeedHandler * seedHandlerInstance )
 
-	: PredictorMfe2dLimStackHeuristic(energy,output,predTracker, helixConstraint)
-	  	, seedHandlerIdxOffset(seedHandlerInstance)
-		, helixHandlerSeed(HelixHandler::getHelixHandler(energy, helixConstraint,  seedHandlerInstance))
+	: PredictorMfe2dLimStackHeuristic(energy,output,predTracker,helixConstraint)
+		, seedHandler(seedHandlerInstance)
+
 {
-//	if (helixHandlerSeed.getConstraint().getMaxBasePairs() < seedConstraint.getBasePairs())  {
-//		throw std::runtime_error("PredictorMfe2dLimStackHeuristicSeed() : maximal helix length "
-//								 +toString(helixHandlerSeed.getConstraint().getMaxBasePairs())+" < seedBasePairs "+toString(seedConstraint.getBasePairs()));
-//	}
+	helixHandler.setSeedHandler(seedHandlerInstance);
 }
 
 
@@ -42,7 +39,7 @@ predict( const IndexRange & r1
 		, const IndexRange & r2
 		, const OutputConstraint & outConstraint )
 {
-	LOG(DEBUG) << "Predictor Seed Start";
+//	LOG(DEBUG) << "Predictor Seed Start";
 #if INTARNA_MULITHREADING
 #pragma omp critical(intarna_omp_logOutput)
 #endif
@@ -61,10 +58,8 @@ predict( const IndexRange & r1
 	// set index offset
 	energy.setOffset1(r1.from);
 	energy.setOffset2(r2.from);
-	helixHandlerSeed.setOffset1(r1.from);
-	helixHandlerSeed.setOffset2(r2.from);
-	seedHandlerIdxOffset.setOffset1(r1.from);
-	seedHandlerIdxOffset.setOffset2(r2.from);
+	helixHandler.setOffset1(r1.from);
+	helixHandler.setOffset2(r2.from);
 
 	// TODO: Init SeedHandler here ? fillSeed
 
@@ -73,12 +68,14 @@ predict( const IndexRange & r1
 	const size_t hybridEsize2 = std::min( energy.size2()
 			, (r2.to==RnaSequence::lastPos?energy.size2()-1:r2.to)-r2.from+1 );
 
-	LOG(DEBUG) << "Predictor Seed Past hybridEsize";
+//	LOG(DEBUG) << "Predictor Seed Past hybridEsize";
 	// resize matrix
 	hybridE.resize( hybridEsize1, hybridEsize2 );
 	hybridE_seed.resize( hybridE.size1(), hybridE.size2() );
 
-	if (helixHandlerSeed.fillHelixSeed( 0, hybridEsize1-1, 0, hybridEsize2-1) == 0) {
+
+	// FillHelix
+	if (helixHandler.fillHelix( 0, hybridEsize1-1, 0, hybridEsize2-1) == 0) {
 		// trigger empty interaction reporting
 		initOptima(outConstraint);
 		reportOptima(outConstraint);
@@ -86,7 +83,25 @@ predict( const IndexRange & r1
 		return;
 	}
 
-	LOG(DEBUG) << "Predictor Seed Past fillHelixSeed";
+	// SeedHandler
+	if (seedHandler.fillSeed(0, hybridEsize1-1, 0, hybridEsize2-1) == 0) {
+		// trigger empty interaction reporting
+		initOptima(outConstraint);
+		reportOptima(outConstraint);
+		// stop computation
+		return;
+	}
+
+	// FillHelixSeed
+	if (helixHandler.fillHelixSeed( 0, hybridEsize1-1, 0, hybridEsize2-1) == 0) {
+		// trigger empty interaction reporting
+		initOptima(outConstraint);
+		reportOptima(outConstraint);
+		// stop computation
+		return;
+	}
+
+//	LOG(DEBUG) << "Predictor Seed Past fillHelixSeed";
 	// temp vars
 	size_t i1,i2,h1,h2,w1,w2;
 
@@ -112,24 +127,29 @@ predict( const IndexRange & r1
 	} // i2
 	} // i1
 
+//	LOG(DEBUG) << "Predictor Done matrix init";
+
 	// init mfe without seed condition
 	OutputConstraint tmpOutConstraint(1, outConstraint.reportOverlap, outConstraint.maxE, outConstraint.deltaE);
 	initOptima( tmpOutConstraint );
 
+//	LOG(DEBUG) << "Predictor Before fillhybrid";
 	// TODO: Check what predictor to use. Might have to explicitly call with HelixHandler and all to ensure right entries
 	// compute hybridization energies WITHOUT seed condition
 	// sets also -energy -hybridE
 	// -> no hybrid update since updateOptima overwritten
 	PredictorMfe2dLimStackHeuristic::fillHybridE();
-
-	// check if any interaction possible
-	// if not no seed-containing interaction is possible neither
-	if (this->mfeInteractions.begin()->energy >= tmpOutConstraint.maxE) {
-		// stop computation since no favorable interaction found
-		reportOptima(tmpOutConstraint);
-		return;
-	}
-
+//	LOG(DEBUG) << "Predictor after fillhybrid";
+//
+//	LOG(DEBUG) << "mfeInteractions energy" << mfeInteractions.begin()->energy;
+//	// check if any interaction possible
+//	// if not no seed-containing interaction is possible neither
+//	if (this->mfeInteractions.begin()->energy >= tmpOutConstraint.maxE) {
+//		// stop computation since no favorable interaction found
+//		reportOptima(tmpOutConstraint);
+//		return;
+//	}
+//	LOG(DEBUG) <<
 	// init mfe for later updates
 	initOptima( outConstraint );
 	LOG(DEBUG) << "Predictor INIT done";
@@ -144,6 +164,7 @@ predict( const IndexRange & r1
 	for (i1=hybridE_seed.size1(); i1-- > 0;) {
 	for (i2=hybridE_seed.size2(); i2-- > 0;) {
 
+		LOG(DEBUG) << "i1, i2 " << i1 << ", " << i2;
 		// check if left side can pair
 		if (E_isINF(hybridE(i1,i2).E)) {
 			continue;
@@ -155,17 +176,17 @@ predict( const IndexRange & r1
 		curCellEtotal = E_INF;
 
 		// check if helix containing a seed is possible for this left boundary
-		if ( E_isNotINF( helixHandlerSeed.getHelixE(i1,i2) ) ) {
+		if ( E_isNotINF( helixHandler.getHelixSeedE(i1,i2) ) ) {
 			// helixHandlerSeed Lengths
-			h1 = helixHandlerSeed.getHelixLength1(i1,i2)-1; assert(i1+h1 < hybridE_seed.size1());
-			h2 = helixHandlerSeed.getHelixLength2(i1,i2)-1; assert(i2+h1 < hybridE_seed.size2());
+			h1 = helixHandler.getHelixSeedLength1(i1,i2)-1; assert(i1+h1 < hybridE_seed.size1());
+			h2 = helixHandler.getHelixSeedLength2(i1,i2)-1; assert(i2+h1 < hybridE_seed.size2());
 
 			///////////////////////////////////////////////////////////////////
 			// Case: Helix_seed + E_init
 			///////////////////////////////////////////////////////////////////
 
-			curE = helixHandlerSeed.getHelixE(i1,i2) + energy.getE_init();
-
+			curE = helixHandler.getHelixSeedE(i1,i2) + energy.getE_init();
+			LOG(DEBUG) << "Seed + INIT " << curE;
 			// check if this combination yields better energy
 			curEtotal = energy.getE(i1,i1+h1, i2, i2+h2, curE);
 			if ( curEtotal < curCellEtotal )
@@ -185,8 +206,8 @@ predict( const IndexRange & r1
 			// Case: Helix_seed + interior loop + hybridE
 			///////////////////////////////////////////////////////////////////
 
-			for (w1=1; w1-1 <= energy.getMaxInternalLoopSize1() && i1+h1+w1<hybridE_seed.size1(); w1++) {
-			for (w2=1; w2-1 <= energy.getMaxInternalLoopSize2() && i2+h2+w2<hybridE_seed.size2(); w2++) {
+			for (w1=1; w1-1 <= energy.getMaxInternalLoopSize1() && i1+h1+w1<hybridE.size1(); w1++) {
+			for (w2=1; w2-1 <= energy.getMaxInternalLoopSize2() && i2+h2+w2<hybridE.size2(); w2++) {
 
 				// skip stacking to ensure enumerating only bulges and interior loops
 				if ( w1 == 1 && w2 == 1) {
@@ -207,8 +228,8 @@ predict( const IndexRange & r1
 				}
 
 				// compute energy for this loop sizes
-				curE = helixHandlerSeed.getHelixE(i1,i2) + energy.getE_interLeft(i1+h1,i1+h1+w1,i2+h2,i2+h2+w2) + rightExt->E;
-
+				curE = helixHandler.getHelixSeedE(i1,i2) + energy.getE_interLeft(i1+h1,i1+h1+w1,i2+h2,i2+h2+w2) + rightExt->E;
+				LOG(DEBUG) << "seed + interior + hybridE " << curE;
 				// check if this combination yields better energy
 				curEtotal = energy.getE(i1,rightExt->j1,i2,rightExt->j2,curE);
 				if ( curEtotal < curCellEtotal )
@@ -230,11 +251,11 @@ predict( const IndexRange & r1
 		// Case: Helix + interior loop + hybridE_seed
 		///////////////////////////////////////////////////////////////////
 
-		// check if helix containing a seed is possible for this left boundary
+		// check if helix containing no seed is possible for this left boundary
 		if ( E_isNotINF(helixHandler.getHelixE(i1,i2) ) ) {
 			// helixHandler lengths
-			h1 = helixHandler.getHelixLength1(i1,i2)-1; assert(i1+h1<hybridE_seed.size1());
-			h2 = helixHandler.getHelixLength2(i1,i2)-1; assert(i2+h2<hybridE_seed.size2());
+			h1 = helixHandler.getHelixLength1(i1,i2)-1; assert(i1+h1<hybridE.size1());
+			h2 = helixHandler.getHelixLength2(i1,i2)-1; assert(i2+h2<hybridE.size2());
 
 			// iterate over all loop size w1 (seq1) and w2 (seq2)
 			for (w1=1; w1-1 <= energy.getMaxInternalLoopSize1() && i1+h1+w1<hybridE_seed.size1(); w1++) {
@@ -261,6 +282,7 @@ predict( const IndexRange & r1
 				// compute energy for this loop sizes
 				curE = helixHandler.getHelixE(i1,i2) + energy.getE_interLeft(i1+h1,i1+h1+w1,i2+h2,i2+h2+w2) + rightExt->E;
 
+				LOG(DEBUG) << "helix + il + hybridE_seed";
 				// check if this combination yields better energy
 				curEtotal = energy.getE(i1,rightExt->j1,i2,rightExt->j2,curE);
 				if ( curEtotal < curCellEtotal )
@@ -277,7 +299,7 @@ predict( const IndexRange & r1
 			} // w1
 
 		} // helix
-
+		LOG(DEBUG) << "Predictor Run done";
 		// update mfe if needed (call superclass update routine)
 		PredictorMfe2dLimStackHeuristic::updateOptima( i1,curCell->j1, i2,curCell->j2, curCellEtotal, false );
 
@@ -346,16 +368,15 @@ traceBack( Interaction & interaction, const OutputConstraint & outConstraint )
 		const BestInteraction * curCell = NULL;
 		bool traceNotFound = true;
 
-		// TODO: CHange this for new helixHandler version
-		assert(E_isNotINF(helixHandlerSeed.getHelixE(i1,i2)) || E_isNotINF(helixHandler.getHelixE(i1,i2)));
-
+		// Assure that atleast one case is possible
+		assert(E_isNotINF(helixHandler.getHelixE(i1,i2)) || E_isNotINF(helixHandler.getHelixSeedE(i1,i2)));
 		if (helixHandler.getHelixE(i1,i2)) {
 			h1 = helixHandler.getHelixLength1(i1,i2)-1; assert(i1+h1<hybridE.size1());
 			h2 = helixHandler.getHelixLength2(i1,i2)-1; assert(i2+h2<hybridE.size2());
 
 			// check all combinations of decompositions into (i1,i2)..(k1,k2)-(j1,j2)
-			for (size_t w1=1; traceNotFound && w1-1 <= energy.getMaxInternalLoopSize1() && i1+h1+w1<hybridE.size1(); w1++) {
-			for (size_t w2=1; traceNotFound && w2-1 <= energy.getMaxInternalLoopSize2() && i2+h2+w2<hybridE.size2(); w2++) {
+			for (size_t w1=1; traceNotFound && w1-1 <= energy.getMaxInternalLoopSize1() && i1+h1+w1<hybridE_seed.size1(); w1++) {
+			for (size_t w2=1; traceNotFound && w2-1 <= energy.getMaxInternalLoopSize2() && i2+h2+w2<hybridE_seed.size2(); w2++) {
 
 				// skip stacking
 				if (w1 == 1 && w2 == 1) {
@@ -392,12 +413,12 @@ traceBack( Interaction & interaction, const OutputConstraint & outConstraint )
 
 		}
 
-		if (helixHandlerSeed.getHelixE(i1,i2)) {
-			h1 = helixHandlerSeed.getHelixLength1(i1,i2); assert(i1+h1<hybridE_seed.size1());
-			h2 = helixHandlerSeed.getHelixLength2(i1,i2); assert(i2+h2<hybridE_seed.size2());
+		if (helixHandler.getHelixSeedE(i1,i2)) {
+			h1 = helixHandler.getHelixSeedLength1(i1,i2)-1; assert(i1+h1<hybridE_seed.size1());
+			h2 = helixHandler.getHelixSeedLength2(i1,i2)-1; assert(i2+h2<hybridE_seed.size2());
 			// check all combinations of decompositions into (i1,i2)..(k1,k2)-(j1,j2)
-			for (size_t w1=1; traceNotFound && w1-1 <= energy.getMaxInternalLoopSize1() && i1+h1+w1<hybridE_seed.size1(); w1++) {
-			for (size_t w2=1; traceNotFound && w2-1 <= energy.getMaxInternalLoopSize2() && i2+h2+w2<hybridE_seed.size2(); w2++) {
+			for (size_t w1=1; traceNotFound && w1-1 <= energy.getMaxInternalLoopSize1() && i1+h1+w1<hybridE.size1(); w1++) {
+			for (size_t w2=1; traceNotFound && w2-1 <= energy.getMaxInternalLoopSize2() && i2+h2+w2<hybridE.size2(); w2++) {
 
 				// skip stacking
 				if (w1 == 1 && w2 == 1) {
@@ -412,12 +433,12 @@ traceBack( Interaction & interaction, const OutputConstraint & outConstraint )
 				// check if right boundary is equal (part of the heuristic)
 				if ( curCell->j1 == j1 && curCell->j2 == j2 &&
 					 // and energy is the source of curE
-					 E_equal( curE, (helixHandlerSeed.getHelixE(i1,i2) + energy.getE_interLeft(i1+h1,k1,i2+h2,k2) + curCell->E ) ) )
+					 E_equal( curE, (helixHandler.getHelixSeedE(i1,i2) + energy.getE_interLeft(i1+h1,k1,i2+h2,k2) + curCell->E ) ) )
 				{
 					// stop searching
 					traceNotFound = false;
 					// store helix base pairs
-					helixHandlerSeed.traceBackHelix( interaction, i1, i2 );
+					helixHandler.traceBackHelixSeed( interaction, i1, i2 );
 
 					// store splitting base pair if not last one of interaction range
 					if ( k1 < j1 ) {
@@ -433,12 +454,12 @@ traceBack( Interaction & interaction, const OutputConstraint & outConstraint )
 			} // w2
 
 			// init case
-			if ( traceNotFound && E_equal(curE, helixHandlerSeed.getHelixE(i1,i2) + energy.getE_init())  ) {
+			if ( traceNotFound && E_equal(curE, helixHandler.getHelixSeedE(i1,i2) + energy.getE_init())  ) {
 				// stop searching
 				traceNotFound = false;
 				// traceback helix base pairs ( excluding right most = (k1,k2))
-				helixHandlerSeed.traceBackHelix(interaction, i1, i2);
-				// TODO: ASK MARTIN!! WORKAROUND!!!
+				helixHandler.traceBackHelixSeed(interaction, i1, i2);
+//				// TODO: ASK MARTIN!! WORKAROUND!!!
 				interaction.basePairs.pop_back();
 				// trace right part of split
 				i1=i1+h1;
@@ -446,6 +467,7 @@ traceBack( Interaction & interaction, const OutputConstraint & outConstraint )
 				curE=0.0;
 			}
 		}
+		assert(!traceNotFound);
 
 	}
 	// sort final interaction (to make valid) (faster than calling sort())
@@ -459,7 +481,6 @@ traceBack( Interaction & interaction, const OutputConstraint & outConstraint )
 		// set last to j1-j2
 		(*bps.rbegin()) = energy.getBasePair( j1, j2 );
 	}
-
 }
 
 ////////////////////////////////////////////////////////////////////////////
