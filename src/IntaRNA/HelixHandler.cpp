@@ -8,7 +8,6 @@ HelixHandler* HelixHandler::getHelixHandler(const InteractionEnergy &energy,
 											SeedHandler * const seedHandler) {
 
 	if (helixConstraint.getMaxUnpaired() == 0) {
-		LOG(DEBUG) << "getHelixHandler";
 		return new HelixHandlerStackingOnly(energy, helixConstraint, seedHandler);
 	} else {
 		INTARNA_NOT_IMPLEMENTED("HelixHandlerUnpaired!!");

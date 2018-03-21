@@ -36,8 +36,10 @@ fillHelixSeed(const size_t i1min, const size_t i1max, const size_t i2min, const 
 			continue; // go to next helixSeedE index
 		}
 
+
+		// TODO: Check if this work when seed allows unpaired bases
 		// Check if a seed can fit given the left boundaries
-		// Note: Do it here to initialize all entries correctly
+		// Note: If seedHandler allows unpaired positions this check is not enough, check happens in loop
 		if (std::min(helixSeed.size1()-i1, helixSeed.size2()-i2) < seedHandler->getConstraint().getBasePairs()) {
 			continue;
 		} else {
@@ -70,9 +72,16 @@ fillHelixSeed(const size_t i1min, const size_t i1max, const size_t i2min, const 
 				leadingE += energy.getE_interLeft(seedStart1 - 1, seedStart1, seedStart2 - 1, seedStart2);
 			}
 
+			// The right ends of the helix after the seed (start of trailing base pairs)
 			seedEnd1 = seedStart1+seedHandler->getSeedLength1(seedStart1,seedStart2)-1;
 			seedEnd2 = seedStart2+seedHandler->getSeedLength2(seedStart1,seedStart2)-1;
 
+			// If SeedConstraints allow unpaired bases in the seed, ensure that the boundaries are not broken.
+			if (seedEnd1 >= helixSeed.size1() || seedEnd2 >= helixSeed.size2()) {
+				break;
+			}
+
+			// Trailing base pairs
 			trailingE = 0.0;
 			bestTrailingE = 0.0;
 			bestTrailingBP = 0;
@@ -100,8 +109,6 @@ fillHelixSeed(const size_t i1min, const size_t i1max, const size_t i2min, const 
 			// Done here to avoid problems when there are no trailingBP
 			totalEnergy = leadingE + seedHandler->getSeedE(seedStart1,seedStart2) + bestTrailingE;
 			if ( totalEnergy < helixSeed(i1,i2).first) {
-				// Found new working helix with seed
-				helixCountNotInf++;
 				// Lengths
 				size_t helixLength1 = leadingBP+seedHandler->getSeedLength1(seedStart1,seedStart2)+bestTrailingBP;
 				size_t helixLength2 = leadingBP+seedHandler->getSeedLength2(seedStart1,seedStart2)+bestTrailingBP;
@@ -110,6 +117,11 @@ fillHelixSeed(const size_t i1min, const size_t i1max, const size_t i2min, const 
 														   encodeHelixSeedLength(helixLength1,helixLength2));
 			}
 
+		} // leadingBP
+
+		// Ensures that the helixCount is only added for the mfe helix.
+		if (E_isNotINF(getHelixSeedE(i1,i2))) {
+			helixCountNotInf++;
 		}
 	} // i2
 	} // i1
@@ -138,9 +150,10 @@ traceBackHelixSeed( Interaction & interaction
 
 	E_type leadingE, trailingE, bestTrailingE, totalEnergy;
 
+	// TODO: Check if this work when seed allows unpaired bases
 	// Calculate how many base pairs are possible allongside the seed.
+	// Note: If seedHandler allows unpaired positions this check is not enough, check happens in loop
 	size_t possibleBasePairs = std::min(std::min(helixSeed.size1()-i1, helixSeed.size2()-i2), helixConstraint.getMaxBasePairs())-seedHandler->getConstraint().getBasePairs();
-
 
 	leadingE = 0.0;
 	// screen over all possible leading and trailing base pair combinations
@@ -170,6 +183,12 @@ traceBackHelixSeed( Interaction & interaction
 		seedEnd1 = seedStart1+seedHandler->getSeedLength1(seedStart1,seedStart2)-1;
 		seedEnd2 = seedStart2+seedHandler->getSeedLength2(seedStart1,seedStart2)-1;
 
+		// If SeedConstraints allow unpaired bases in the seed, ensure that the boundaries are not broken.
+		if (seedEnd1 >= helixSeed.size1() || seedEnd2 >= helixSeed.size2()) {
+			break;
+		}
+
+		// Trailing base pairs
 		trailingE = 0.0;
 		bestTrailingE = 0.0;
 		bestTrailingBP = 0;

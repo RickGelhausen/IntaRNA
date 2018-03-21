@@ -153,20 +153,32 @@ public:
 	size_t
 	getHelixSeedLength2( const size_t i1, const size_t i2 ) const;
 
+	/**
+	 * Encodes the seed lengths into one number
+	 * @param l1 the length of the seed in seq1
+	 * @param l2 the length of the seed in seq2
+	 * @return the combined encoding = (l1 + l2*(max_l1+1))
+	 */
+	size_t
+	encodeHelixLength( const size_t l1, const size_t l2 ) const;
 
-protected:
+	/**
+	 * Decodes the length of the seed within sequence 1 from an encoding
+	 * generated with encodeSeedLength()
+	 * @param code the lengths encoding
+	 * @return the length of the seed in seq1
+	 */
+	size_t
+	decodeHelixLength1( const size_t code ) const;
 
-	//! the helix mfe information for helix starting at (i1, i2)
-	HelixMatrix helix;
-
-	//! the helix mfe information for helix starting at (i1, i2)
-	HelixMatrix helixSeed;
-
-	//! offset for seq1 indices for the current matrices
-	size_t offset1;
-
-	//! offset for seq2 indices for the current matrices
-	size_t offset2;
+	/**
+	 * Decodes the length of the seed within sequence 2 from an encoding
+	 * generated with encodeSeedLength()
+	 * @param code the lengths encoding
+	 * @return the length of the seed in seq2
+	 */
+	size_t
+	decodeHelixLength2( const size_t code ) const;
 
 	/**
 	 * Encodes the seed lengths into one number
@@ -200,6 +212,21 @@ protected:
 	 * @param seedHandler seedHandler to be used in the helix computation
 	 */
 	void setSeedHandler(SeedHandler * const seedHandler);
+
+protected:
+
+	//! the helix mfe information for helix starting at (i1, i2)
+	HelixMatrix helix;
+
+	//! the helix mfe information for helix starting at (i1, i2)
+	HelixMatrix helixSeed;
+
+	//! offset for seq1 indices for the current matrices
+	size_t offset1;
+
+	//! offset for seq2 indices for the current matrices
+	size_t offset2;
+
 
 	SeedHandler * seedHandler;
 };
@@ -258,7 +285,7 @@ size_t
 HelixHandlerStackingOnly::
 getHelixLength1(const size_t i1, const size_t i2) const
 {
-	return helix(i1-offset1, i2-offset2).second;
+	return decodeHelixLength1(helix(i1-offset1, i2-offset2).second);
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -268,7 +295,7 @@ size_t
 HelixHandlerStackingOnly::
 getHelixLength2(const size_t i1, const size_t i2) const
 {
-	return helix(i1-offset1, i2-offset2).second;
+	return decodeHelixLength2(helix(i1-offset1, i2-offset2).second);
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -289,6 +316,36 @@ HelixHandlerStackingOnly::
 getHelixSeedLength2(const size_t i1, const size_t i2) const
 {
 	return decodeHelixSeedLength2(helixSeed(i1-offset1, i2-offset2).second);
+}
+
+///////////////////////////////////////////////////////////////////////////
+
+inline
+size_t
+HelixHandlerStackingOnly::
+encodeHelixLength( const size_t l1, const size_t l2 ) const
+{
+	return l1 + l2*(helixConstraint.getMaxLength1());
+}
+
+//////////////////////////////////////////////////////////////////////////
+
+inline
+size_t
+HelixHandlerStackingOnly::
+decodeHelixLength1( const size_t code ) const
+{
+	return code % (helixConstraint.getMaxLength1());
+}
+
+//////////////////////////////////////////////////////////////////////////
+
+inline
+size_t
+HelixHandlerStackingOnly::
+decodeHelixLength2( const size_t code ) const
+{
+	return code / (helixConstraint.getMaxLength1());
 }
 
 ///////////////////////////////////////////////////////////////////////////

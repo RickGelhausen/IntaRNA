@@ -30,11 +30,9 @@ TEST_CASE( "PredictorMfe2dLimStackHeuristc", "[PredictorMfe2dLimStackHeuristic]"
 
 //		HelixConstraint hc(2, 4, 0);
 //
-//		std::ostream * outStream;
-//		OutputHandler * out = new OutputHandlerText( *outStream, energy, 10, false);
+//		OutputHandlerInteractionList out(5);
 //
-//		PredictionTrackerHub * predTracker = new PredictionTrackerHub();
-//		PredictorMfe2dLimStackHeuristic pLSH(energy, *out, predTracker, hc);
+//		PredictorMfe2dLimStackHeuristic pLSH(energy, out, NULL, hc);
 //
 //		IndexRange idx1(0,r1.lastPos);
 //		IndexRange idx2(0,r2.lastPos);

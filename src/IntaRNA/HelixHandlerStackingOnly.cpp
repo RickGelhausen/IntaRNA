@@ -66,13 +66,13 @@ fillHelix(const size_t i1min, const size_t i1max, const size_t i2min, const size
 				leftHelixE += energy.getE_interLeft(j1-1,j1, j2-1,j2);
 			}
 
-			// count possible helices
-			helixCountNotInf++;
-
 			// check whether this helix has best energy and is within lower boundary
 			// TODO: Can there be a 0 energy ?
 			if (leftHelixE < helix(i1,i2).first && curBP >= helixConstraint.getMinBasePairs() && leftHelixE != 0.0 ) {
-				helix(i1-offset1, i2-offset2) = HelixMatrix::value_type( leftHelixE, curBP );
+				// count possible helices
+				helixCountNotInf++;
+				// Create new entry
+				helix(i1-offset1, i2-offset2) = HelixMatrix::value_type( leftHelixE, encodeHelixLength(curBP, curBP) );
 			}
 		}
 
@@ -101,20 +101,19 @@ traceBackHelix( Interaction & interaction
 	, i2 = i2_-offset2;
 
 	// Get base pair length of best interaction
-	size_t numberOfBP = helix(i1,i2).second;
+	size_t numberOfBP = decodeHelixLength1(helix(i1,i2).second);
 
-	// TODO: This condition is likely useless maybe an "assert" instead
-	// Check whether this trace is within the allowed boundaries
-	if (numberOfBP >= helixConstraint.getMinBasePairs() && numberOfBP <= helixConstraint.getMaxBasePairs()) {
-		// trace helices
-		// trace each helix base pair (excluding right most)
-		for (size_t bp = 0; bp < numberOfBP; bp++) {
-			if (i1 != i1_-offset1) {
-				interaction.basePairs.push_back(energy.getBasePair(i1+offset1, i2+offset2));
-			}
-			i1++;
-			i2++;
-		}
+	assert(numberOfBP >= helixConstraint.getMinBasePairs());
+	assert(numberOfBP <= helixConstraint.getMaxBasePairs());
+
+	// trace helices
+	// trace each helix base pair (excluding right most)
+	for (size_t bp = 0; bp < numberOfBP; bp++) {
+		//if (i1 != i1_-offset1) {
+		interaction.basePairs.push_back(energy.getBasePair(i1+offset1, i2+offset2));
+		//}
+		i1++;
+		i2++;
 	}
 }
 

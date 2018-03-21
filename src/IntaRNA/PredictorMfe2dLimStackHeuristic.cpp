@@ -258,7 +258,7 @@ traceBack( Interaction & interaction, const OutputConstraint & outConstraint )
 	// trace back
 	// temp variables
 	size_t h1,h2,k1,k2;
-	// do until only right boundary is left over
+	// do until not decomposable into i1..k1..j1
 	while( (j1-i1) > 1 ) {
 		const BestInteraction * curCell = NULL;
 		bool traceNotFound = true;
@@ -268,8 +268,8 @@ traceBack( Interaction & interaction, const OutputConstraint & outConstraint )
 		h2 = helixHandler.getHelixLength2(i1,i2)-1; assert(h2 < hybridE.size2());
 
 		// check all combinations of decompositions into (i1,i2)..(k1,k2)-(j1,j2)
-		for (size_t w1=1; traceNotFound && w1-1 <= energy.getMaxInternalLoopSize1() && i1+h1+w1<hybridE.size1(); w1++) {
-		for (size_t w2=1; traceNotFound && w2-1 <= energy.getMaxInternalLoopSize2() && i2+h2+w2<hybridE.size2(); w2++) {
+		for (size_t w1=1; traceNotFound && w1-1 <= energy.getMaxInternalLoopSize1() && hybridE(i1,i2).j1 <hybridE.size1(); w1++) {
+		for (size_t w2=1; traceNotFound && w2-1 <= energy.getMaxInternalLoopSize2() && hybridE(i1,i2).j2 <hybridE.size2(); w2++) {
 
 			// skip stacking
 			if (w1 == 1 && w2 == 1) {
@@ -292,9 +292,8 @@ traceBack( Interaction & interaction, const OutputConstraint & outConstraint )
 					helixHandler.traceBackHelix( interaction, i1, i2 );
 
 					// store splitting base pair if not last one of interaction range
-					if ( k1 < j1 ) {
-						interaction.basePairs.push_back( energy.getBasePair(k1,k2) );
-					}
+					interaction.basePairs.push_back( energy.getBasePair(k1,k2) );
+
 					// trace right part of split
 					i1=k1;
 					i2=k2;
@@ -310,9 +309,7 @@ traceBack( Interaction & interaction, const OutputConstraint & outConstraint )
 			traceNotFound = false;
 			// traceback helix base pairs ( excluding right most = (k1,k2))
 			helixHandler.traceBackHelix(interaction, i1, i2);
-			// TODO: ASK MARTIN!! WORKAROUND!!!
-			interaction.basePairs.pop_back();
-			// trace right part of split
+s			// trace right part of split
 			i1=i1+h1;
 			i2=i2+h2;
 			curE=0.0;
@@ -320,11 +317,6 @@ traceBack( Interaction & interaction, const OutputConstraint & outConstraint )
 
 		assert( !traceNotFound );
 	}
-#if INTARNA_IN_DEBUG_MODE
-	if ( (j2-i2) > 1 ) {
-		throw std::runtime_error("PredictorMfeLimStack2dHeuristic::traceBack() : trace leaves ji<j2 : "+toString(i2)+"<"+toString(j2));
-	}
-#endif
 
 	// sort final interaction (to make valid) (faster than calling sort())
 	if (interaction.basePairs.size() > 2) {

@@ -39,7 +39,6 @@ predict( const IndexRange & r1
 		, const IndexRange & r2
 		, const OutputConstraint & outConstraint )
 {
-//	LOG(DEBUG) << "Predictor Seed Start";
 #if INTARNA_MULITHREADING
 #pragma omp critical(intarna_omp_logOutput)
 #endif
@@ -68,7 +67,6 @@ predict( const IndexRange & r1
 	const size_t hybridEsize2 = std::min( energy.size2()
 			, (r2.to==RnaSequence::lastPos?energy.size2()-1:r2.to)-r2.from+1 );
 
-//	LOG(DEBUG) << "Predictor Seed Past hybridEsize";
 	// resize matrix
 	hybridE.resize( hybridEsize1, hybridEsize2 );
 	hybridE_seed.resize( hybridE.size1(), hybridE.size2() );
@@ -101,7 +99,6 @@ predict( const IndexRange & r1
 		return;
 	}
 
-//	LOG(DEBUG) << "Predictor Seed Past fillHelixSeed";
 	// temp vars
 	size_t i1,i2,h1,h2,w1,w2;
 
@@ -127,21 +124,17 @@ predict( const IndexRange & r1
 	} // i2
 	} // i1
 
-//	LOG(DEBUG) << "Predictor Done matrix init";
-
 	// init mfe without seed condition
 	OutputConstraint tmpOutConstraint(1, outConstraint.reportOverlap, outConstraint.maxE, outConstraint.deltaE);
 	initOptima( tmpOutConstraint );
 
-//	LOG(DEBUG) << "Predictor Before fillhybrid";
-	// TODO: Check what predictor to use. Might have to explicitly call with HelixHandler and all to ensure right entries
 	// compute hybridization energies WITHOUT seed condition
 	// sets also -energy -hybridE
 	// -> no hybrid update since updateOptima overwritten
 	PredictorMfe2dLimStackHeuristic::fillHybridE();
-//	LOG(DEBUG) << "Predictor after fillhybrid";
+
+	// TODO: What is this ? Why is it here ?
 //
-//	LOG(DEBUG) << "mfeInteractions energy" << mfeInteractions.begin()->energy;
 //	// check if any interaction possible
 //	// if not no seed-containing interaction is possible neither
 //	if (this->mfeInteractions.begin()->energy >= tmpOutConstraint.maxE) {
@@ -149,7 +142,7 @@ predict( const IndexRange & r1
 //		reportOptima(tmpOutConstraint);
 //		return;
 //	}
-//	LOG(DEBUG) <<
+
 	// init mfe for later updates
 	initOptima( outConstraint );
 
@@ -164,7 +157,6 @@ predict( const IndexRange & r1
 	for (i1=hybridE_seed.size1(); i1-- > 0;) {
 	for (i2=hybridE_seed.size2(); i2-- > 0;) {
 
-//		LOG(DEBUG) << "i1, i2 " << i1 << ", " << i2;
 		// check if left side can pair
 		if (E_isINF(hybridE(i1,i2).E)) {
 			continue;
@@ -199,7 +191,6 @@ predict( const IndexRange & r1
 				// store total energy to avoid recomputation
 				curCellEtotal = curEtotal;
 			}
-//			LOG(DEBUG) << "Seed + INIT " << curEtotal;
 
 			///////////////////////////////////////////////////////////////////
 			// Case: Helix_seed + interior loop + hybridE
@@ -241,7 +232,6 @@ predict( const IndexRange & r1
 					// store total energy to avoid recomputation
 					curCellEtotal = curEtotal;
 				}
-//				LOG(DEBUG) << "seed + interior + hybridE " << curEtotal;
 
 			} // w2
 			} // w1
@@ -295,14 +285,12 @@ predict( const IndexRange & r1
 					// store total energy to avoid recomputation
 					curCellEtotal = curEtotal;
 				}
-//				LOG(DEBUG) << "helix + il + hybridE_seed " << curEtotal;
 
 			} // w2
 			} // w1
 
 		} // helix
-		LOG(DEBUG) << "Predictor curCellETotal: " << curCellEtotal;
-//		LOG(DEBUG) << "---------------------------------------------------------------------------------------------------";
+
 		// update mfe if needed (call superclass update routine)
 		PredictorMfe2dLimStackHeuristic::updateOptima( i1,curCell->j1, i2,curCell->j2, curCellEtotal, false );
 
@@ -371,8 +359,6 @@ traceBack( Interaction & interaction, const OutputConstraint & outConstraint )
 		const BestInteraction * curCell = NULL;
 		bool traceNotFound = true;
 
-		LOG(DEBUG) << "i1, i2 " << i1 << " " << i2;
-		LOG(DEBUG) << "curE: " << curE;
 		// Assure that atleast one case is possible
 		assert(E_isNotINF(helixHandler.getHelixE(i1,i2)) || E_isNotINF(helixHandler.getHelixSeedE(i1,i2)));
 
@@ -395,7 +381,6 @@ traceBack( Interaction & interaction, const OutputConstraint & outConstraint )
 
 				// temp access to current cell
 				curCell = &(hybridE_seed(k1,k2));
-				LOG(DEBUG) << "helix + il + hybridE_seed "<< helixHandler.getHelixE(i1,i2) + energy.getE_interLeft(i1+h1,k1,i2+h2,k2) + curCell->E;
 				// check if right boundary is equal (part of the heuristic)
 				if ( curCell->j1 == j1 && curCell->j2 == j2 &&
 					 // and energy is the source of curE
@@ -439,7 +424,6 @@ traceBack( Interaction & interaction, const OutputConstraint & outConstraint )
 
 				// temp access to current cell
 				curCell = &(hybridE(k1,k2));
-				LOG(DEBUG) << "seed + il + hybridE "<< helixHandler.getHelixSeedE(i1,i2) + energy.getE_interLeft(i1+h1,k1,i2+h2,k2) + curCell->E;
 				// check if right boundary is equal (part of the heuristic)
 				if ( curCell->j1 == j1 && curCell->j2 == j2 &&
 					 // and energy is the source of curE
@@ -470,7 +454,6 @@ traceBack( Interaction & interaction, const OutputConstraint & outConstraint )
 			} // w1
 			} // w2
 
-			LOG(DEBUG) << "seed + E_init(): " << helixHandler.getHelixSeedE(i1,i2) + energy.getE_init();
 			// seed + E_init()
 			if ( traceNotFound && E_equal(curE, helixHandler.getHelixSeedE(i1,i2) + energy.getE_init())  ) {
 				// stop searching
