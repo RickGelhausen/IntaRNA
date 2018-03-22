@@ -48,8 +48,7 @@ fillHelix(const size_t i1min, const size_t i1max, const size_t i2min, const size
 		E_type leftHelixE = 0.0;
 		// screen over all possible base pair combinations (starting at 2)
 		for (curBP=2; curBP < helixConstraint.getMaxBasePairs()+1 && (i1+curBP-1-offset1<helix.size1())
-					  											  && (i2+curBP-1-offset2<helix.size2())
-					  											  && energy.areComplementary(i1+curBP-1,i2+curBP-1); curBP++) {
+					  											  && (i2+curBP-1-offset2<helix.size2()); curBP++) {
 
 			j1 = i1+curBP-1;
 			j2 = i2+curBP-1;
@@ -67,7 +66,7 @@ fillHelix(const size_t i1min, const size_t i1max, const size_t i2min, const size
 			}
 
 			// check whether this helix has best energy and is within lower boundary
-			if (leftHelixE < helix(i1,i2).first && curBP >= helixConstraint.getMinBasePairs() && leftHelixE != 0.0 ) {
+			if (leftHelixE < helix(i1-offset1,i2-offset2).first && curBP >= helixConstraint.getMinBasePairs() && leftHelixE != 0.0 ) {
 				helix(i1-offset1, i2-offset2) = HelixMatrix::value_type( leftHelixE, encodeHelixLength(curBP, curBP) );
 			}
 		}

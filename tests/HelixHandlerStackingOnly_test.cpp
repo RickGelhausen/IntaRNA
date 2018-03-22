@@ -189,8 +189,6 @@ TEST_CASE( "HelixHandlerStackingOnly", "[HelixHandlerStackingOnly]") {
 
 		REQUIRE(interaction.basePairs.rbegin()->first == 3);
 		REQUIRE(interaction.basePairs.rbegin()->second == 2);
-
-
 	}
 
 
@@ -426,7 +424,7 @@ TEST_CASE( "HelixHandlerStackingOnly", "[HelixHandlerStackingOnly]") {
 		interaction.clear();
 		hhS.traceBackHelix(interaction, 2, 1);
 
-			REQUIRE(interaction.basePairs.size() == 0);
+		REQUIRE(interaction.basePairs.size() == 0);
 
 		// Case (5,5) - Possible but only 2 base pairs long (e.g no bp needs to be reported)
 		//////////////////////
@@ -435,7 +433,6 @@ TEST_CASE( "HelixHandlerStackingOnly", "[HelixHandlerStackingOnly]") {
 		hhS.traceBackHelix(interaction, 5, 5);
 
 		REQUIRE(interaction.basePairs.size() == 0);
-
 
 	}
 
