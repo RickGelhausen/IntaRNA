@@ -103,4 +103,183 @@ TEST_CASE( "HelixHandlerStackingOnly", "[HelixHandlerStackingOnly]" ) {
 		REQUIRE(interaction.basePairs.size() == 0);
 	}
 
+	SECTION("HelixSeed: Case2 - all complementary", "[HelixHandlerStackingOnly]") {
+
+		RnaSequence r1("r1", "GGAGG");
+		RnaSequence r2("r2", "CCACC");
+		AccessibilityDisabled acc1(r1, 0, NULL);
+		AccessibilityDisabled acc2(r2, 0, NULL);
+		ReverseAccessibility racc(acc2);
+		InteractionEnergyBasePair energy(acc1, racc);
+
+		HelixConstraint hC(2, 4, 0);
+
+		// seedBP / seedMaxUP / seedTMaxUP / seedQMaxUP / seedMaxE / seedMaxED / seedTRange / seedQRange / seedTQ
+		SeedConstraint sC(3, 0, 0, 0, 0, AccessibilityDisabled::ED_UPPER_BOUND, IndexRangeList(""), IndexRangeList(""),
+						  "");
+
+		SeedHandlerMfe sH(energy, sC);
+		HelixHandlerStackingOnly hhS(energy, hC);
+
+		hhS.setSeedHandler(&sH);
+
+		//////////////////////////////////////////////////////////////////////////////////////////////////////////
+		//////////////////////////////////////////   FILLHELIXSEED  //////////////////////////////////////////////
+		//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		REQUIRE(hhS.fillHelixSeed(0, energy.size1() - 1, 0, energy.size2() - 1) == 0);
+
+		// (0,0)
+		REQUIRE(hhS.getHelixSeedE(0, 0) == E_INF);
+		REQUIRE(hhS.getHelixSeedLength1(0, 0) == 0);
+		REQUIRE(hhS.getHelixSeedLength2(0, 0) == 0);
+
+		// (0,2)
+		REQUIRE(hhS.getHelixSeedE(0, 2) == E_INF);
+		REQUIRE(hhS.getHelixSeedLength1(0, 2) == 0);
+		REQUIRE(hhS.getHelixSeedLength2(0, 2) == 0);
+
+		// (1,3)
+		REQUIRE(hhS.getHelixSeedE(1, 3) == E_INF);
+		REQUIRE(hhS.getHelixSeedLength1(1, 3) == 0);
+		REQUIRE(hhS.getHelixSeedLength2(1, 3) == 0);
+
+		//////////////////////////////////////////////////////////////////////////////////////////////////////////
+		////////////////////////////////////////////   TRACEBACK   ///////////////////////////////////////////////
+		//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		// Case (0,0)
+		Interaction interaction(r1, r2);
+		hhS.traceBackHelixSeed(interaction, 0, 0);
+
+		REQUIRE(interaction.basePairs.size() == 0);
+	}
+
+	SECTION("HelixSeed: Case3 - only seed possible", "[HelixHandlerStackingOnly]") {
+
+		RnaSequence r1("r1", "AGGGA");
+		RnaSequence r2("r2", "ACCCA");
+		AccessibilityDisabled acc1(r1, 0, NULL);
+		AccessibilityDisabled acc2(r2, 0, NULL);
+		ReverseAccessibility racc(acc2);
+		InteractionEnergyBasePair energy(acc1, racc);
+
+		HelixConstraint hC(2, 4, 0);
+
+		// seedBP / seedMaxUP / seedTMaxUP / seedQMaxUP / seedMaxE / seedMaxED / seedTRange / seedQRange / seedTQ
+		SeedConstraint sC(3, 0, 0, 0, 0, AccessibilityDisabled::ED_UPPER_BOUND, IndexRangeList(""), IndexRangeList(""),
+						  "");
+
+		SeedHandlerMfe sH(energy, sC);
+		HelixHandlerStackingOnly hhS(energy, hC);
+
+		hhS.setSeedHandler(&sH);
+
+		//////////////////////////////////////////////////////////////////////////////////////////////////////////
+		//////////////////////////////////////////   FILLHELIXSEED  //////////////////////////////////////////////
+		//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		REQUIRE(hhS.fillHelixSeed(0, energy.size1() - 1, 0, energy.size2() - 1) == 1);
+
+		// (0,0)
+		REQUIRE(hhS.getHelixSeedE(0, 0) == E_INF);
+		REQUIRE(hhS.getHelixSeedLength1(0, 0) == 0);
+		REQUIRE(hhS.getHelixSeedLength2(0, 0) == 0);
+
+		// (0,2)
+		REQUIRE(hhS.getHelixSeedE(1, 0) == E_INF);
+		REQUIRE(hhS.getHelixSeedLength1(1, 0) == 0);
+		REQUIRE(hhS.getHelixSeedLength2(1, 0) == 0);
+
+		// (1,3)
+		REQUIRE(hhS.getHelixSeedE(1, 1) == -2);
+		REQUIRE(hhS.getHelixSeedLength1(1, 1) == 3);
+		REQUIRE(hhS.getHelixSeedLength2(1, 1) == 3);
+
+		//////////////////////////////////////////////////////////////////////////////////////////////////////////
+		////////////////////////////////////////////   TRACEBACK   ///////////////////////////////////////////////
+		//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		// Case (0,0)
+		Interaction interaction(r1, r2);
+		hhS.traceBackHelixSeed(interaction, 0, 0);
+
+		REQUIRE(interaction.basePairs.size() == 0);
+
+		// Case (1,1)
+		interaction = Interaction(r1,r2);
+		hhS.traceBackHelixSeed(interaction, 1, 1);
+		REQUIRE(interaction.basePairs.size() == 1);
+
+		// First / last base pair of helix
+		REQUIRE(interaction.basePairs.begin()->first == 2);
+		REQUIRE(interaction.basePairs.begin()->second == 2);
+
+		REQUIRE(interaction.basePairs.rbegin()->first == 2);
+		REQUIRE(interaction.basePairs.rbegin()->second == 2);
+	}
+
+	SECTION("HelixSeed: Case4 - unpaired allowed in seed", "[HelixHandlerStackingOnly]") {
+
+		RnaSequence r1("r1", "GGAGG");
+		RnaSequence r2("r2", "CCACC");
+		AccessibilityDisabled acc1(r1, 0, NULL);
+		AccessibilityDisabled acc2(r2, 0, NULL);
+		ReverseAccessibility racc(acc2);
+		InteractionEnergyBasePair energy(acc1, racc);
+
+		HelixConstraint hC(2, 4, 0);
+
+		// seedBP / seedMaxUP / seedTMaxUP / seedQMaxUP / seedMaxE / seedMaxED / seedTRange / seedQRange / seedTQ
+		SeedConstraint sC(3, 0, 0, 0, 0, AccessibilityDisabled::ED_UPPER_BOUND, IndexRangeList(""), IndexRangeList(""),
+						  "");
+
+		SeedHandlerMfe sH(energy, sC);
+		HelixHandlerStackingOnly hhS(energy, hC);
+
+		hhS.setSeedHandler(&sH);
+
+		//////////////////////////////////////////////////////////////////////////////////////////////////////////
+		//////////////////////////////////////////   FILLHELIXSEED  //////////////////////////////////////////////
+		//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		REQUIRE(hhS.fillHelixSeed(0, energy.size1() - 1, 0, energy.size2() - 1) == 1);
+
+		// (0,0)
+		REQUIRE(hhS.getHelixSeedE(0, 0) == E_INF);
+		REQUIRE(hhS.getHelixSeedLength1(0, 0) == 0);
+		REQUIRE(hhS.getHelixSeedLength2(0, 0) == 0);
+
+		// (0,2)
+		REQUIRE(hhS.getHelixSeedE(1, 0) == E_INF);
+		REQUIRE(hhS.getHelixSeedLength1(1, 0) == 0);
+		REQUIRE(hhS.getHelixSeedLength2(1, 0) == 0);
+
+		// (1,3)
+		REQUIRE(hhS.getHelixSeedE(1, 1) == -2);
+		REQUIRE(hhS.getHelixSeedLength1(1, 1) == 3);
+		REQUIRE(hhS.getHelixSeedLength2(1, 1) == 3);
+
+		//////////////////////////////////////////////////////////////////////////////////////////////////////////
+		////////////////////////////////////////////   TRACEBACK   ///////////////////////////////////////////////
+		//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		// Case (0,0)
+		Interaction interaction(r1, r2);
+		hhS.traceBackHelixSeed(interaction, 0, 0);
+
+		REQUIRE(interaction.basePairs.size() == 0);
+
+		// Case (1,1)
+		interaction = Interaction(r1,r2);
+		hhS.traceBackHelixSeed(interaction, 1, 1);
+		REQUIRE(interaction.basePairs.size() == 1);
+
+		// First / last base pair of helix
+		REQUIRE(interaction.basePairs.begin()->first == 2);
+		REQUIRE(interaction.basePairs.begin()->second == 2);
+
+		REQUIRE(interaction.basePairs.rbegin()->first == 2);
+		REQUIRE(interaction.basePairs.rbegin()->second == 2);
+	}
 }

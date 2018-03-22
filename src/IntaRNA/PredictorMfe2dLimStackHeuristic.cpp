@@ -201,6 +201,7 @@ fillHybridE()
 
 			} // w2
 			} // w1
+			LOG(DEBUG) << "FillingHybridE " << curE;
 			// update mfe if needed
 			updateOptima( i1,curCell->j1, i2,curCell->j2, curCellEtotal, false );
 		} // helix
@@ -258,7 +259,7 @@ traceBack( Interaction & interaction, const OutputConstraint & outConstraint )
 	// trace back
 	// temp variables
 	size_t h1,h2,k1,k2;
-	// do until not decomposable into i1..k1..j1
+	// do until only right boundary is left over
 	while( (j1-i1) > 1 ) {
 		const BestInteraction * curCell = NULL;
 		bool traceNotFound = true;
@@ -268,8 +269,8 @@ traceBack( Interaction & interaction, const OutputConstraint & outConstraint )
 		h2 = helixHandler.getHelixLength2(i1,i2)-1; assert(h2 < hybridE.size2());
 
 		// check all combinations of decompositions into (i1,i2)..(k1,k2)-(j1,j2)
-		for (size_t w1=1; traceNotFound && w1-1 <= energy.getMaxInternalLoopSize1() && hybridE(i1,i2).j1 <hybridE.size1(); w1++) {
-		for (size_t w2=1; traceNotFound && w2-1 <= energy.getMaxInternalLoopSize2() && hybridE(i1,i2).j2 <hybridE.size2(); w2++) {
+		for (size_t w1=1; traceNotFound && w1-1 <= energy.getMaxInternalLoopSize1() && i1+h1+w1<hybridE.size1(); w1++) {
+		for (size_t w2=1; traceNotFound && w2-1 <= energy.getMaxInternalLoopSize2() && i2+h2+w2<hybridE.size2(); w2++) {
 
 			// skip stacking
 			if (w1 == 1 && w2 == 1) {
@@ -292,8 +293,9 @@ traceBack( Interaction & interaction, const OutputConstraint & outConstraint )
 					helixHandler.traceBackHelix( interaction, i1, i2 );
 
 					// store splitting base pair if not last one of interaction range
-					interaction.basePairs.push_back( energy.getBasePair(k1,k2) );
-
+					if ( k1 < j1 ) {
+						interaction.basePairs.push_back( energy.getBasePair(k1,k2) );
+					}
 					// trace right part of split
 					i1=k1;
 					i2=k2;
@@ -309,7 +311,9 @@ traceBack( Interaction & interaction, const OutputConstraint & outConstraint )
 			traceNotFound = false;
 			// traceback helix base pairs ( excluding right most = (k1,k2))
 			helixHandler.traceBackHelix(interaction, i1, i2);
-s			// trace right part of split
+			// TODO: ASK MARTIN!! WORKAROUND!!!
+			interaction.basePairs.pop_back();
+			// trace right part of split
 			i1=i1+h1;
 			i2=i2+h2;
 			curE=0.0;

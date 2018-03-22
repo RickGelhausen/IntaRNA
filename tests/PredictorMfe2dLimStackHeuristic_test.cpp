@@ -12,8 +12,7 @@
 #include "IntaRNA/Interaction.h"
 #include "IntaRNA/ReverseAccessibility.h"
 #include "IntaRNA/PredictorMfe2dLimStackHeuristic.h"
-#include "IntaRNA/PredictionTrackerHub.h"
-#include "IntaRNA/OutputHandlerText.h"
+#include "IntaRNA/OutputHandlerInteractionList.h"
 
 using namespace IntaRNA;
 
@@ -28,22 +27,18 @@ TEST_CASE( "PredictorMfe2dLimStackHeuristc", "[PredictorMfe2dLimStackHeuristic]"
 		ReverseAccessibility racc(acc2);
 		InteractionEnergyBasePair energy(acc1, racc);
 
-//		HelixConstraint hc(2, 4, 0);
-//
-//		OutputHandlerInteractionList out(5);
-//
-//		PredictorMfe2dLimStackHeuristic pLSH(energy, out, NULL, hc);
-//
-//		IndexRange idx1(0,r1.lastPos);
-//		IndexRange idx2(0,r2.lastPos);
-//		OutputConstraint outC(1,OutputConstraint::OVERLAP_SEQ2,0,100);
-//
-//		std::cout << "Hello" << std::endl;
+		HelixConstraint hc(2, 4, 0);
 
-		//pLSH.predict(idx1,idx2,outC);
+		OutputHandlerInteractionList out(5);
 
-		//std::cout << pLSH.hybridE(0,0) << std::endl;
-		//pLSH.fillHybridE();
+		PredictorMfe2dLimStackHeuristic pLSH(energy, out, NULL, hc);
+
+		IndexRange idx1(0,r1.lastPos);
+		IndexRange idx2(0,r2.lastPos);
+		OutputConstraint outC(1,OutputConstraint::OVERLAP_SEQ2,0,100);
+
+		pLSH.predict(idx1,idx2,outC);
+
 
 	}
 

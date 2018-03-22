@@ -113,14 +113,14 @@ fillHelixSeed(const size_t i1min, const size_t i1max, const size_t i2min, const 
 				size_t helixLength1 = leadingBP+seedHandler->getSeedLength1(seedStart1,seedStart2)+bestTrailingBP;
 				size_t helixLength2 = leadingBP+seedHandler->getSeedLength2(seedStart1,seedStart2)+bestTrailingBP;
 				// Creating new entry for helixSeed matrix
-				helixSeed(i1,i2) = HelixMatrix::value_type(totalEnergy,
+				helixSeed(i1-offset1,i2-offset2) = HelixMatrix::value_type(totalEnergy,
 														   encodeHelixSeedLength(helixLength1,helixLength2));
 			}
 
 		} // leadingBP
 
-		// Ensures that the helixCount is only added for the mfe helix.
-		if (E_isNotINF(getHelixSeedE(i1,i2))) {
+		// Ensures that the helixCount is only increased for the mfe helix.
+		if (E_isNotINF(helixSeed(i1-offset1, i2-offset2).first)) {
 			helixCountNotInf++;
 		}
 	} // i2
