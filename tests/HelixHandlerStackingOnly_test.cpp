@@ -177,19 +177,18 @@ TEST_CASE( "HelixHandlerStackingOnly", "[HelixHandlerStackingOnly]") {
 
 		// Case (2,1)
 		//////////////////////
-
-		interaction = Interaction(r1,r2);
+		interaction.clear();
 
 		hhS.traceBackHelix(interaction, 2, 1);
 
-		REQUIRE(interaction.basePairs.size() == 0);
+		REQUIRE(interaction.basePairs.size() == 1);
 
 		// First / last base pair of helix
-//		REQUIRE(interaction2.basePairs.begin()->first == 3);
-//		REQUIRE(interaction2.basePairs.begin()->second == 2)
-//
-//		REQUIRE(interaction2.basePairs.rbegin()->first == 4);
-//		REQUIRE(interaction2.basePairs.rbegin()->second == 1);
+		REQUIRE(interaction.basePairs.begin()->first == 3);
+		REQUIRE(interaction.basePairs.begin()->second == 2);
+
+		REQUIRE(interaction.basePairs.rbegin()->first == 3);
+		REQUIRE(interaction.basePairs.rbegin()->second == 2);
 
 
 	}
@@ -298,27 +297,26 @@ TEST_CASE( "HelixHandlerStackingOnly", "[HelixHandlerStackingOnly]") {
 
 		// Case (0,0)
 		//////////////////////
-		Interaction interaction1(r1,r2);
-		hhS.traceBackHelix(interaction1, 0, 0);
+		Interaction interaction(r1,r2);
 
+		hhS.traceBackHelix(interaction, 0, 0);
+
+		REQUIRE(interaction.basePairs.size() == 1);
 
 		// First / last base pair of helix
-		REQUIRE(interaction1.basePairs.begin()->first == 1);
-		REQUIRE(interaction1.basePairs.begin()->second == 3);
+		REQUIRE(interaction.basePairs.begin()->first == 1);
+		REQUIRE(interaction.basePairs.begin()->second == 3);
 
-		REQUIRE(interaction1.basePairs.rbegin()->first == 2);
-		REQUIRE(interaction1.basePairs.rbegin()->second == 2);
-
-
+		REQUIRE(interaction.basePairs.rbegin()->first == 1);
+		REQUIRE(interaction.basePairs.rbegin()->second == 3);
 
 		// Case (2,1)
 		//////////////////////
+		interaction.clear();
 
-		Interaction interaction2(r1,r2);
+		hhS.traceBackHelix(interaction, 2, 1);
 
-		hhS.traceBackHelix(interaction2, 2, 1);
-
-		REQUIRE(interaction2.basePairs.size() == 0);
+		REQUIRE(interaction.basePairs.size() == 0);
 
 	}
 
@@ -411,37 +409,32 @@ TEST_CASE( "HelixHandlerStackingOnly", "[HelixHandlerStackingOnly]") {
 
 		// Case (0,0)
 		//////////////////////
-		Interaction interaction1(r1,r2);
-		hhS.traceBackHelix(interaction1, 0, 0);
+		Interaction interaction(r1,r2);
+		hhS.traceBackHelix(interaction, 0, 0);
 
-		REQUIRE(interaction1.basePairs.size() == 2);
+		REQUIRE(interaction.basePairs.size() == 1);
 		// First / last base pair of helix
-		REQUIRE(interaction1.basePairs.begin()->first == 1);
-		REQUIRE(interaction1.basePairs.begin()->second == 5);
+		REQUIRE(interaction.basePairs.begin()->first == 1);
+		REQUIRE(interaction.basePairs.begin()->second == 5);
 
-		REQUIRE(interaction1.basePairs.rbegin()->first == 2);
-		REQUIRE(interaction1.basePairs.rbegin()->second == 4);
+		REQUIRE(interaction.basePairs.rbegin()->first == 1);
+		REQUIRE(interaction.basePairs.rbegin()->second == 5);
 
-		// Case (2,1)
+		// Case (2,1) - Not Possible
 		//////////////////////
 
-		Interaction interaction2(r1,r2);
-		hhS.traceBackHelix(interaction2, 2, 1);
-		REQUIRE(interaction2.basePairs.size() == 0);
+		interaction.clear();
+		hhS.traceBackHelix(interaction, 2, 1);
 
-		// Case (5,5)
+			REQUIRE(interaction.basePairs.size() == 0);
+
+		// Case (5,5) - Possible but only 2 base pairs long (e.g no bp needs to be reported)
 		//////////////////////
 
-		Interaction interaction3(r1,r2);
-		hhS.traceBackHelix(interaction3, 5, 5);
+		interaction.clear();
+		hhS.traceBackHelix(interaction, 5, 5);
 
-		REQUIRE(interaction3.basePairs.size() == 1);
-		// First / last base pair of helix
-		REQUIRE(interaction3.basePairs.begin()->first == 6);
-		REQUIRE(interaction3.basePairs.begin()->second == 0);
-
-		REQUIRE(interaction3.basePairs.rbegin()->first == 6);
-		REQUIRE(interaction3.basePairs.rbegin()->second == 0);
+		REQUIRE(interaction.basePairs.size() == 0);
 
 
 	}
@@ -532,31 +525,31 @@ TEST_CASE( "HelixHandlerStackingOnly", "[HelixHandlerStackingOnly]") {
 
 		// Case (0,0)
 		//////////////////////
-		Interaction interaction1(r1,r2);
+		Interaction interaction(r1,r2);
 
-		hhS.traceBackHelix(interaction1, 0, 0);
+		hhS.traceBackHelix(interaction, 0, 0);
 
-		REQUIRE(interaction1.basePairs.size() == 2);
+		REQUIRE(interaction.basePairs.size() == 1);
 		// First / last base pair of helix
-		REQUIRE(interaction1.basePairs.begin()->first == 1);
-		REQUIRE(interaction1.basePairs.begin()->second == 6);
+		REQUIRE(interaction.basePairs.begin()->first == 1);
+		REQUIRE(interaction.basePairs.begin()->second == 6);
 
-		REQUIRE(interaction1.basePairs.rbegin()->first == 2);
-		REQUIRE(interaction1.basePairs.rbegin()->second == 5);
+		REQUIRE(interaction.basePairs.rbegin()->first == 1);
+		REQUIRE(interaction.basePairs.rbegin()->second == 6);
 
 		// Case (5, 5)
 		//////////////////////
-		Interaction interaction2(r1,r2);
+		interaction.clear();
 
-		hhS.traceBackHelix(interaction2, 5, 5);
+		hhS.traceBackHelix(interaction, 5, 5);
 
-		REQUIRE(interaction2.basePairs.size() == 2);
+		REQUIRE(interaction.basePairs.size() == 1);
 		// First / last base pair of helix
-		REQUIRE(interaction2.basePairs.begin()->first == 6);
-		REQUIRE(interaction2.basePairs.begin()->second == 1);
+		REQUIRE(interaction.basePairs.begin()->first == 6);
+		REQUIRE(interaction.basePairs.begin()->second == 1);
 
-		REQUIRE(interaction2.basePairs.rbegin()->first == 7);
-		REQUIRE(interaction2.basePairs.rbegin()->second == 0);
+		REQUIRE(interaction.basePairs.rbegin()->first == 6);
+		REQUIRE(interaction.basePairs.rbegin()->second == 1);
 	}
 
 	SECTION("Helix: Case 6 - Special case Helix+E_init() == Helix+IL+H", "[HelixHandlerStackingOnly]") {
@@ -616,24 +609,24 @@ TEST_CASE( "HelixHandlerStackingOnly", "[HelixHandlerStackingOnly]") {
 
 		// Case (0,0)
 		//////////////////////
-		Interaction interaction1(r1,r2);
+		Interaction interaction(r1,r2);
 
-		hhS.traceBackHelix(interaction1, 0, 0);
+		hhS.traceBackHelix(interaction, 0, 0);
 
-		REQUIRE(interaction1.basePairs.size() == 4);
+		REQUIRE(interaction.basePairs.size() == 3);
 		// First / last base pair of helix
-		REQUIRE(interaction1.basePairs.begin()->first == 1);
-		REQUIRE(interaction1.basePairs.begin()->second == 13);
+		REQUIRE(interaction.basePairs.begin()->first == 1);
+		REQUIRE(interaction.basePairs.begin()->second == 13);
 
-		REQUIRE(interaction1.basePairs.rbegin()->first == 4);
-		REQUIRE(interaction1.basePairs.rbegin()->second == 10);
+		REQUIRE(interaction.basePairs.rbegin()->first == 3);
+		REQUIRE(interaction.basePairs.rbegin()->second == 11);
 
 		// Case (5,5)
 		//////////////////////
-		Interaction interaction2(r1,r2);
+		interaction.clear();
 
-		hhS.traceBackHelix(interaction2, 5, 5);
+		hhS.traceBackHelix(interaction, 5, 5);
 
-		REQUIRE(interaction2.basePairs.size() == 0);
+		REQUIRE(interaction.basePairs.size() == 0);
 	}
 }

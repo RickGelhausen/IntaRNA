@@ -325,7 +325,7 @@ size_t
 HelixHandlerStackingOnly::
 encodeHelixLength( const size_t l1, const size_t l2 ) const
 {
-	return l1 + l2*(helixConstraint.getMaxLength1());
+	return l1 + l2*(helixConstraint.getMaxLength1()+1);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -335,7 +335,7 @@ size_t
 HelixHandlerStackingOnly::
 decodeHelixLength1( const size_t code ) const
 {
-	return code % (helixConstraint.getMaxLength1());
+	return code % (helixConstraint.getMaxLength1()+1);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -345,7 +345,7 @@ size_t
 HelixHandlerStackingOnly::
 decodeHelixLength2( const size_t code ) const
 {
-	return code / (helixConstraint.getMaxLength1());
+	return code / (helixConstraint.getMaxLength1()+1);
 }
 
 ///////////////////////////////////////////////////////////////////////////
