@@ -32,7 +32,7 @@ fillHelix(const size_t i1min, const size_t i1max, const size_t i2min, const size
 	// fill for all start indices
 	// in increasing index order
 	for (i1=i1min; i1 < i1max+1; i1++ ) {
-	for (i2=i1min; i2 < i2max+1; i2++ ) {
+	for (i2=i2min; i2 < i2max+1; i2++ ) {
 
 		// count possible helices
 		helixCount++;
@@ -58,12 +58,9 @@ fillHelix(const size_t i1min, const size_t i1max, const size_t i2min, const size
 				break;
 			}
 
-			if (curBP == 2) {
-				// energy for initial stacking
-				leftHelixE = energy.getE_interLeft(i1,j1, i2,j2);
-			} else {
-				leftHelixE += energy.getE_interLeft(j1-1,j1, j2-1,j2);
-			}
+			// Calculate next energy
+			leftHelixE += energy.getE_interLeft(j1-1,j1, j2-1,j2);
+
 
 			// check whether this helix has best energy and is within lower boundary
 			if (leftHelixE < helix(i1-offset1,i2-offset2).first && curBP >= helixConstraint.getMinBasePairs() && leftHelixE != 0.0 ) {

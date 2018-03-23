@@ -108,7 +108,7 @@ fillHelixSeed(const size_t i1min, const size_t i1max, const size_t i2min, const 
 			// Check whether this energy is the overall best so far
 			// Done here to avoid problems when there are no trailingBP
 			totalEnergy = leadingE + seedHandler->getSeedE(seedStart1,seedStart2) + bestTrailingE;
-			if ( totalEnergy < helixSeed(i1,i2).first) {
+			if ( totalEnergy < helixSeed(i1-offset1,i2-offset2).first) {
 				// Lengths
 				size_t helixLength1 = leadingBP+seedHandler->getSeedLength1(seedStart1,seedStart2)+bestTrailingBP;
 				size_t helixLength2 = leadingBP+seedHandler->getSeedLength2(seedStart1,seedStart2)+bestTrailingBP;
@@ -147,6 +147,11 @@ traceBackHelixSeed( Interaction & interaction
 	bool traceNotFound = true;
 
 	E_type curE = getHelixSeedE(i1_,i2_);
+
+	// No traceback possible for current boundary
+	if (E_isINF(curE)) {
+		return;
+	}
 
 	E_type leadingE, trailingE, bestTrailingE, totalEnergy;
 
@@ -227,7 +232,7 @@ traceBackHelixSeed( Interaction & interaction
 			seedHandler->traceBackSeed(interaction, seedStart1, seedStart2);
 
 			// Add trailing base pairs
-			for (size_t l = 0; l <= bestTrailingBP; l++) {
+			for (size_t l = 0; l < bestTrailingBP; l++) {
 				interaction.basePairs.push_back( energy.getBasePair(seedEnd1+l, seedEnd2+l));
 			}
 			// Finish traceback

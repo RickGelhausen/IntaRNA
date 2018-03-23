@@ -391,10 +391,11 @@ traceBack( Interaction & interaction, const OutputConstraint & outConstraint )
 					// store helix base pairs
 					helixHandler.traceBackHelix( interaction, i1, i2 );
 
-					// store splitting base pair if not last one of interaction range
-					if ( k1 < j1 ) {
-						interaction.basePairs.push_back( energy.getBasePair(k1,k2) );
-					}
+					// stor last base pair of helix
+					interaction.basePairs.push_back( energy.getBasePair(i1+h1,i2+h2));
+					// store splitting base pair
+					interaction.basePairs.push_back( energy.getBasePair(k1,k2) );
+
 					// trace right part of split
 					i1=k1;
 					i2=k2;
@@ -431,6 +432,7 @@ traceBack( Interaction & interaction, const OutputConstraint & outConstraint )
 				{
 					// store helix base pairs
 					helixHandler.traceBackHelixSeed( interaction, i1, i2 );
+					interaction.basePairs.push_back(energy.getBasePair(i1+h1, i2+h2));
 					i1 = k1;
 					i2 = k2;
 					// traceback remaining right interaction via hybridE
@@ -460,8 +462,6 @@ traceBack( Interaction & interaction, const OutputConstraint & outConstraint )
 				traceNotFound = false;
 				// traceback helix base pairs ( excluding right most = (k1,k2))
 				helixHandler.traceBackHelixSeed(interaction, i1, i2);
-//				// TODO: ASK MARTIN!! WORKAROUND!!!
-				interaction.basePairs.pop_back();
 				// trace right part of split
 				i1=i1+h1;
 				i2=i2+h2;

@@ -12,7 +12,7 @@
 
 using namespace IntaRNA;
 
-TEST_CASE( "HelixHandlerStackingOnly", "[HelixHandlerStackingOnly]" ) {
+TEST_CASE( "HelixHandlerStackingOnlySeed", "[HelixHandlerStackingOnly]" ) {
 
 	SECTION("HelixSeed: Case1 - all complementary", "[HelixHandlerStackingOnly]") {
 
@@ -35,6 +35,7 @@ TEST_CASE( "HelixHandlerStackingOnly", "[HelixHandlerStackingOnly]" ) {
 		SeedHandlerMfe sH(energy, sC);
 		HelixHandlerStackingOnly hhS(energy, hC);
 
+		sH.fillSeed(0, energy.size1()-1, 0,energy.size2()-1);
 		hhS.setSeedHandler(&sH);
 
 		//////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -87,7 +88,7 @@ TEST_CASE( "HelixHandlerStackingOnly", "[HelixHandlerStackingOnly]" ) {
 		Interaction interaction(r1,r2);
 		hhS.traceBackHelixSeed(interaction,0,0);
 
-		REQUIRE(interaction.basePairs.size() == 3);
+		REQUIRE(interaction.basePairs.size() == 2);
 
 		// First / last base pair of helixSeed
 		REQUIRE(interaction.basePairs.begin()->first == 1);
@@ -97,7 +98,7 @@ TEST_CASE( "HelixHandlerStackingOnly", "[HelixHandlerStackingOnly]" ) {
 		REQUIRE(interaction.basePairs.rbegin()->second == 2);
 
 		// Case (4,4)
-		interaction = Interaction(r1,r2);
+		interaction.clear();
 		hhS.traceBackHelixSeed(interaction,4,4);
 
 		REQUIRE(interaction.basePairs.size() == 0);
@@ -121,6 +122,7 @@ TEST_CASE( "HelixHandlerStackingOnly", "[HelixHandlerStackingOnly]" ) {
 		SeedHandlerMfe sH(energy, sC);
 		HelixHandlerStackingOnly hhS(energy, hC);
 
+		sH.fillSeed(0, energy.size1()-1, 0,energy.size2()-1);
 		hhS.setSeedHandler(&sH);
 
 		//////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -173,7 +175,9 @@ TEST_CASE( "HelixHandlerStackingOnly", "[HelixHandlerStackingOnly]" ) {
 		SeedHandlerMfe sH(energy, sC);
 		HelixHandlerStackingOnly hhS(energy, hC);
 
+		sH.fillSeed(0, energy.size1()-1, 0,energy.size2()-1);
 		hhS.setSeedHandler(&sH);
+
 
 		//////////////////////////////////////////////////////////////////////////////////////////////////////////
 		//////////////////////////////////////////   FILLHELIXSEED  //////////////////////////////////////////////
@@ -207,7 +211,7 @@ TEST_CASE( "HelixHandlerStackingOnly", "[HelixHandlerStackingOnly]" ) {
 		REQUIRE(interaction.basePairs.size() == 0);
 
 		// Case (1,1)
-		interaction = Interaction(r1,r2);
+		interaction.clear();
 		hhS.traceBackHelixSeed(interaction, 1, 1);
 		REQUIRE(interaction.basePairs.size() == 1);
 
@@ -231,34 +235,36 @@ TEST_CASE( "HelixHandlerStackingOnly", "[HelixHandlerStackingOnly]" ) {
 		HelixConstraint hC(2, 4, 0);
 
 		// seedBP / seedMaxUP / seedTMaxUP / seedQMaxUP / seedMaxE / seedMaxED / seedTRange / seedQRange / seedTQ
-		SeedConstraint sC(3, 0, 0, 0, 0, AccessibilityDisabled::ED_UPPER_BOUND, IndexRangeList(""), IndexRangeList(""),
+		SeedConstraint sC(3, 2, 1, 1, 0, AccessibilityDisabled::ED_UPPER_BOUND, IndexRangeList(""), IndexRangeList(""),
 						  "");
 
 		SeedHandlerMfe sH(energy, sC);
 		HelixHandlerStackingOnly hhS(energy, hC);
 
+		sH.fillSeed(0, energy.size1()-1, 0,energy.size2()-1);
 		hhS.setSeedHandler(&sH);
+
 
 		//////////////////////////////////////////////////////////////////////////////////////////////////////////
 		//////////////////////////////////////////   FILLHELIXSEED  //////////////////////////////////////////////
 		//////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-		REQUIRE(hhS.fillHelixSeed(0, energy.size1() - 1, 0, energy.size2() - 1) == 1);
+		REQUIRE(hhS.fillHelixSeed(0, energy.size1() - 1, 0, energy.size2() - 1) == 4);
 
 		// (0,0)
-		REQUIRE(hhS.getHelixSeedE(0, 0) == E_INF);
-		REQUIRE(hhS.getHelixSeedLength1(0, 0) == 0);
-		REQUIRE(hhS.getHelixSeedLength2(0, 0) == 0);
+		REQUIRE(hhS.getHelixSeedE(0, 0) == -3);
+		REQUIRE(hhS.getHelixSeedLength1(0, 0) == 5);
+		REQUIRE(hhS.getHelixSeedLength2(0, 0) == 5);
 
 		// (0,2)
-		REQUIRE(hhS.getHelixSeedE(1, 0) == E_INF);
-		REQUIRE(hhS.getHelixSeedLength1(1, 0) == 0);
-		REQUIRE(hhS.getHelixSeedLength2(1, 0) == 0);
+		REQUIRE(hhS.getHelixSeedE(1, 0) == -2);
+		REQUIRE(hhS.getHelixSeedLength1(1, 0) == 4);
+		REQUIRE(hhS.getHelixSeedLength2(1, 0) == 4);
 
 		// (1,3)
 		REQUIRE(hhS.getHelixSeedE(1, 1) == -2);
-		REQUIRE(hhS.getHelixSeedLength1(1, 1) == 3);
-		REQUIRE(hhS.getHelixSeedLength2(1, 1) == 3);
+		REQUIRE(hhS.getHelixSeedLength1(1, 1) == 4);
+		REQUIRE(hhS.getHelixSeedLength2(1, 1) == 4);
 
 		//////////////////////////////////////////////////////////////////////////////////////////////////////////
 		////////////////////////////////////////////   TRACEBACK   ///////////////////////////////////////////////
@@ -268,18 +274,38 @@ TEST_CASE( "HelixHandlerStackingOnly", "[HelixHandlerStackingOnly]" ) {
 		Interaction interaction(r1, r2);
 		hhS.traceBackHelixSeed(interaction, 0, 0);
 
-		REQUIRE(interaction.basePairs.size() == 0);
+		REQUIRE(interaction.basePairs.size() == 2);
+
+		// First / last base pair of helix
+		REQUIRE(interaction.basePairs.begin()->first == 1);
+		REQUIRE(interaction.basePairs.begin()->second == 3);
+
+		REQUIRE(interaction.basePairs.rbegin()->first == 3);
+		REQUIRE(interaction.basePairs.rbegin()->second == 1);
 
 		// Case (1,1)
-		interaction = Interaction(r1,r2);
+		interaction.clear();
 		hhS.traceBackHelixSeed(interaction, 1, 1);
 		REQUIRE(interaction.basePairs.size() == 1);
 
 		// First / last base pair of helix
-		REQUIRE(interaction.basePairs.begin()->first == 2);
-		REQUIRE(interaction.basePairs.begin()->second == 2);
+		REQUIRE(interaction.basePairs.begin()->first == 3);
+		REQUIRE(interaction.basePairs.begin()->second == 1);
 
-		REQUIRE(interaction.basePairs.rbegin()->first == 2);
-		REQUIRE(interaction.basePairs.rbegin()->second == 2);
+		REQUIRE(interaction.basePairs.rbegin()->first == 3);
+		REQUIRE(interaction.basePairs.rbegin()->second == 1);
+
+		// Case (0,1)
+		interaction.clear();
+		hhS.traceBackHelixSeed(interaction, 0, 1);
+		REQUIRE(interaction.basePairs.size() == 1);
+
+		// First / last base pair of helix
+		REQUIRE(interaction.basePairs.begin()->first == 1);
+		REQUIRE(interaction.basePairs.begin()->second == 1);
+
+		REQUIRE(interaction.basePairs.rbegin()->first == 1);
+		REQUIRE(interaction.basePairs.rbegin()->second == 1);
+
 	}
 }

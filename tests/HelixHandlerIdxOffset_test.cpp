@@ -450,7 +450,109 @@ TEST_CASE( "HelixHandlerIdxOffset", "[HelixHandlerIdxOffset]") {
 		hhIO.traceBackHelix(interaction, 5, 5);
 
 		REQUIRE(interaction.basePairs.size() == 0);
+	}
 
+	SECTION("Helix with Offset: Case 4 - uneven offset", "[HelixHandlerIdxOffset]") {
+		// Case 2 - sequence containing an "A"-wall to disrupt perfect stacking
+		RnaSequence r1("r1", "GGGGG");
+		RnaSequence r2("r2", "CCCCC");
+		AccessibilityDisabled acc1(r1, 0, NULL);
+		AccessibilityDisabled acc2(r2, 0, NULL);
+		ReverseAccessibility racc(acc2);
+		InteractionEnergyBasePair energy(acc1, racc);
 
+		HelixConstraint hC(2,4,0);
+		HelixHandlerIdxOffset hhIO(new HelixHandlerStackingOnly(energy, hC));
+
+		// Set the offsets
+		hhIO.setOffset1(1);
+		hhIO.setOffset2(2);
+
+		//////////////////////////////////////////////////////////////////////////////////////////////////////////
+		////////////////////////////////////////////   FILLHELIX  ////////////////////////////////////////////////
+		//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		// possible helices
+		REQUIRE(hhIO.fillHelix(0, energy.size1()-hhIO.getOffset1()-1, 0, energy.size2()-hhIO.getOffset2()-1)==6);
+
+		// All optimal combinations
+		// (0,0)
+		REQUIRE(hhIO.getHelixE(0, 0) == -2);
+		REQUIRE(hhIO.getHelixLength1(0, 0) == 3);
+		REQUIRE(hhIO.getHelixLength2(0, 0) == hhIO.getHelixLength1(0, 0));
+
+		// (0,1)
+		REQUIRE(hhIO.getHelixE(0, 1) == -1);
+		REQUIRE(hhIO.getHelixLength1(0, 1) == 2);
+		REQUIRE(hhIO.getHelixLength2(0, 1) == hhIO.getHelixLength1(0, 1));
+
+		// (1,0)
+		REQUIRE(hhIO.getHelixE(1, 0) == -2);
+		REQUIRE(hhIO.getHelixLength1(1, 0) == 3);
+		REQUIRE(hhIO.getHelixLength2(1, 0) == hhIO.getHelixLength1(1, 0));
+
+		// (1,1)
+		REQUIRE(hhIO.getHelixE(1, 1) == -1);
+		REQUIRE(hhIO.getHelixLength1(1, 1) == 2);
+		REQUIRE(hhIO.getHelixLength2(1, 1) == hhIO.getHelixLength1(1, 1));
+
+		// (2,0)
+		REQUIRE(hhIO.getHelixE(2, 0) == -1);
+		REQUIRE(hhIO.getHelixLength1(2, 0) == 2);
+		REQUIRE(hhIO.getHelixLength2(2, 0) == hhIO.getHelixLength1(2, 0));
+
+		// (5,1)
+		REQUIRE(hhIO.getHelixE(2, 1) == -1);
+		REQUIRE(hhIO.getHelixLength1(2, 1) == 2);
+		REQUIRE(hhIO.getHelixLength2(2, 1) == hhIO.getHelixLength1(2, 1));
+
+		// Not viable cases
+		// (3,0) Not complementary
+		REQUIRE(hhIO.getHelixE(3,0) == E_INF);
+		REQUIRE(hhIO.getHelixLength1(3,0) == 0);
+		REQUIRE(hhIO.getHelixLength2(3,0) == hhIO.getHelixLength1(3,0));
+
+		// (5,4) no Helix possible (both sides too short)
+		REQUIRE(hhIO.getHelixE(2,2) == E_INF);
+		REQUIRE(hhIO.getHelixLength1(2,2) == 0);
+		REQUIRE(hhIO.getHelixLength2(2,2) == hhIO.getHelixLength1(2,2));
+
+		// (5,3) no helix possible
+		REQUIRE(hhIO.getHelixE(0,2) == E_INF);
+		REQUIRE(hhIO.getHelixLength1(0,2) == 0);
+		REQUIRE(hhIO.getHelixLength2(0,2) == hhIO.getHelixLength1(0,2));
+
+		//////////////////////////////////////////////////////////////////////////////////////////////////////////
+		////////////////////////////////////////////   TRACEBACK   ///////////////////////////////////////////////
+		//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		// Case (0,0)
+		//////////////////////
+		Interaction interaction(r1,r2);
+		hhIO.traceBackHelix(interaction, 0, 0);
+
+		REQUIRE(interaction.basePairs.size() == 1);
+		// First / last base pair of helix
+		REQUIRE(interaction.basePairs.begin()->first == 2);
+		REQUIRE(interaction.basePairs.begin()->second == 1);
+
+		REQUIRE(interaction.basePairs.rbegin()->first == 2);
+		REQUIRE(interaction.basePairs.rbegin()->second == 1);
+
+		// Case (2,1) - Not Possible
+		//////////////////////
+
+		interaction.clear();
+		hhIO.traceBackHelix(interaction, 3, 2);
+
+		REQUIRE(interaction.basePairs.size() == 0);
+
+		// Case (5,5) - Possible but only 2 base pairs long (e.g no bp needs to be reported)
+		//////////////////////
+
+		interaction.clear();
+		hhIO.traceBackHelix(interaction, 2, 1);
+
+		REQUIRE(interaction.basePairs.size() == 0);
 	}
 }
