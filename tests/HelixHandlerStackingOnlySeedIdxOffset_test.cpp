@@ -39,21 +39,21 @@ TEST_CASE( "HelixHandlerIdxOffset for StackingOnlySeed", "[HelixHandlerIdxOffset
         SeedHandler * sH = new SeedHandlerMfe(energy, sC);
 		SeedHandlerIdxOffset sHIO(sH);
 
-		sH->fillSeed(0,energy.size1()-1, 0,energy.size2()-1);
+//		sH->fillSeed(0,energy.size1()-1, 0,energy.size2()-1);
 		hhS->setSeedHandler(sH);
 
 		HelixHandlerIdxOffset hhIO(hhS);
 
-		// Set the offsets
-		sHIO.setOffset1(1);
-		sHIO.setOffset2(1);
+//		// Set the offsets
+//		sHIO.setOffset1(1);
+//		sHIO.setOffset2(1);
 		hhIO.setOffset1(1);
 		hhIO.setOffset2(1);
 
 		//////////////////////////////////////////////////////////////////////////////////////////////////////////
 		//////////////////////////////////////////   FILLHELIXSEED  //////////////////////////////////////////////
 		//////////////////////////////////////////////////////////////////////////////////////////////////////////
-//		REQUIRE(sHIO.fillSeed( 0,energy.size1()-sHIO.getOffset1()-1, 0,energy.size2()-sHIO.getOffset2()-1 ) > 0);
+		REQUIRE(sHIO.fillSeed( 0,energy.size1()-1, 0,energy.size2()-1 ) > 0);
 		REQUIRE(hhIO.fillHelixSeed( 0,energy.size1()-hhIO.getOffset1()-1, 0,energy.size2()-hhIO.getOffset2()-1 ) == 9);
 
 //		// (0,0)

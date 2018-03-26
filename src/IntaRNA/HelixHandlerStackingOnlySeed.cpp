@@ -21,11 +21,12 @@ fillHelixSeed(const size_t i1min, const size_t i1max, const size_t i2min, const 
 
 	E_type leadingE, trailingE, bestTrailingE, totalEnergy;
 
-//	LOG(DEBUG) << "i1min, i1max, i2min, i2max: " << i1min << " " << i1max << " " << i2min << " " << i2max;
+	LOG(DEBUG) << "i1min, i1max, i2min, i2max: " << i1min << " " << i1max << " " << i2min << " " << i2max;
 	// fill for all start indices
 	// in increasing index order
 	for (i1=i1min; i1 < i1max+1; i1++ ) {
 	for (i2=i2min; i2 < i2max+1; i2++ ) {
+		LOG(DEBUG) << "i1, i2 " << i1 << " " << i2;
 		// count possible helices
 		helixCount++;
 
@@ -37,7 +38,6 @@ fillHelixSeed(const size_t i1min, const size_t i1max, const size_t i2min, const 
 			continue; // go to next helixSeedE index
 		}
 
-//		LOG(DEBUG) << "Still working!";
 		// TODO: OFFSET might be needed here
 		// Check if a seed can fit given the left boundaries
 		// Note: If seedHandler allows unpaired positions this check is not enough, check happens in loop
@@ -48,26 +48,24 @@ fillHelixSeed(const size_t i1min, const size_t i1max, const size_t i2min, const 
 			possibleBasePairs = std::min(std::min(helixSeed.size1()-i1-offset1, helixSeed.size2()-i2-offset2), helixConstraint.getMaxBasePairs())-seedHandler->getConstraint().getBasePairs();
 		}
 
-//		LOG(DEBUG) << "Still working!";
 		leadingE = 0.0;
 		// TODO: Further tests for boundaries should be redundant with the strong condition beforehand
 		// screen over all possible leading and trailing base pair combinations
 		for (size_t leadingBP=0; leadingBP <= possibleBasePairs && i1 + leadingBP-offset1 < helixSeed.size1()
 																&& i2 + leadingBP-offset2 < helixSeed.size2(); leadingBP++) {
 
-//			LOG(DEBUG) << "Still working! Leading: " << i1 + leadingBP-offset1 << " " << i2 + leadingBP-offset2;
+			LOG(DEBUG) << "SeedStarts : " << i1 + leadingBP << " " << i2 + leadingBP;
 
 			seedStart1 = i1 + leadingBP;
 			seedStart2 = i2 + leadingBP;
 
-//			LOG(DEBUG) << "Still working! getSeed: " << seedStart1-offset1 << " " << seedStart2-offset2;
+			LOG(DEBUG) << "getSeedIndices: " << seedStart1-offset1 << " " << seedStart2-offset2;
+			LOG(DEBUG) << "getSeedE " << seedHandler->getSeedE(seedStart1-offset1, seedStart2-offset2);
 			// Check whether seed is possible for this starting position
 			// TODO: If no seed is possible from here, there should never be a possible seed anymore (so break should be alright)
 			if (E_isINF(seedHandler->getSeedE(seedStart1-offset1, seedStart2-offset2))) {
 				break;
 			}
-//			LOG(DEBUG) << "Still working!";
-
 			// Update energy for the leading base pairs
 			if (leadingBP > 0) {
 				// TODO: THis might be handled by the seedCondition already
@@ -76,17 +74,17 @@ fillHelixSeed(const size_t i1min, const size_t i1max, const size_t i2min, const 
 				}
 				leadingE += energy.getE_interLeft(seedStart1 - 1, seedStart1, seedStart2 - 1, seedStart2);
 			}
-//			LOG(DEBUG) << "Still working!";
+			LOG(DEBUG) << "LeadingE = " << leadingE;
 
 			// The right ends of the helix after the seed (start of trailing base pairs)
 			seedEnd1 = seedStart1+seedHandler->getSeedLength1(seedStart1-offset1,seedStart2-offset2)-1;
 			seedEnd2 = seedStart2+seedHandler->getSeedLength2(seedStart1-offset1,seedStart2-offset2)-1;
 
+			LOG(DEBUG) << "SeedEnds: " << seedEnd1 << " " << seedEnd2;
 			// If SeedConstraints allow unpaired bases in the seed, ensure that the boundaries are not broken.
 			if (seedEnd1-offset1 >= helixSeed.size1() || seedEnd2-offset2 >= helixSeed.size2()) {
 				break;
 			}
-//			LOG(DEBUG) << "Still working!";
 
 			// Trailing base pairs
 			trailingE = 0.0;
@@ -98,13 +96,14 @@ fillHelixSeed(const size_t i1min, const size_t i1max, const size_t i2min, const 
 				j1 = seedEnd1 + trailingBP;
 				j2 = seedEnd2 + trailingBP;
 
+				LOG(DEBUG) << "Trailing " << j1 << " " << j2;
 				if (trailingBP > 0) {
 					if (!energy.areComplementary(j1, j2)) {
 						break;
 					}
 					trailingE += energy.getE_interLeft(j1 - 1, j1, j2 - 1, j2);
 				}
-
+				LOG(DEBUG) << "TrailingE " << trailingE;
 				// only keep the best trailing energy, in order to calculate the energy in first loop
 				// TODO: bestTrailingE might be redundant
 				if (trailingE < bestTrailingE) {
