@@ -52,13 +52,13 @@ predict( const IndexRange & r1
 		throw std::runtime_error("PredictorMfe2dLimStackHeuristicSeed::predict("+toString(r1)+","+toString(r2)+") is not sane");
 #endif
 
-	// TODO: HelixHandler offset?
-
 	// set index offset
 	energy.setOffset1(r1.from);
 	energy.setOffset2(r2.from);
 	helixHandler.setOffset1(r1.from);
 	helixHandler.setOffset2(r2.from);
+	seedHandler.setOffset1(r1.from);
+	seedHandler.setOffset2(r2.from);
 
 	const size_t hybridEsize1 = std::min( energy.size1()
 			, (r1.to==RnaSequence::lastPos?energy.size1()-1:r1.to)-r1.from+1 );
@@ -69,26 +69,10 @@ predict( const IndexRange & r1
 	hybridE.resize( hybridEsize1, hybridEsize2 );
 	hybridE_seed.resize( hybridE.size1(), hybridE.size2() );
 
-	// FillHelix
-	if (helixHandler.fillHelix( 0, hybridEsize1-1, 0, hybridEsize2-1) == 0) {
-		// trigger empty interaction reporting
-		initOptima(outConstraint);
-		reportOptima(outConstraint);
-		// stop computation
-		return;
-	}
-
-	// SeedHandler
-	if (seedHandler.fillSeed(0, hybridEsize1-1, 0, hybridEsize2-1) == 0) {
-		// trigger empty interaction reporting
-		initOptima(outConstraint);
-		reportOptima(outConstraint);
-		// stop computation
-		return;
-	}
-
-	// FillHelixSeed
-	if (helixHandler.fillHelixSeed( 0, hybridEsize1-1, 0, hybridEsize2-1) == 0) {
+	// Fill helix / seed and helixSeed Matrices, if one is empty trigger empty interaction reporting
+	if ((helixHandler.fillHelix( 0, hybridEsize1-1, 0, hybridEsize2-1) == 0)
+		|| (seedHandler.fillSeed(0, hybridEsize1-1, 0, hybridEsize2-1) == 0)
+		|| (helixHandler.fillHelixSeed( 0, hybridEsize1-1, 0, hybridEsize2-1) == 0)) {
 		// trigger empty interaction reporting
 		initOptima(outConstraint);
 		reportOptima(outConstraint);

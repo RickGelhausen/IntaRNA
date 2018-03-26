@@ -17,8 +17,8 @@ runTests_SOURCES =	\
 					AccessibilityBasePair_test.cpp \
 					HelixConstraint_test.cpp \
 					HelixHandlerStackingOnly_test.cpp \
-					HelixHandlerStackingOnlySeed_test.cpp \
-					HelixHandlerIdxOffset_test.cpp \
+					HelixHandlerStackingOnlyIdxOffset_test.cpp \
+					HelixHandlerStackingOnlySeedIdxOffset_test.cpp \
 					IndexRange_test.cpp  \
 					IndexRangeList_test.cpp  \
 					Interaction_test.cpp  \

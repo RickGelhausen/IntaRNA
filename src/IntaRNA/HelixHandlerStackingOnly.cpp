@@ -65,7 +65,6 @@ fillHelix(const size_t i1min, const size_t i1max, const size_t i2min, const size
 			// check whether this helix has best energy and is within lower boundary
 			if (leftHelixE < helix(i1-offset1,i2-offset2).first && curBP >= helixConstraint.getMinBasePairs() && leftHelixE != 0.0 ) {
 				helix(i1-offset1, i2-offset2) = HelixMatrix::value_type( leftHelixE, encodeHelixLength(curBP, curBP) );
-//				LOG(DEBUG) << "i1, i2, bestE " << i1 << " " << i2  << " " << leftHelixE << " " << curBP;
 			}
 		}
 

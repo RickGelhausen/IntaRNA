@@ -16,7 +16,7 @@
 
 using namespace IntaRNA;
 
-TEST_CASE( "HelixHandlerIdxOffset", "[HelixHandlerIdxOffset]") {
+TEST_CASE( "HelixHandlerIdxOffset for StackingOnly", "[HelixHandlerIdxOffset]") {
 
 	SECTION("getter", "[HelixHandlerIdxOffset]") {
 
