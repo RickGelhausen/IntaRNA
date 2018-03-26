@@ -60,8 +60,6 @@ predict( const IndexRange & r1
 	helixHandler.setOffset1(r1.from);
 	helixHandler.setOffset2(r2.from);
 
-	// TODO: Init SeedHandler here ? fillSeed
-
 	const size_t hybridEsize1 = std::min( energy.size1()
 			, (r1.to==RnaSequence::lastPos?energy.size1()-1:r1.to)-r1.from+1 );
 	const size_t hybridEsize2 = std::min( energy.size2()
@@ -70,7 +68,6 @@ predict( const IndexRange & r1
 	// resize matrix
 	hybridE.resize( hybridEsize1, hybridEsize2 );
 	hybridE_seed.resize( hybridE.size1(), hybridE.size2() );
-
 
 	// FillHelix
 	if (helixHandler.fillHelix( 0, hybridEsize1-1, 0, hybridEsize2-1) == 0) {
@@ -151,7 +148,6 @@ predict( const IndexRange & r1
 	E_type curE = E_INF, curEtotal = E_INF, curCellEtotal = E_INF;
 	BestInteraction * curCell = NULL;
 	const BestInteraction * rightExt = NULL;
-
 
 	// iterate (decreasingly) over all left interaction starts
 	for (i1=hybridE_seed.size1(); i1-- > 0;) {
@@ -435,18 +431,20 @@ traceBack( Interaction & interaction, const OutputConstraint & outConstraint )
 					interaction.basePairs.push_back(energy.getBasePair(i1+h1, i2+h2));
 					i1 = k1;
 					i2 = k2;
-					// traceback remaining right interaction via hybridE
-					Interaction bpsRight(*(interaction.s1), *(interaction.s2) );
-					bpsRight.basePairs.push_back( energy.getBasePair(i1,i2) );
-					bpsRight.basePairs.push_back( energy.getBasePair(j1,j2) );
-					PredictorMfe2dLimStackHeuristic::traceBack( bpsRight, outConstraint );
-					// copy remaining base pairs
-					Interaction::PairingVec & bps = bpsRight.basePairs;
-					// copy all base pairs excluding the right most
-					for (size_t i= 0; i+1 < bps.size(); i++ ) {
-						interaction.basePairs.push_back( bps.at(i) );
-					}
 
+					// traceback remaining right interaction via hybridE
+					if (i1 < j1) {
+						Interaction bpsRight(*(interaction.s1), *(interaction.s2));
+						bpsRight.basePairs.push_back(energy.getBasePair(i1, i2));
+						bpsRight.basePairs.push_back(energy.getBasePair(j1, j2));
+						PredictorMfe2dLimStackHeuristic::traceBack(bpsRight, outConstraint);
+						// copy remaining base pairs
+						Interaction::PairingVec &bps = bpsRight.basePairs;
+						// copy all base pairs excluding the right most
+						for (size_t i = 0; i + 1 < bps.size(); i++) {
+							interaction.basePairs.push_back(bps.at(i));
+						}
+					}
 					// stop search since all trace back done
 					traceNotFound = false;
 					i1=j1;

@@ -336,11 +336,6 @@ traceBack( Interaction & interaction, const OutputConstraint & outConstraint  )
 
 		assert( !traceNotFound );
 	}
-#if INTARNA_IN_DEBUG_MODE
-	if ( (j2-i2) > 1 ) {
-		throw std::runtime_error("PredictorMfe2dHeuristicSeed::traceBack() : trace leaves ji<j2 : "+toString(i2)+"<"+toString(j2));
-	}
-#endif
 
 	// sort final interaction (to make valid) (faster than calling sort())
 	if (interaction.basePairs.size() > 2) {

@@ -225,9 +225,15 @@ traceBackHelixSeed( Interaction & interaction
 		if (E_equal(totalEnergy, curE)) {
 			// Add leading bases
 			for (size_t l = 0; l < leadingBP; l++) {
-				interaction.basePairs.push_back( energy.getBasePair(i1+l, i2+l) );
+				if (i1 != i1_-offset1) {
+					interaction.basePairs.push_back(energy.getBasePair(i1 + l, i2 + l));
+				}
 			}
 
+			// if not starting with seed, ensure that first base pair of the seed is included in the traceback
+			if (leadingBP != 0) {
+				interaction.basePairs.push_back(energy.getBasePair(seedStart1,seedStart2));
+			}
 			// Add seed base pairs
 			seedHandler->traceBackSeed(interaction, seedStart1, seedStart2);
 

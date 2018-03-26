@@ -213,6 +213,7 @@ void
 PredictorMfe2dLimStackHeuristic::
 traceBack( Interaction & interaction, const OutputConstraint & outConstraint )
 {
+
 	// check if something to trace
 	if (interaction.basePairs.size() < 2) {
 		return;
@@ -285,7 +286,7 @@ traceBack( Interaction & interaction, const OutputConstraint & outConstraint )
 				 // and energy is the source of curE
 				 E_equal( curE, (helixHandler.getHelixE(i1,i2) + energy.getE_interLeft(i1+h1,k1,i2+h2,k2) + curCell->E ) ) )
 			{
-					// stop searching
+ 					// stop searching
 					traceNotFound = false;
 
 					// store helix base pairs
@@ -293,9 +294,10 @@ traceBack( Interaction & interaction, const OutputConstraint & outConstraint )
 
 					// Right most base pair of helix
 					interaction.basePairs.push_back( energy.getBasePair(i1+h1,i2+h2) );
-					// Left most base pair of next case
-					interaction.basePairs.push_back( energy.getBasePair(k1,k2) );
-
+					// Left most base pair of next case (if not last of interaction)
+					if (k1 < j1) {
+						interaction.basePairs.push_back(energy.getBasePair(k1, k2));
+					}
 					// trace right part of split
 					i1=k1;
 					i2=k2;
