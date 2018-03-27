@@ -14,7 +14,7 @@ using namespace IntaRNA;
 
 TEST_CASE( "HelixHandlerStackingOnlySeed", "[HelixHandlerStackingOnly]" ) {
 
-	SECTION("HelixSeed: Case1 - all complementary", "[HelixHandlerStackingOnly]") {
+	SECTION("HelixSeed: Case 1 - all complementary", "[HelixHandlerStackingOnly]") {
 
 		RnaSequence r1("r1", "GGGGG");
 		RnaSequence r2("r2", "CCCCC");
@@ -104,7 +104,7 @@ TEST_CASE( "HelixHandlerStackingOnlySeed", "[HelixHandlerStackingOnly]" ) {
 		REQUIRE(interaction.basePairs.size() == 0);
 	}
 
-	SECTION("HelixSeed: Case2 - all complementary", "[HelixHandlerStackingOnly]") {
+	SECTION("HelixSeed: Case 2 - 'A' disrupting complementarity", "[HelixHandlerStackingOnly]") {
 
 		RnaSequence r1("r1", "GGAGG");
 		RnaSequence r2("r2", "CCACC");
@@ -157,7 +157,7 @@ TEST_CASE( "HelixHandlerStackingOnlySeed", "[HelixHandlerStackingOnly]" ) {
 		REQUIRE(interaction.basePairs.size() == 0);
 	}
 
-	SECTION("HelixSeed: Case3 - only seed possible", "[HelixHandlerStackingOnly]") {
+	SECTION("HelixSeed: Case 3 - only seed possible", "[HelixHandlerStackingOnly]") {
 
 		RnaSequence r1("r1", "AGGGA");
 		RnaSequence r2("r2", "ACCCA");

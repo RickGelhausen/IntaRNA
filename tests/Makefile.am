@@ -18,6 +18,7 @@ runTests_SOURCES =	\
 					HelixConstraint_test.cpp \
 					HelixHandlerStackingOnly_test.cpp \
 					HelixHandlerStackingOnlyIdxOffset_test.cpp \
+					HelixHandlerStackingOnlySeed_test.cpp \
 					HelixHandlerStackingOnlySeedIdxOffset_test.cpp \
 					IndexRange_test.cpp  \
 					IndexRangeList_test.cpp  \
