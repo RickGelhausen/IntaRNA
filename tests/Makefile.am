@@ -30,6 +30,8 @@ runTests_SOURCES =	\
 					RnaSequence_test.cpp \
 					OutputHandlerRangeOnly_test.cpp \
 					SeedHandlerExplicit_test.cpp \
+					SeedHandlerMfe_test.cpp \
+					SeedHandlerMfeIdxOffset_test.cpp \
 					runTests.cpp
 
 # add IntaRNA lib for linking
