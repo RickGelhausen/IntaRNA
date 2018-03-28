@@ -18,7 +18,7 @@ PredictorMfe2dLimStackHeuristicSeed( const InteractionEnergy & energy
 		, seedHandler(seedHandlerInstance)
 
 {
-	helixHandler.setSeedHandler(seedHandlerInstance);
+	helixHandler.setSeedHandler(*seedHandlerInstance);
 }
 
 

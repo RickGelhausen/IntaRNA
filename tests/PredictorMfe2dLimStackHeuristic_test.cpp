@@ -29,7 +29,7 @@ TEST_CASE( "PredictorMfe2dLimStackHeuristc", "[PredictorMfe2dLimStackHeuristic]"
 
 		HelixConstraint hc(2, 4, 0);
 
-		OutputHandlerInteractionList out(5);
+		OutputHandlerInteractionList out(1);
 
 		PredictorMfe2dLimStackHeuristic pLSH(energy, out, NULL, hc);
 
@@ -39,7 +39,15 @@ TEST_CASE( "PredictorMfe2dLimStackHeuristc", "[PredictorMfe2dLimStackHeuristic]"
 
 		pLSH.predict(idx1,idx2,outC);
 
+		REQUIRE_FALSE(out.empty());
+		REQUIRE(out.reported() == 1);
 
+		const Interaction * interaction((*out.begin()));
+		REQUIRE(interaction->basePairs.begin()->first == 0);
+		REQUIRE(interaction->basePairs.begin()->second == 6);
+
+		REQUIRE(interaction->basePairs.rbegin()->first == 6);
+		REQUIRE(interaction->basePairs.rbegin()->second == 0);
 	}
 
 }

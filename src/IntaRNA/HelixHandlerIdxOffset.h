@@ -207,9 +207,15 @@ public:
 	size_t
 	getHelixSeedLength2( const size_t i1, const size_t i2 ) const;
 
+	/**
+	 * Check whether the given seedHandler is of type SeedHandlerIdxOffset
+	 * Set the seedHandler of helixHandlerOriginal
+	 *
+	 * @param seedHandler the seedHandler with offset
+	 */
 	virtual
 	void
-	setSeedHandler( SeedHandler * const seedHandler);
+	setSeedHandler( SeedHandler & seedHandler);
 
 protected:
 
@@ -218,6 +224,10 @@ protected:
 
 	//! the index shifted helix constraint
 	HelixConstraint helixConstraintOffset;
+
+	//! the seedHandler with offset
+	//! Note: (might be needed later)
+	SeedHandlerIdxOffset * seedHandlerIdxOffset;
 
 	//! offset for indices in seq1
 	size_t idxOffset1;
@@ -431,9 +441,20 @@ setOffset2( const size_t offset )
 inline
 void
 HelixHandlerIdxOffset::
-setSeedHandler(SeedHandler *const seedHandler)
+setSeedHandler(SeedHandler & seedHandler)
 {
-	helixHandlerOriginal->setSeedHandler(seedHandler);
+	SeedHandlerIdxOffset * shOffset = dynamic_cast<SeedHandlerIdxOffset*>(&seedHandler);
+#if INTARNA_IN_DEBUG_MODE
+	if (shOffset == NULL) {
+		throw std::runtime_error("HelixHandlerIdxOffset.setSeedHandler(). Given seedHandler is not of type SeedHandlerIdxOffset.");
+	}
+#endif
+	// store locally (might be useful later)
+	seedHandlerIdxOffset = shOffset;
+
+	// forward seedHandler to helixHandler
+	helixHandlerOriginal->setSeedHandler(seedHandlerIdxOffset->getOriginalSeedHandler());
 }
+
 } // namespace
 #endif /* HELIXHANDLERIDXOFFSET_H_ */

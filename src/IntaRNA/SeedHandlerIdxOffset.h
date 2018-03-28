@@ -146,6 +146,9 @@ public:
 	getSeedLength2( const size_t i1, const size_t i2 ) const;
 
 
+	virtual
+	SeedHandler*
+	getOriginalSeedHandler();
 
 protected:
 
@@ -315,6 +318,14 @@ setOffset2( const size_t offset )
 }
 
 ////////////////////////////////////////////////////////////////////////////
+
+inline
+SeedHandler*
+SeedHandlerIdxOffset::
+getOriginalSeedHandler()
+{
+	return seedHandlerOriginal;
+}
 
 } // namespace
 

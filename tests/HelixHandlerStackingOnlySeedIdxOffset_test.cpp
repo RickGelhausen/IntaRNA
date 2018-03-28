@@ -347,7 +347,7 @@ TEST_CASE( "HelixHandlerIdxOffset for StackingOnlySeed", "[HelixHandlerIdxOffset
 
 	}
 
-	SECTION("HelixSeed with Offset: Case 1 - offset 1", "[HelixHandlerIdxOffset]") {
+	SECTION("HelixSeed with Offset: Case 5 - uneven offset", "[HelixHandlerIdxOffset]") {
 
 		RnaSequence r1("r1", "AGGGGG");
 		RnaSequence r2("r2", "CCCCCAA");
