@@ -251,6 +251,7 @@ HelixHandlerIdxOffset( HelixHandler * helixHandlerInstance )
 		, helixConstraintOffset( helixHandlerOriginal->getConstraint() )
 		, idxOffset1(0)
 		, idxOffset2(0)
+		, seedHandlerIdxOffset(NULL)
 {
 
 }
