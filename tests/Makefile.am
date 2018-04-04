@@ -12,6 +12,7 @@ check_PROGRAMS = runTests
 # test sources
 runTests_SOURCES =	\
 					catch.hpp \
+					testEasyLoggingSetup.icc \
 					AccessibilityConstraint_test.cpp \
 					AccessibilityFromStream_test.cpp \
 					AccessibilityBasePair_test.cpp \
@@ -27,6 +28,7 @@ runTests_SOURCES =	\
 					InteractionRange_test.cpp  \
 					PredictionTrackerProfileMinE_test.cpp \
 					PredictorMfe2dLimStackHeuristic_test.cpp \
+					PredictionTrackerSpotProb_test.cpp \
 					NussinovHandler_test.cpp \
 					RnaSequence_test.cpp \
 					OutputHandlerRangeOnly_test.cpp \
@@ -34,6 +36,7 @@ runTests_SOURCES =	\
 					SeedHandlerMfe_test.cpp \
 					SeedHandlerMfeIdxOffset_test.cpp \
 					runTests.cpp
+
 
 # add IntaRNA lib for linking
 LIBS= 	-L$(top_builddir)/src/IntaRNA -lIntaRNA \
