@@ -31,6 +31,7 @@ libIntaRNA_a_HEADERS =    \
 					HelixHandler.h \
 					HelixHandlerIdxOffset.h \
 					HelixHandlerStackingOnly.h \
+					HelixHandlerUnpaired.h \
 					IndexRange.h \
 					IndexRangeList.h \
 					Interaction.h \
@@ -85,6 +86,8 @@ libIntaRNA_a_SOURCES =    \
 					HelixHandler.cpp \
 					HelixHandlerStackingOnly.cpp \
 					HelixHandlerStackingOnlySeed.cpp \
+				    HelixHandlerUnpaired.cpp \
+				    HelixHandlerUnpairedSeed.cpp \
 					IndexRange.cpp \
 					IndexRangeList.cpp \
 					Interaction.cpp \

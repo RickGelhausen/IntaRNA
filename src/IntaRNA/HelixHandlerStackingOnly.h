@@ -6,8 +6,6 @@
 #include "IntaRNA/HelixConstraint.h"
 #include "IntaRNA/HelixHandler.h"
 
-#include <boost/multi_array.hpp>
-
 #include <boost/numeric/ublas/matrix.hpp>
 
 namespace IntaRNA {
@@ -154,6 +152,13 @@ public:
 	getHelixSeedLength2( const size_t i1, const size_t i2 ) const;
 
 	/**
+	 * Set the seedHandler in order to compute helixSeed
+	 * @param seedHandler seedHandler to be used in the helix computation
+	 */
+	void setSeedHandler(SeedHandler * const seedHandler);
+
+protected:
+	/**
 	 * Encodes the seed lengths into one number
 	 * @param l1 the length of the seed in seq1
 	 * @param l2 the length of the seed in seq2
@@ -207,18 +212,12 @@ public:
 	size_t
 	decodeHelixSeedLength2( const size_t code ) const;
 
-	/**
-	 * Set the seedHandler in order to compute helixSeed
-	 * @param seedHandler seedHandler to be used in the helix computation
-	 */
-	void setSeedHandler(SeedHandler * const seedHandler);
-
 protected:
 
 	//! the helix mfe information for helix starting at (i1, i2)
 	HelixMatrix helix;
 
-	//! the helix mfe information for helix starting at (i1, i2)
+	//! the helix mfe information for helix with seed starting at (i1, i2)
 	HelixMatrix helixSeed;
 
 	//! offset for seq1 indices for the current matrices

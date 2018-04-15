@@ -1,5 +1,6 @@
 #include "IntaRNA/HelixHandler.h"
 #include "IntaRNA/HelixHandlerStackingOnly.h"
+#include "IntaRNA/HelixHandlerUnpaired.h"
 
 namespace IntaRNA {
 
@@ -10,7 +11,7 @@ HelixHandler* HelixHandler::getHelixHandler(const InteractionEnergy &energy,
 	if (helixConstraint.getMaxUnpaired() == 0) {
 		return new HelixHandlerStackingOnly(energy, helixConstraint, seedHandler);
 	} else {
-		INTARNA_NOT_IMPLEMENTED("HelixHandlerUnpaired!!");
+		return new HelixHandlerUnpaired(energy, helixConstraint, seedHandler);
 	}
 }
 

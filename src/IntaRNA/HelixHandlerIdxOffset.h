@@ -3,6 +3,7 @@
 #define INTARNA_HELIXHANDLERIDXOFFSET_H_
 
 #include "IntaRNA/HelixHandler.h"
+#include "IntaRNA/SeedHandlerIdxOffset.h"
 
 #include <boost/multi_array.hpp>
 
@@ -215,7 +216,7 @@ public:
 	 */
 	virtual
 	void
-	setSeedHandler( SeedHandler & seedHandler);
+	setSeedHandler( SeedHandlerIdxOffset & seedHandler);
 
 protected:
 
@@ -442,7 +443,7 @@ setOffset2( const size_t offset )
 inline
 void
 HelixHandlerIdxOffset::
-setSeedHandler(SeedHandler & seedHandler)
+setSeedHandler(SeedHandlerIdxOffset & seedHandler)
 {
 	SeedHandlerIdxOffset * shOffset = dynamic_cast<SeedHandlerIdxOffset*>(&seedHandler);
 #if INTARNA_IN_DEBUG_MODE

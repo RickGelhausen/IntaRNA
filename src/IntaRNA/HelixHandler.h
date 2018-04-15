@@ -4,7 +4,7 @@
 
 #include "IntaRNA/InteractionEnergy.h"
 #include "IntaRNA/HelixConstraint.h"
-#include "IntaRNA/SeedHandlerIdxOffset.h"
+#include "IntaRNA/SeedHandler.h"
 
 namespace IntaRNA {
 
