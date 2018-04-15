@@ -78,8 +78,7 @@ fillHelix(const size_t i1min, const size_t i1max, const size_t i2min, const size
 					if (curBP == 2) {
 						// energy for stacking/bulge/interior depending on u1/u2
 						curE = energy.getE_interLeft(i1, j1, i2, j2);
-//						LOG(DEBUG) << "i1, i2, curBP, u1, u2: " << i1 << " " << i2 << " " << curBP << " " << u1 << " " << u2;
-//						LOG(DEBUG) << "curE: " << curE;
+
 						} else {
 						// split helix recursively into all possible leading interior loops
 						// i1 .. i1+u1p+1 .. j1
@@ -96,9 +95,6 @@ fillHelix(const size_t i1min, const size_t i1max, const size_t i2min, const size
 								continue; // not complementary -> skip
 							}
 
-//							LOG(DEBUG) << "i1, i2, curBP, u1, u2: " << i1 << " " << i2 << " " << curBP << " " << u1 << " " << u2;
-//							LOG(DEBUG) << "curE: " << energy.getE_interLeft(i1, k1, i2, k2)
-													  + getHelixE(k1 - offset1, k2 - offset2, curBP - 1, u1 - u1p, u2 - u2p);
 							// update mfe for split at k1,k2
 							curE = std::min(curE,
 											energy.getE_interLeft(i1, k1, i2, k2)
@@ -125,7 +121,6 @@ fillHelix(const size_t i1min, const size_t i1max, const size_t i2min, const size
 		bestBP = 2;
 		bestE = E_INF;
 
-//		LOG(DEBUG) << "FindBEST: (i1,i2) " << i1 << " " << i2;
 		// Calculate energy for all different numbers of base pairs
 		// Ensuring minimum number of base pairs here
 		for (curBP = helixConstraint.getMinBasePairs(); curBP < helixConstraint.getMaxBasePairs() + 1
@@ -145,7 +140,6 @@ fillHelix(const size_t i1min, const size_t i1max, const size_t i2min, const size
 				curE = energy.getE(i1, j1, i2, j2, getHelixE(i1 - offset1, i2 - offset2, curBP, u1, u2)) +
 					   energy.getE_init();
 
-//				LOG(DEBUG) << "i1, i2, curBP, u1, u2, curE " << i1 << " " << i2 << " " << curBP << " " << u1 << " " << u2 << " " << curE;
 				// check if better than what is known so far
 				if (curE < bestE) {
 					bestE = curE;
