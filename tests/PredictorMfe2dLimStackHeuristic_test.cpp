@@ -48,6 +48,8 @@ TEST_CASE( "PredictorMfe2dLimStackHeuristc", "[PredictorMfe2dLimStackHeuristic]"
 
 		REQUIRE(interaction->basePairs.rbegin()->first == 6);
 		REQUIRE(interaction->basePairs.rbegin()->second == 0);
+
+		REQUIRE(interaction->dotBracket(*interaction) == "(((..((&))..)))");
 	}
 
 	SECTION("Predictor: Case 2", "[PredictorMfe2dLimStackHeuristic]") {
@@ -76,10 +78,12 @@ TEST_CASE( "PredictorMfe2dLimStackHeuristc", "[PredictorMfe2dLimStackHeuristic]"
 
 		const Interaction * interaction((*out.begin()));
 		REQUIRE(interaction->basePairs.begin()->first == 2);
-		REQUIRE(interaction->basePairs.begin()->second == 2);
+		REQUIRE(interaction->basePairs.begin()->second == 7);
 
 		REQUIRE(interaction->basePairs.rbegin()->first == 8);
-		REQUIRE(interaction->basePairs.rbegin()->second == 8);
+		REQUIRE(interaction->basePairs.rbegin()->second == 1);
+
+		REQUIRE(interaction->dotBracket(*interaction) == "(((..((&))..)))");
 	}
 
 }

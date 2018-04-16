@@ -471,19 +471,19 @@ TEST_CASE( "HelixHandlerStackingOnly", "[HelixHandlerStackingOnly]") {
 
 		// Case (0,0)
 		//////////////////////
-		Interaction interaction1(r1,r2);
+		Interaction interaction(r1,r2);
 
-		hhS.traceBackHelix(interaction1, 0, 0);
+		hhS.traceBackHelix(interaction, 0, 0);
 
-		REQUIRE(interaction1.basePairs.size() == 0);
+		REQUIRE(interaction.basePairs.size() == 0);
 
-		// Case (0,0)
+		// Case (1,3)
 		//////////////////////
-		Interaction interaction2(r1,r2);
+		interaction.clear();
 
-		hhS.traceBackHelix(interaction2, 1, 3);
+		hhS.traceBackHelix(interaction, 1, 3);
 
-		REQUIRE(interaction2.basePairs.size() == 0);
+		REQUIRE(interaction.basePairs.size() == 0);
 
 	}
 

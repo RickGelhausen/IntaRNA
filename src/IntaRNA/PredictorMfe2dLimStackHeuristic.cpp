@@ -121,6 +121,7 @@ fillHybridE()
 	// iterate (decreasingly) over all left interaction starts
 	for (i1=hybridE.size1(); i1-- > 0;) {
 	for (i2=hybridE.size2(); i2-- > 0;) {
+//		LOG(DEBUG) << "i1, i2: " << i1 << " " << i2;
 		// direct cell access
 		curCell = &(hybridE(i1,i2));
 
@@ -138,9 +139,10 @@ fillHybridE()
 			h1 = helixHandler.getHelixLength1(i1,i2)-1; assert(i1+h1 < hybridE.size1());
 			h2 = helixHandler.getHelixLength2(i1,i2)-1; assert(i2+h2 < hybridE.size2());
 
-
+//			LOG(DEBUG) << "h1, h2: " << h1 << " " << h2;
 			curE = helixHandler.getHelixE(i1,i2) + energy.getE_init();
 
+//			LOG(DEBUG) << "Case 1: curE " << curE;
 			// check if this combination yields better energy
 			curEtotal = energy.getE(i1, i1+h1, i2, i2+h2, curE);
 			if ( curEtotal < curCellEtotal )
@@ -183,7 +185,7 @@ fillHybridE()
 
 				// compute energy for this loop sizes
 				curE = helixHandler.getHelixE(i1,i2) + energy.getE_interLeft(i1+h1,i1+h1+w1,i2+h2,i2+h2+w2) + rightExt->E;
-
+//				LOG(DEBUG) << "Case 2: curE " << curE;
 				// check if this combination yields better energy
 				curEtotal = energy.getE(i1,rightExt->j1,i2,rightExt->j2,curE);
 				if ( curEtotal < curCellEtotal )
@@ -200,6 +202,7 @@ fillHybridE()
 			} // w2
 			} // w1
 
+//			LOG(DEBUG) << "NEW VALUE!!!: i1, i2: " << i1 << " " << i2 << " " << curCellEtotal;
 			// update mfe if needed
 			updateOptima( i1,curCell->j1, i2,curCell->j2, curCellEtotal, false );
 		} // helix
@@ -246,8 +249,10 @@ traceBack( Interaction & interaction, const OutputConstraint & outConstraint )
 	const size_t j2 = energy.getIndex2(interaction.basePairs.at(1));
 
 
+//	LOG(DEBUG) << "TRACEBACK: " << i1 << " " << i2;
 	// the currently traced value for i1-j1, i2-j2
 	E_type curE = hybridE(i1,i2).E;
+//	LOG(DEBUG) << "curE: " << curE;
 	assert( hybridE(i1,i2).j1 == j1 );
 	assert( hybridE(i1,i2).j2 == j2 );
 	assert( i1 <= j1 );
