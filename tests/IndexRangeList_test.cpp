@@ -12,6 +12,8 @@ using namespace IntaRNA;
 
 TEST_CASE( "IndexRangeList", "[IndexRangeList]" ) {
 
+	// setup easylogging++ stuff if not already done
+	#include "testEasyLoggingSetup.icc"
 
 	IndexRangeList rangeList;
 
@@ -164,6 +166,19 @@ TEST_CASE( "IndexRangeList", "[IndexRangeList]" ) {
 		REQUIRE( s.str() == "0-3,5-5" );
 		s.str(""); s<<r1;
 		REQUIRE( s.str() == "2-3,5-9" );
+
+	}
+
+	SECTION("check get") {
+
+		// create list
+		rangeList.insert(IndexRange(1,2));
+		rangeList.insert(IndexRange(4,8));
+		rangeList.insert(IndexRange(10,10));
+
+		REQUIRE( rangeList.get(0) == IndexRange(1,2) );
+		REQUIRE( rangeList.get(1) == IndexRange(4,8) );
+		REQUIRE( rangeList.get(2) == IndexRange(10,10) );
 
 	}
 

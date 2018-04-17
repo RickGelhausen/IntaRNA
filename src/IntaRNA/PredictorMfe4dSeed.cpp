@@ -12,9 +12,9 @@ PredictorMfe4dSeed::
 PredictorMfe4dSeed( const InteractionEnergy & energy
 					, OutputHandler & output
 					, PredictionTracker * predTracker
-					, const SeedConstraint & seedConstraint )
+					, SeedHandler * seedHandlerInstance )
  : PredictorMfe4d(energy,output,predTracker)
-	, seedHandler(energy,seedConstraint)
+	, seedHandler(seedHandlerInstance)
 	, hybridE_seed(0,0)
 {
 }
@@ -190,6 +190,9 @@ predict( const IndexRange & r1
 	initOptima( tmpOutConstraint );
 
 	// fill matrix
+	// compute hybridization energies WITHOUT seed condition
+	// sets also -energy -hybridE
+	// -> no tracker update since updateOptima overwritten
 	fillHybridE( );
 
 	// check if any interaction possible
@@ -324,7 +327,7 @@ fillHybridE_seed( )
 
 			// update mfe if needed (call super class)
 			if (E_isNotINF(curMinE)) {
-				updateOptima( i1,j1,i2,j2, curMinE, true );
+				PredictorMfe4d::updateOptima( i1,j1,i2,j2, curMinE, true );
 			}
 
 		}
@@ -339,7 +342,7 @@ fillHybridE_seed( )
 
 void
 PredictorMfe4dSeed::
-traceBack( Interaction & interaction )
+traceBack( Interaction & interaction, const OutputConstraint & outConstraint  )
 {
 	// check if something to trace
 	if (interaction.basePairs.size() < 2) {
@@ -453,7 +456,7 @@ traceBack( Interaction & interaction )
 			rightSide.basePairs.push_back( energy.getBasePair(i1,i2) );
 			rightSide.basePairs.push_back( energy.getBasePair(j1,j2) );
 			// call traceback of super class
-			PredictorMfe4d::traceBack( rightSide );
+			PredictorMfe4d::traceBack( rightSide, outConstraint );
 			// copy base pairs (excluding last)
 			for (size_t i=0; i+1<rightSide.basePairs.size(); i++) {
 				interaction.basePairs.push_back( rightSide.basePairs.at(i) );
@@ -499,6 +502,7 @@ getNextBest( Interaction & curBest )
 	// iterate (decreasingly) over all left interaction starts
 	E2dMatrix * curTable = NULL;
 	IndexRange r1,r2;
+	size_t d1 = 0, d2 = 0;  // temp vars to deals with possible interaction lengths
 	E_type curE = E_INF;
 	for (r1.from=hybridE_seed.size1(); r1.from-- > 0;) {
 
@@ -519,18 +523,25 @@ getNextBest( Interaction & curBest )
 				continue;
 			}
 
+			// access energy table for left-most interaction base pair
 			curTable = hybridE_seed(r1.from,r2.from);
 
-			for (r1.to=r1.from; r1.to<curTable->size1(); r1.to++) {
+			// iterate over all available interaction site lengths in seq1
+			for (d1 = 0; d1<curTable->size1(); d1++) {
 
+				// set according right interaction boundary in seq1
+				r1.to = r1.from + d1;
 				// check of overlapping
 				if (reportedInteractions.first.overlaps(r1)) {
 					// stop since all larger sites will overlap as well
 					break;;
 				}
 
-				for (r2.to=r2.from; r2.to<curTable->size2(); r2.to++) {
+				// iterate over all available interaction site lengths in seq2
+				for (d2=0; d2<curTable->size2(); d2++) {
 
+					// set according right interaction boundary in seq2
+					r2.to = r2.from + d2;
 					// check of overlapping
 					if (reportedInteractions.second.overlaps(r2)) {
 						// stop since all larger sites will overlap as well
@@ -538,7 +549,7 @@ getNextBest( Interaction & curBest )
 					}
 
 					// get overall energy of entry
-					curE = energy.getE( r1.from, r1.to, r2.from, r2.to, (*curTable)(r1.to,r2.to));
+					curE = energy.getE( r1.from, r1.to, r2.from, r2.to, (*curTable)(d1,d2));
 
 					// skip sites with energy too low
 					// or higher than current best found so far

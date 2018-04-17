@@ -1,8 +1,8 @@
 
-#ifndef INTARNA_PREDICTORMFELIMSTACK2DHEURISTICSEED_H_
-#define INTARNA_PREDICTORMFELIMSTACK2DHEURISTICSEED_H_
+#ifndef INTARNA_PREDICTORMFE2DLIMSTACKHEURISTICSEED_H
+#define INTARNA_PREDICTORMFE2DLIMSTACKHEURISTICSEED_H
 
-#include "IntaRNA/PredictorMfeLimStack2dHeuristic.h"
+#include "IntaRNA/PredictorMfe2dLimStackHeuristic.h"
 #include "IntaRNA/SeedHandlerIdxOffset.h"
 
 namespace IntaRNA {
@@ -19,10 +19,10 @@ namespace IntaRNA {
  *
  * This yields a quadratic time and space complexity.
  *
- * @author Martin Mann
+ * @author Rick Gelhausen
  *
  */
-class PredictorMfeLimStack2dHeuristicSeed: public PredictorMfeLimStack2dHeuristic {
+class PredictorMfe2dLimStackHeuristicSeed: public PredictorMfe2dLimStackHeuristic {
 
 
 	//! matrix type to hold the mfe energies and boundaries for interaction site starts
@@ -40,12 +40,14 @@ public:
 	 *         on this->destruction.
 	 * @param seedConstraint the seed constraint to be applied
 	 */
-	PredictorMfeLimStack2dHeuristicSeed( const InteractionEnergy & energy
+	PredictorMfe2dLimStackHeuristicSeed( const InteractionEnergy & energy
 			, OutputHandler & output
 			, PredictionTracker * predTracker
-			, const SeedConstraint & seedConstraint );
+		 	, const HelixConstraint & helixConstraint
+			, SeedHandler * seedHandlerInstance
+	);
 
-	virtual ~PredictorMfeLimStack2dHeuristicSeed();
+	virtual ~PredictorMfe2dLimStackHeuristicSeed();
 
 	/**
 	 * Computes the mfe for the given sequence ranges (i1-j1) in the first
@@ -66,44 +68,28 @@ public:
 protected:
 
 	//! access to the interaction energy handler of the super class
-	using PredictorMfe2dHeuristic::energy;
+	using PredictorMfe2dLimStackHeuristic::energy;
 
 	//! access to the output handler of the super class
-	using PredictorMfe2dHeuristic::output;
+	using PredictorMfe2dLimStackHeuristic::output;
 
 	//! access to the list of reported interaction ranges of the super class
-	using PredictorMfe2dHeuristic::reportedInteractions;
-
-	// TODO provide all data structures as arguments to make predict() call threadsafe
+	using PredictorMfe2dLimStackHeuristic::reportedInteractions;
 
 	//! energy of all interaction hybrids that end in position p (seq1) and
 	//! q (seq2)
-	using PredictorMfe2dHeuristic::hybridE;
+	using PredictorMfe2dLimStackHeuristic::hybridE;
+
+	//! handler to generate and access helix information with idx offset
+	using PredictorMfe2dLimStackHeuristic::helixHandler;
 
 	//! the best hybridization energy including a seed for start i1,i2
 	E2dMatrix hybridE_seed;
 
-	//! handler to generate and access seed information with idx offset
+	//
 	SeedHandlerIdxOffset seedHandler;
 
 protected:
-
-	/**
-	 * does nothing but to ignore the calls from fillHybridE()
-	 *
-	 * @param i1 the index of the first sequence interacting with i2
-	 * @param j1 the index of the first sequence interacting with j2
-	 * @param i2 the index of the second sequence interacting with i1
-	 * @param j2 the index of the second sequence interacting with j1
-	 * @param energy ignored
-	 * @param isHybridE ignored
-	 */
-	virtual
-	void
-	updateOptima( const size_t i1, const size_t j1
-			, const size_t i2, const size_t j2
-			, const E_type energy
-			, const bool isHybridE );
 
 	/**
 	 * Fills a given interaction (boundaries given) with the according
@@ -112,7 +98,7 @@ protected:
 	 */
 	virtual
 	void
-	traceBack( Interaction & interaction );
+	traceBack( Interaction & interaction, const OutputConstraint & outConstraint );
 
 
 	/**
@@ -156,7 +142,7 @@ protected:
 
 inline
 void
-PredictorMfeLimStack2dHeuristicSeed::
+PredictorMfe2dLimStackHeuristicSeed::
 updateOptima( const size_t i1, const size_t j1
 		, const size_t i2, const size_t j2
 		, const E_type energy
@@ -168,5 +154,4 @@ updateOptima( const size_t i1, const size_t j1
 //////////////////////////////////////////////////////////////////////////
 
 } // namespace
-
-#endif /* INTARNA_PREDICTORMFELIMSTACK2DHEURISTICSEED_H_ */
+#endif //INTARNA_PREDICTORMFE2DLIMSTACKHEURISTICSEED_H

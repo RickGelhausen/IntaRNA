@@ -1,4 +1,3 @@
-
 #ifndef COMMANDLINEPARSING_H_
 #define COMMANDLINEPARSING_H_
 
@@ -20,6 +19,9 @@
 #include "IntaRNA/OutputHandler.h"
 #include "IntaRNA/Predictor.h"
 #include "IntaRNA/SeedConstraint.h"
+#include "IntaRNA/SeedHandler.h"
+#include "IntaRNA/SeedHandlerExplicit.h"
+#include "IntaRNA/PredictionTrackerSpotProb.h"
 #include "IntaRNA/VrnaHandler.h"
 
 using namespace IntaRNA;
@@ -103,20 +105,22 @@ public:
 	/**
 	 * Access to the ranges to screen for interactions for the query with the
 	 * according sequence number.
+	 * @param energy the energy handler later used for prediction (needed for region postprocessing)
 	 * @param sequenceNumber the number of the sequence within the vector
 	 *         returned by getQuerySequences()
 	 * @return the range list for the according sequence.
 	 */
-	const IndexRangeList& getQueryRanges( const size_t sequenceNumber ) const;
+	const IndexRangeList& getQueryRanges( const InteractionEnergy & energy, const size_t sequenceNumber ) const;
 
 	/**
 	 * Access to the ranges to screen for interactions for the target with the
 	 * according sequence number.
+	 * @param energy the energy handler later used for prediction (needed for region postprocessing)
 	 * @param sequenceNumber the number of the sequence within the vector
 	 *         returned by getTargetSequences()
 	 * @return the range list for the according sequence.
 	 */
-	const IndexRangeList& getTargetRanges( const size_t sequenceNumber ) const;
+	const IndexRangeList& getTargetRanges( const InteractionEnergy & energy, const size_t sequenceNumber ) const;
 
 	/**
 	 * Returns a newly allocated Energy object according to the user defined
@@ -156,12 +160,12 @@ public:
 	 */
 	const HelixConstraint & getHelixConstraint( const InteractionEnergy & energy ) const;
 
-	/**
-	 * Provides a newly allocated helix handler object according to the user settings
-	 * @param energy the interaction energy handler to be used
-	 * @return a newly allocated helix handler respective to the user defined helix mode setting
-	 */
-	HelixHandler * getHelixHandler(const InteractionEnergy& energy ) const;
+//	/**
+//	 * Provides a newly allocated helix handler object according to the user settings
+//	 * @param energy the interaction energy handler to be used
+//	 * @return a newly allocated helix handler respective to the user defined helix mode setting
+//	 */
+//	HelixHandler * getHelixHandler(const InteractionEnergy& energy, SeedHandler * seedHandler = NULL) const;
 
 
 	/**
@@ -170,6 +174,16 @@ public:
 	 * @return the user defined seed constraints
 	 */
 	const SeedConstraint & getSeedConstraint( const InteractionEnergy & energy ) const;
+
+	/**
+	 * Provides a newly allocated seed handler object according to the user settings
+	 *
+	 * NOTE: the calling function has to remove the returned object!
+	 *
+	 * @param energy the interaction energy handler to be used
+	 * @return a newly allocated seed handler respective the user defined seed constraints
+	 */
+	SeedHandler * getSeedHandler( const InteractionEnergy & energy ) const;
 
 	/**
 	 * Access to the set folding temperature in Celsius.
@@ -201,6 +215,14 @@ public:
 	void
 	writeTargetAccessibility( const Accessibility & acc ) const;
 
+	/**
+	 * Whether or not output is to be written for each region combination
+	 * @return true if output is to be written for each region combination;
+	 *         false otherwise (best for each query-target combination only)
+	 */
+	bool
+	reportBestPerRegion() const;
+
 #if INTARNA_MULITHREADING
 	/**
 	 * Number of threads to be used for parallel processing of
@@ -227,6 +249,7 @@ protected:
 		OP_tAcc,
 		OP_qPu,
 		OP_tPu,
+		OP_spotProb,
 		OP_UNKNOWN
 	};
 
@@ -251,6 +274,7 @@ protected:
 		if (prefLC == "tacc")	{ return OutPrefixCode::OP_tAcc; } else
 		if (prefLC == "qpu")	{ return OutPrefixCode::OP_qPu; } else
 		if (prefLC == "tpu")	{ return OutPrefixCode::OP_tPu; } else
+		if (prefLC == "spotprob")	{ return OutPrefixCode::OP_spotProb; } else
 		// not known
 		return OutPrefixCode::OP_UNKNOWN;
 	}
@@ -262,33 +286,33 @@ protected:
 	class NumberParameter {
 	public:
 		//! the value of the parameter
-	  T val;
+		T val;
 		//! the minimally allowed value
-	  const T min;
+		const T min;
 		//! the maximally allowed value
-	  const T max;
+		const T max;
 		//! the default value
-	  const T def;
+		const T def;
 		/**
 		 * construction feeding the members
 		 * @param min the minimally allowed value
 		 * @param max the maximally allowed value
 		 * @param def the default value
 		 */
-	  NumberParameter( const T min, const T max, const T def )
-	   : val(def), min(min), max(max), def(def)
-	  {}
-	    //! checks if the given value is in the allowed range [min,max]
-	    //! @param value the value to check
-	    //! @return true if in range; false otherwise
-	  bool isInRange(const T& value) const {
-		  return value >= min && value <= max;
-	  }
-	    //! checks whether or not val is in the allowed range [min,max]
-	    //! @return true if in range; false otherwise
-	  bool isInRange() const {
-		  return isInRange(val);
-	  }
+		NumberParameter( const T min, const T max, const T def )
+				: val(def), min(min), max(max), def(def)
+		{}
+		//! checks if the given value is in the allowed range [min,max]
+		//! @param value the value to check
+		//! @return true if in range; false otherwise
+		bool isInRange(const T& value) const {
+			return value >= min && value <= max;
+		}
+		//! checks whether or not val is in the allowed range [min,max]
+		//! @return true if in range; false otherwise
+		bool isInRange() const {
+			return isInRange(val);
+		}
 	};
 
 	/**
@@ -296,11 +320,11 @@ protected:
 	 */
 	class CharParameter {
 	public:
-		  //! the value of the parameter
+		//! the value of the parameter
 		char val;
-		  //! the set of allowed values for this parameter as a string
+		//! the set of allowed values for this parameter as a string
 		const std::string alphabet;
-		  //! the default value of the parameter
+		//! the default value of the parameter
 		const char def;
 		/**
 		 * Construction and member setup
@@ -308,7 +332,7 @@ protected:
 		 * @param def the default value (has to be part of the alphabet)
 		 */
 		CharParameter( const std::string& alphabet, const char def )
-		  : val(def), alphabet(alphabet), def(def)
+				: val(def), alphabet(alphabet), def(def)
 		{
 			if (alphabet.find(def) == std::string::npos) {
 				throw std::runtime_error("CharParameter() : default value '"+toString(def)+"' is not within alphabet '"+alphabet+"'");
@@ -318,12 +342,12 @@ protected:
 		//! @param value the value to check
 		//! @return true if in alphabet; false otherwise
 		bool isInAlphabet(const char value) const {
-		  return alphabet.find(value) != std::string::npos;
+			return alphabet.find(value) != std::string::npos;
 		}
 		//! checks whether or not val is in the allowed alphabet
 		//! @return true if in alphabet; false otherwise
 		bool isInAlphabet() const {
-		  return isInAlphabet(val);
+			return isInAlphabet(val);
 		}
 
 	};
@@ -340,6 +364,8 @@ protected:
 	boost::program_options::options_description opts_helix;
 	//! seed specific options
 	boost::program_options::options_description opts_seed;
+	//! SHAPE reactivity data specific options
+	boost::program_options::options_description opts_shape;
 	//! interaction/energy specific options
 	boost::program_options::options_description opts_inter;
 	//! general options
@@ -360,6 +386,10 @@ protected:
 	std::string queryArg;
 	//! the container holding all query sequences
 	RnaSequenceVec query;
+	//! subset of query sequence indices to be processed
+	IndexRangeList qSet;
+	//! string encoding of qSet
+	std::string qSetString;
 	//! accessibility computation mode for query sequences
 	CharParameter qAcc;
 	//! window length for query accessibility computation (plFold)
@@ -377,12 +407,28 @@ protected:
 	//! the string encoding of the interaction intervals for the query(s)
 	std::string qRegionString;
 	//! the list of interaction intervals for each query sequence
-	IndexRangeListVec qRegion;
+	mutable IndexRangeListVec qRegion;
+	//! maximal length of automatically detected highly accessible regions for
+	//! for query sequences; if 0, no automatic detection is done
+	NumberParameter<int> qRegionLenMax;
+	//! optional file name that contains structure probing reactivity data for
+	//! the query sequence (e.g. SHAPE data) to guide accessibility prediction
+	std::string qShape;
+	//! optional encoding what method is to be used to convert the data from
+	//! qShape to pseudo energies for according accessibility prediction
+	std::string qShapeMethod;
+	//! optional encoding how data from qShape is converted into pairing
+	//! probabilities for according accessibility prediction
+	std::string qShapeConversion;
 
 	//! the target command line argument
 	std::string targetArg;
 	//! the container holding all target sequences
 	RnaSequenceVec target;
+	//! subset of target sequence indices to be processed
+	IndexRangeList tSet;
+	//! string encoding of tSet
+	std::string tSetString;
 	//! accessibility computation mode for target sequences
 	CharParameter tAcc;
 	//! window length for target accessibility computation (plFold)
@@ -400,7 +446,19 @@ protected:
 	//! the string encoding of the interaction intervals for the target(s)
 	std::string tRegionString;
 	//! the list of interaction intervals for each target sequence
-	IndexRangeListVec tRegion;
+	mutable IndexRangeListVec tRegion;
+	//! maximal length of automatically detected highly accessible regions for
+	//! for target sequences; if 0, no automatic detection is done
+	NumberParameter<int> tRegionLenMax;
+	//! optional file name that contains structure probing reactivity data for
+	//! the target sequence (e.g. SHAPE data) to guide accessibility prediction
+	std::string tShape;
+	//! optional encoding what method is to be used to convert the data from
+	//! tShape to pseudo energies for according accessibility prediction
+	std::string tShapeMethod;
+	//! optional encoding how data from tShape is converted into pairing
+	//! probabilities for according accessibility prediction
+	std::string tShapeConversion;
 
 
 	//! the minimal number of base pairs allowed in the helix (>2)
@@ -414,6 +472,8 @@ protected:
 
 	//! whether or not a seed is to be required for an interaction or not
 	bool noSeedRequired;
+	//! explicit seed encodings (optional)
+	std::string seedTQ;
 	//! number of base pairs in seed
 	NumberParameter<int> seedBP;
 	//! max overall unpaired in seed
@@ -436,8 +496,6 @@ protected:
 	//! the temperature to be used for energy computations
 	NumberParameter<T_type> temperature;
 
-	//! the helix handler to be used
-	CharParameter helixMode;
 	//! the prediction target (mfe-single-site, max-prob-site, ..)
 	CharParameter pred;
 	//! the prediction mode (heuristic, space-efficient, exact)
@@ -469,10 +527,21 @@ protected:
 	NumberParameter<double> outDeltaE;
 	//! max E allowed to report an interaction
 	NumberParameter<double> outMaxE;
+	//! min unpaired prob of an interacting subsequence allowed
+	NumberParameter<double> outMinPu;
 	//! the CSV column selection
 	std::string outCsvCols;
 	//! the CSV column selection
 	static const std::string outCsvCols_default;
+	//! whether or not best interaction output should be provided independently
+	//! for all region combinations or only the best for each query-target
+	//! combination
+	bool outPerRegion;
+	//! for SpotProb output : spots to be tracked
+	std::string outSpotProbSpots;
+
+	//! (optional) file name for log output
+	std::string logFileName;
 
 	//! the vienna energy parameter handler initialized by #parse()
 	mutable VrnaHandler vrnaHandler;
@@ -493,6 +562,12 @@ protected:
 	 * @param value the argument value to validate
 	 */
 	void validate_query(const std::string & value);
+
+	/**
+	 * Validates the query's qSet argument.
+	 * @param value the argument value to validate
+	 */
+	void validate_qSet(const std::string & value);
 
 	/**
 	 * Validates the query accessibility argument.
@@ -543,10 +618,41 @@ protected:
 	void validate_qRegion(const std::string & value);
 
 	/**
+	 * Validates the query's region max length argument.
+	 * @param value the argument value to validate
+	 */
+	void validate_qRegionLenMax(const int & value);
+
+	/**
+	 * Validates the query's SHAPE reactivity data file.
+	 * @param value the filename of the query's SHAPE reactivity data
+	 */
+	void validate_qShape( const std::string & value );
+
+	/**
+	 * Validates the query's method to transform SHAPE reactivity data to
+	 * pseudo energies.
+	 * @param value the query's SHAPE method encoding
+	 */
+	void validate_qShapeMethod( const std::string & value );
+
+	/**
+	 * Validates the query's SHAPE reactivity data conversion method encoding.
+	 * @param value the query's SHAPE conversion method encoding
+	 */
+	void validate_qShapeConversion( const std::string & value );
+
+	/**
 	 * Validates the target sequence argument.
 	 * @param value the argument value to validate
 	 */
 	void validate_target(const std::string & value);
+
+	/**
+	 * Validates the target's tSet argument.
+	 * @param value the argument value to validate
+	 */
+	void validate_tSet(const std::string & value);
 
 	/**
 	 * Validates the target accessibility argument.
@@ -590,11 +696,6 @@ protected:
 	 */
 	void validate_tIntLoopMax(const int & value);
 
-	/**
-	 * Validates the target's region argument.
-	 * @param value the argument value to validate
-	 */
-	void validate_tRegion(const std::string & value);
 
 	/**
 	 * Validates the helixMinBP argument.
@@ -613,6 +714,43 @@ protected:
 	 * @param value the argument value to validate
 	 */
 	void validate_helixMaxUP(const int & value);
+
+	/**
+	 * Validates the target's region argument.
+	 * @param value the argument value to validate
+	 */
+	void validate_tRegion(const std::string & value);
+
+	/*
+	 * Validates the target's region max length argument.
+	 * @param value the argument value to validate
+	 */
+	void validate_tRegionLenMax(const int & value);
+
+	/**
+	 * Validates the target's SHAPE reactivity data file.
+	 * @param value the filename of the target's SHAPE reactivity data
+	 */
+	void validate_tShape( const std::string & value );
+
+	/**
+	 * Validates the target's method to transform SHAPE reactivity data to
+	 * pseudo energies.
+	 * @param value the target's SHAPE method encoding
+	 */
+	void validate_tShapeMethod( const std::string & value );
+
+	/**
+	 * Validates the target's SHAPE reactivity data conversion method encoding.
+	 * @param value the target's SHAPE conversion method encoding
+	 */
+	void validate_tShapeConversion( const std::string & value );
+
+	/**
+	 * Validates the explicit seed argument.
+	 * @param value the argument value to validate
+	 */
+	void validate_seedTQ(const std::string & value);
 
 	/**
 	 * Validates the seedBP argument.
@@ -667,12 +805,6 @@ protected:
 	 * @param value the argument value to validate
 	 */
 	void validate_temperature(const T_type & value);
-
-	/**
-	 * Validates the helix handler argument
-	 * @param value the argument value for validation
-	 */
-	void validate_helixMode(const char & value);
 
 	/**
 	 * Validates the prediction target argument.
@@ -738,6 +870,12 @@ protected:
 	void validate_outMaxE(const double & value);
 
 	/**
+	 * Validates the outMinPu argument.
+	 * @param value the argument value to validate
+	 */
+	void validate_outMinPu(const double & value);
+
+	/**
 	 * Validates the outCsvCols argument.
 	 * @param value the argument value to validate
 	 */
@@ -774,7 +912,7 @@ protected:
 		// alphabet check
 		if ( ! param.isInRange(value) ) {
 			LOG(ERROR) <<name<<" = " <<value <<" : has to be in the range [" <<param.min <<","<<param.max<<"]";
-			parsingCode = std::max(ReturnCode::STOP_PARSING_ERROR,parsingCode);
+			updateParsingCode(ReturnCode::STOP_PARSING_ERROR);
 		}
 	}
 
@@ -787,9 +925,9 @@ protected:
 	 * @param indexMax the maximal value of an index allowed
 	 */
 	void validate_indexRangeList(const std::string & argName
-								, const std::string & value
-								, const size_t indexMin
-								, const size_t indexMax );
+			, const std::string & value
+			, const size_t indexMin
+			, const size_t indexMax );
 
 	/**
 	 * Validates a sequence arguments.
@@ -813,10 +951,13 @@ protected:
 	 * @param paramName the name of the parameter (for exception handling)
 	 * @param paramArg the given argument for the parameter
 	 * @param sequences the container to fill
+	 * @param seqSubset the indices of the input sequences to store (all other
+	 *                  ignored)
 	 */
 	void parseSequences(const std::string & paramName,
-					const std::string& paramArg,
-					RnaSequenceVec& sequences );
+									const std::string& paramArg,
+									RnaSequenceVec& sequences,
+									const IndexRangeList & seqSubset );
 
 	/**
 	 * Parses the parameter input stream from FASTA format and returns all
@@ -824,12 +965,14 @@ protected:
 	 * @param paramName the name of the parameter (for exception handling)
 	 * @param input the input stream from where to read the FASTA data
 	 * @param sequences the container to fill
+	 * @param seqSubset the indices of the input sequences to store (all other
+	 *                  ignored)
 	 */
 	void parseSequencesFasta( const std::string & paramName,
-					std::istream& input,
-					RnaSequenceVec& sequences);
-
-	/**
+									std::istream& input,
+									RnaSequenceVec& sequences,
+									const IndexRangeList & seqSubset );
+/**
 	 * Checks whether or not a sequence container holds a specific number of
 	 * sequences.
 	 * @param paramName the name of the parameter that enforces this constraint
@@ -840,9 +983,9 @@ protected:
 	 * @return true if the constraint is met; false otherwise
 	 * */
 	bool validateSequenceNumber(const std::string & paramName
-						, const RnaSequenceVec & sequences
-						, const size_t min
-						, const size_t max );
+			, const RnaSequenceVec & sequences
+			, const size_t min
+			, const size_t max );
 
 	/**
 	 * Checks whether or not the sequences in the container conform to the
@@ -854,7 +997,7 @@ protected:
 	 * @return true if the constraint is met; false otherwise
 	 * */
 	bool validateSequenceAlphabet(const std::string & paramName
-						, const RnaSequenceVec & sequences );
+			, const RnaSequenceVec & sequences );
 
 
 	/**
@@ -873,7 +1016,7 @@ protected:
 	 */
 	bool
 	validateRegion( const std::string & argName
-					, const std::string & value );
+			, const std::string & value );
 
 	/**
 	 * Validates whether or not a given output target value is either STDOUT,
@@ -892,9 +1035,9 @@ protected:
 	 */
 	void
 	parseRegion( const std::string & argName
-				, const std::string & value
-				, const RnaSequenceVec & sequences
-				, IndexRangeListVec & rangeList );
+			, const std::string & value
+			, const RnaSequenceVec & sequences
+			, IndexRangeListVec & rangeList );
 
 	/**
 	 * Checks whether or not any command line argument were parsed. Throws a
@@ -934,9 +1077,8 @@ protected:
 	 */
 	std::string
 	getFullFilename( const std::string & fileName
-					, const RnaSequence * target
-					, const RnaSequence * query ) const;
-
+			, const RnaSequence * target
+			, const RnaSequence * query ) const;
 
 };
 
@@ -975,6 +1117,25 @@ inline
 void CommandLineParsing::validate_query(const std::string & value)
 {
 	validate_sequenceArgument("query",value);
+}
+
+////////////////////////////////////////////////////////////////////////////
+
+inline
+void CommandLineParsing::validate_qSet(const std::string & value) {
+	// clear current qSet data
+	qSet.clear();
+	// parse input value
+	if (!value.empty()) {
+		// check regex
+		if (!boost::regex_match(value, IndexRangeList::regex, boost::match_perl) ) {
+			LOG(ERROR) <<"qSet"<<" = " <<value <<" : is not in the format 'from1-to1,from2-to2,..'";
+			updateParsingCode(ReturnCode::STOP_PARSING_ERROR);
+		} else {
+			// parse and store subset definitions
+			qSet = IndexRangeList(value);
+		}
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -1039,11 +1200,6 @@ void CommandLineParsing::validate_qAccConstr(const std::string & value)
 {
 	// forward check to general method
 	validate_structureConstraintArgument("qAccConstr", value);
-	// check if no sliding window computation requested
-	if (qAccW.val > 0 || qAccL.val > 0) {
-		LOG(ERROR) <<"query accessibility constraint not possible for sliding window computation (qAccL/W > 0)";
-		updateParsingCode(ReturnCode::STOP_PARSING_ERROR);
-	}
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -1085,11 +1241,72 @@ void CommandLineParsing::validate_qRegion(const std::string & value) {
 ////////////////////////////////////////////////////////////////////////////
 
 inline
+void CommandLineParsing::validate_qRegionLenMax(const int & value)
+{
+	// forward check to general method
+	validate_numberArgument("qRegionLenMax", qRegionLenMax, value);
+}
+
+////////////////////////////////////////////////////////////////////////////
+
+inline
+void CommandLineParsing::validate_qShape( const std::string & value )
+{
+	if (!validateFile( value )) {
+		LOG(ERROR) <<"Can not access/read query's SHAPE reactivity file '" <<value <<"'";
+		updateParsingCode(ReturnCode::STOP_PARSING_ERROR);
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////
+
+inline
+void CommandLineParsing::validate_qShapeMethod( const std::string & value )
+{
+
+	if (!boost::regex_match(value, AccessibilityConstraint::regexShapeMethod, boost::match_perl) ) {
+		LOG(ERROR) <<"Query's SHAPE method encoding '" <<value <<"' is not valid.";
+		updateParsingCode(ReturnCode::STOP_PARSING_ERROR);
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////
+
+inline
+void CommandLineParsing::validate_qShapeConversion( const std::string & value )
+{
+	if (!boost::regex_match(value, AccessibilityConstraint::regexShapeConversion, boost::match_perl) ) {
+		LOG(ERROR) <<"Query's SHAPE conversion method encoding '" <<value <<"' is not valid.";
+		updateParsingCode(ReturnCode::STOP_PARSING_ERROR);
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////
+
+inline
 void CommandLineParsing::validate_target(const std::string & value)
 {
 	validate_sequenceArgument("target",value);
 }
 
+////////////////////////////////////////////////////////////////////////////
+
+inline
+void CommandLineParsing::validate_tSet(const std::string & value) {
+	// clear current qSet data
+	tSet.clear();
+	// parse input value
+	if (!value.empty()) {
+		// check regex
+		if (!boost::regex_match(value, IndexRangeList::regex, boost::match_perl) ) {
+			LOG(ERROR) <<"tSet"<<" = " <<value <<" : is not in the format 'from1-to1,from2-to2,..'";
+			updateParsingCode(ReturnCode::STOP_PARSING_ERROR);
+		} else {
+			// parse and store subset definitions
+			tSet = IndexRangeList(value);
+		}
+	}
+}
 
 ////////////////////////////////////////////////////////////////////////////
 
@@ -1153,11 +1370,6 @@ void CommandLineParsing::validate_tAccConstr(const std::string & value)
 {
 	// forward check to general method
 	validate_structureConstraintArgument("tAccConstr", value);
-	// check if no sliding window computation requested
-	if (tAccW.val > 0 || tAccL.val > 0) {
-		LOG(ERROR) <<"query accessibility constraint not possible for sliding window computation (tAccL/W > 0)";
-		updateParsingCode(ReturnCode::STOP_PARSING_ERROR);
-	}
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -1198,6 +1410,49 @@ void CommandLineParsing::validate_tRegion(const std::string & value) {
 ////////////////////////////////////////////////////////////////////////////
 
 inline
+void CommandLineParsing::validate_tRegionLenMax(const int & value)
+{
+	// forward check to general method
+	validate_numberArgument("tRegionLenMax", tRegionLenMax, value);
+}
+
+///////////////////////////////////////////////////////////////////////////
+
+inline
+void CommandLineParsing::validate_tShape( const std::string & value )
+{
+	if (!validateFile( value )) {
+		LOG(ERROR) <<"Can not access/read target's SHAPE reactivity file '" <<value <<"'";
+		updateParsingCode(ReturnCode::STOP_PARSING_ERROR);
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////
+
+inline
+void CommandLineParsing::validate_tShapeMethod( const std::string & value )
+{
+	if (!boost::regex_match(value, AccessibilityConstraint::regexShapeMethod, boost::match_perl) ) {
+		LOG(ERROR) <<"Target's SHAPE method encoding '" <<value <<"' is not valid.";
+		updateParsingCode(ReturnCode::STOP_PARSING_ERROR);
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////
+
+inline
+void CommandLineParsing::validate_tShapeConversion( const std::string & value )
+{
+
+	if (!boost::regex_match(value, AccessibilityConstraint::regexShapeConversion, boost::match_perl) ) {
+		LOG(ERROR) <<"Target's SHAPE conversion method encoding '" <<value <<"' is not valid.";
+		updateParsingCode(ReturnCode::STOP_PARSING_ERROR);
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////
+
+inline
 void CommandLineParsing::validate_helixMinBP(const int &value) {
 	// forward check to general method
 	validate_numberArgument("helixMinBP", helixMinBP, value);
@@ -1211,12 +1466,46 @@ void CommandLineParsing::validate_helixMaxBP(const int &value) {
 	validate_numberArgument("helixMaxBP", helixMaxBP, value);
 }
 
+
+
 ////////////////////////////////////////////////////////////////////////////
 
 inline
 void CommandLineParsing::validate_helixMaxUP(const int &value) {
 	// forward check to general method
 	validate_numberArgument("helixMaxUP", helixMaxUP, value);
+}
+
+
+////////////////////////////////////////////////////////////////////////////
+
+inline
+void CommandLineParsing::validate_seedTQ(const std::string & value) {
+	if (!value.empty()) {
+		// split by commas
+		size_t p2 = 0;
+		size_t p1 = value.find_first_not_of(',',p2);
+		size_t non_empty_seeds = 0;
+		// do for all substrings
+		while( p1 != std::string::npos ) {
+			// find end of current substring
+			p2 = value.find_first_of(',', p1 + 1);
+			const size_t length = (p2 == std::string::npos ? value.size() : p2) - p1;
+			// check substring
+			std::string errMsg = SeedHandlerExplicit::checkSeedEncoding( value.substr(p1, length));
+			non_empty_seeds++;
+			if (!errMsg.empty()) {
+				LOG(ERROR) <<"explicit seed encoding '" <<value.substr(p1, length) <<"' : "<<errMsg;
+				updateParsingCode(ReturnCode::STOP_PARSING_ERROR);
+			}
+			// update p1
+			p1 = value.find_first_not_of(',',p2);
+		}
+		if (non_empty_seeds == 0) {
+			LOG(ERROR) <<"explicit seed encoding '" <<value <<"' does not contain any seed information";
+			updateParsingCode(ReturnCode::STOP_PARSING_ERROR);
+		}
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -1275,7 +1564,7 @@ void CommandLineParsing::validate_seedQRange(const std::string & value) {
 		// check regex
 		if (!boost::regex_match(value, IndexRangeList::regex, boost::match_perl) ) {
 			LOG(ERROR) <<"seedQRange"<<" = " <<value <<" : is not in the format 'from1-to1,from2-to2,..'";
-			parsingCode = std::max(ReturnCode::STOP_PARSING_ERROR,parsingCode);
+			updateParsingCode(ReturnCode::STOP_PARSING_ERROR);
 		}
 	}
 }
@@ -1288,7 +1577,7 @@ void CommandLineParsing::validate_seedTRange(const std::string & value) {
 		// check regex
 		if (!boost::regex_match(value, IndexRangeList::regex, boost::match_perl) ) {
 			LOG(ERROR) <<"seedTRange"<<" = " <<value <<" : is not in the format 'from1-to1,from2-to2,..'";
-			parsingCode = std::max(ReturnCode::STOP_PARSING_ERROR,parsingCode);
+			updateParsingCode(ReturnCode::STOP_PARSING_ERROR);
 		}
 	}
 }
@@ -1299,15 +1588,6 @@ inline
 void CommandLineParsing::validate_temperature(const T_type & value) {
 	// forward check to general method
 	validate_numberArgument("temperature", temperature, value);
-}
-
-////////////////////////////////////////////////////////////////////////////
-
-inline
-void CommandLineParsing::validate_helixMode(const char &value)
-{
-	// forward check to general method
-	validate_charArgument("mode", helixMode, value);
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -1370,10 +1650,43 @@ void CommandLineParsing::validate_outputTarget(
 	if (boost::iequals(value,"STDOUT") || boost::iequals(value,"STDERR")) {
 		return;
 	}
+
+	///////////  ASSUME IT IS A FILENAME/-PATH  ///////////////
+
 	// check if empty filename
 	if ( value.empty() ) {
 		LOG(ERROR) <<argName<<" : no output defined (empty)";
 		updateParsingCode(ReturnCode::STOP_PARSING_ERROR);
+		return;
+	}
+
+	// check if parent directory exists
+	boost::filesystem::path p(value);
+	if ( !p.parent_path().empty() && ! boost::filesystem::exists(p.parent_path()) ) {
+		LOG(ERROR) <<argName<<" : parent directory '"<<p.parent_path().string()<<"' of output file '"<<value<<"' does not exist";
+		updateParsingCode(ReturnCode::STOP_PARSING_ERROR);
+		return;
+	}
+
+	// check if output file exists and can not be overwritten
+	if ( boost::filesystem::exists(p) ) {
+		// start overwriting and catch if needed
+		bool fileCanNotBeOverwritten = false;
+		try {
+			// open dummy file stream to check if writeable
+			std::ofstream file(value);
+			if (!file) {
+				fileCanNotBeOverwritten = true;
+			}
+			file.close();
+		} catch (std::exception & ex) {
+			fileCanNotBeOverwritten = true;
+		}
+		if (fileCanNotBeOverwritten) {
+			LOG(ERROR) <<argName<<" : of output file '"<<value<<"' exists and can not be overwritten";
+			updateParsingCode(ReturnCode::STOP_PARSING_ERROR);
+			return;
+		}
 	}
 }
 
@@ -1391,47 +1704,62 @@ void CommandLineParsing::validate_out(const std::vector<std::string> & list) {
 		OutPrefixCode curPrefCode = getCodeForOutPrefix( curPref );
 
 		switch (curPrefCode) {
-		// handle unknown prefix
-		case OutPrefixCode::OP_UNKNOWN : {
-			LOG(ERROR) <<"--out : prefix '"<<curPref<<"' is not supported.. maybe misspelled?";
-			updateParsingCode(ReturnCode::STOP_PARSING_ERROR);
-			break;
-		}
-		// handle empty prefix
-		case OutPrefixCode::OP_EMPTY : {
-			// check if already seen
-			if (emptyPrefixSeen) {
-				LOG(ERROR) <<"--out : specified more than once without prefix";
+			// handle unknown prefix
+			case OutPrefixCode::OP_UNKNOWN : {
+				LOG(ERROR) <<"--out : prefix '"<<curPref<<"' is not supported.. maybe misspelled?";
 				updateParsingCode(ReturnCode::STOP_PARSING_ERROR);
 				break;
 			}
-			// keep track that empty prefix was already seen
-			emptyPrefixSeen = true;
-			// cut of leading ':' if needed
-			std::string streamName = (v->find(':')==std::string::npos ? *v : v->substr(v->find(':')+1));
-			// forward check to general method
-			validate_outputTarget( "--out", streamName );
-			// store stream name
-			outPrefix2streamName[curPrefCode] = streamName;
-			// proceed to next argument
-			break;
-		}
-		// handle all other prefixes
-		default : {
-			// check if prefix was already seen
-			if ( !outPrefix2streamName.at(curPrefCode).empty()) {
-				LOG(ERROR) <<"--out : specified more than once with prefix '"<<curPref<<"'";
-				updateParsingCode(ReturnCode::STOP_PARSING_ERROR);
+				// handle empty prefix
+			case OutPrefixCode::OP_EMPTY : {
+				// check if already seen
+				if (emptyPrefixSeen) {
+					LOG(ERROR) <<"--out : specified more than once without prefix";
+					updateParsingCode(ReturnCode::STOP_PARSING_ERROR);
+					break;
+				}
+				// keep track that empty prefix was already seen
+				emptyPrefixSeen = true;
+				// cut of leading ':' if needed
+				std::string streamName = (v->find(':')==std::string::npos ? *v : v->substr(v->find(':')+1));
+				// forward check to general method
+				validate_outputTarget( "--out", streamName );
+				// store stream name
+				outPrefix2streamName[curPrefCode] = streamName;
+				// proceed to next argument
 				break;
 			}
-			// store prefix to identify another existence
-			std::string streamName = v->substr(v->find(':')+1);
-			// forward check to general method
-			validate_outputTarget( "--out="+curPref+":", streamName );
-			// store stream name
-			outPrefix2streamName[curPrefCode] = streamName;
-			break;
-		}
+				// handle all other prefixes
+			default : {
+				// check if prefix was already seen
+				if ( !outPrefix2streamName.at(curPrefCode).empty()) {
+					LOG(ERROR) <<"--out : specified more than once with prefix '"<<curPref<<"'";
+					updateParsingCode(ReturnCode::STOP_PARSING_ERROR);
+					break;
+				}
+				// store prefix to identify another existence
+				std::string streamName = v->substr(v->find(':')+1);
+				// handle SpotProb setup
+				if (curPrefCode == OP_spotProb) {
+					// get spotProb spots
+					outSpotProbSpots = streamName.substr(0,streamName.find(':'));
+					// check if valid spot encoding
+					if (!boost::regex_match(outSpotProbSpots, PredictionTrackerSpotProb::regexSpotString, boost::match_perl)){
+						// check sanity of spot encodings (indexing starts with 1)
+						LOG(ERROR) <<"--out : spot encoding '"<<curPref<<"' is not valid.";
+						updateParsingCode(ReturnCode::STOP_PARSING_ERROR);
+						break;
+					}
+					// get stream name (remove spot encoding prefix)
+					streamName = streamName.substr(outSpotProbSpots.size()+1);
+				}
+
+				// forward check to general method
+				validate_outputTarget( "--out="+curPref+":", streamName );
+				// store stream name
+				outPrefix2streamName[curPrefCode] = streamName;
+				break;
+			}
 		} // switch curPrefCode
 	} // for all arguments
 }
@@ -1466,6 +1794,14 @@ inline
 void CommandLineParsing::validate_outMaxE(const double & value) {
 	// forward check to general method
 	validate_numberArgument("outMaxE", outMaxE, value);
+}
+
+////////////////////////////////////////////////////////////////////////////
+
+inline
+void CommandLineParsing::validate_outMinPu(const double & value) {
+	// forward check to general method
+	validate_numberArgument("outMinPu", outMinPu, value);
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -1535,7 +1871,7 @@ size_t
 CommandLineParsing::
 getThreads() const
 {
-	return threads.val;
+	return threads.val == 0 ? threads.max : threads.val;
 }
 #endif
 
@@ -1573,7 +1909,7 @@ getFullFilename( const std::string & fileNamePath, const RnaSequence * target, c
 			}
 		}
 	} else
-	// generate query only
+		// generate query only
 	if (query != NULL && target == NULL) {
 		if (getQuerySequences().size() > 1) {
 			fileID += "s";
@@ -1588,7 +1924,7 @@ getFullFilename( const std::string & fileNamePath, const RnaSequence * target, c
 			}
 		}
 	} else
-	// generate combined part
+		// generate combined part
 	{
 		if (getQuerySequences().size() > 1 || getTargetSequences().size() > 1) {
 			fileID += "t";
@@ -1621,9 +1957,20 @@ getFullFilename( const std::string & fileNamePath, const RnaSequence * target, c
 
 		// return compiled file name including file ID
 		return fileNamePath.substr(0,startOfExtension)
-				+ "-" + fileID
-				+ fileNamePath.substr(startOfExtension);
+			   + "-" + fileID
+			   + fileNamePath.substr(startOfExtension);
 	}
+}
+
+
+////////////////////////////////////////////////////////////////////////////
+
+inline
+bool
+CommandLineParsing::
+reportBestPerRegion() const
+{
+	return outPerRegion;
 }
 
 ////////////////////////////////////////////////////////////////////////////

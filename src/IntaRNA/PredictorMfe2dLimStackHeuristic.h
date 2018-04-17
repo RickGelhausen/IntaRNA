@@ -46,7 +46,7 @@ public:
 	PredictorMfe2dLimStackHeuristic( const InteractionEnergy & energy
 			, OutputHandler & output
 			, PredictionTracker * predTracker
-			, HelixHandler * helixHandler);
+			, const HelixConstraint & helixConstraint);
 
 	virtual ~PredictorMfe2dLimStackHeuristic();
 
@@ -80,11 +80,11 @@ protected:
 	//! energy of all interaction hybrids starting in i1,i2
 	using PredictorMfe2dHeuristic::hybridE;
 
-	//! handler to generate and access helix information with idx offset
+	//! helixHandler used only for creating HelixHandlerOffset
+	//HelixHandler helixHandler;
 	HelixHandlerIdxOffset helixHandler;
 
 protected:
-
 
 	/**
 	 * Computes all entries of the hybridE matrix
@@ -100,9 +100,21 @@ protected:
 	 */
 	virtual
 	void
-	traceBack( Interaction & interaction );
+	traceBack( Interaction & interaction, const OutputConstraint & outConstraint );
 
-
+	/**
+	 * Identifies the next best interaction with an energy equal to or higher
+	 * than the given interaction. The new interaction will not overlap any
+	 * index range stored in reportedInteractions.
+	 *
+	 * @param curBest IN/OUT the current best interaction to be replaced with one
+	 *        of equal or higher energy not overlapping with any reported
+	 *        interaction so far; an interaction with energy E_INF is set, if
+	 *        there is no better interaction left
+	 */
+	virtual
+	void
+	getNextBest( Interaction & curBest );
 };
 
 } // namespace

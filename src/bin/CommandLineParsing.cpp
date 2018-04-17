@@ -18,6 +18,15 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/assign/list_of.hpp>
 
+
+extern "C" {
+	#include <ViennaRNA/vrna_config.h>
+}
+
+#define _STRINGIFY(s) #s
+#define STRINGIFY(s) _STRINGIFY(s)
+
+
 #include "IntaRNA/AccessibilityConstraint.h"
 
 #include "IntaRNA/AccessibilityDisabled.h"
@@ -31,12 +40,13 @@
 #include "IntaRNA/InteractionEnergyVrna.h"
 
 #include "IntaRNA/PredictorMfe2dHeuristic.h"
+#include "IntaRNA/PredictorMfe2dLimStackHeuristic.h"
 #include "IntaRNA/PredictorMfe2d.h"
 #include "IntaRNA/PredictorMfe4d.h"
 #include "IntaRNA/PredictorMaxProb.h"
 
-#include "IntaRNA/PredictorMfe2dLimStackHeuristic.h"
 #include "IntaRNA/PredictorMfe2dHeuristicSeed.h"
+#include "IntaRNA/PredictorMfe2dLimStackHeuristicSeed.h"
 #include "IntaRNA/PredictorMfe2dSeed.h"
 #include "IntaRNA/PredictorMfe4dSeed.h"
 
@@ -44,6 +54,9 @@
 #include "IntaRNA/PredictionTrackerHub.h"
 #include "IntaRNA/PredictionTrackerPairMinE.h"
 #include "IntaRNA/PredictionTrackerProfileMinE.h"
+#include "IntaRNA/PredictionTrackerSpotProb.h"
+
+#include "IntaRNA/SeedHandlerMfe.h"
 
 #include "IntaRNA/OutputHandlerCsv.h"
 #include "IntaRNA/OutputHandlerIntaRNA1.h"
@@ -66,6 +79,7 @@ CommandLineParsing::CommandLineParsing()
 	opts_target("Target"),
 	opts_helix("Helix"),
 	opts_seed("Seed"),
+	opts_shape("SHAPE"),
 	opts_inter("Interaction"),
 	opts_general("General"),
 	opts_output("Output"),
@@ -76,6 +90,8 @@ CommandLineParsing::CommandLineParsing()
 
 	queryArg(""),
 	query(),
+	qSet(),
+	qSetString(""),
 	qAcc("NCPE",'C'),
 	qAccW( 0, 99999, 150),
 	qAccL( 0, 99999, 100),
@@ -85,9 +101,15 @@ CommandLineParsing::CommandLineParsing()
 	qIntLoopMax( 0, 30, 16),
 	qRegionString(""),
 	qRegion(),
+	qRegionLenMax( 0, 99999, 0),
+	qShape(""),
+	qShapeMethod("Zb0.89"),
+	qShapeConversion("Os1.6i-2.29"),
 
 	targetArg(""),
 	target(),
+	tSet(),
+	tSetString(""),
 	tAcc("NCPE",'C'),
 	tAccW( 0, 99999, 150),
 	tAccL( 0, 99999, 100),
@@ -97,6 +119,10 @@ CommandLineParsing::CommandLineParsing()
 	tIntLoopMax( 0, 30, 16),
 	tRegionString(""),
 	tRegion(),
+	tRegionLenMax( 0, 99999, 0),
+	tShape(""),
+	tShapeMethod("Zb0.89"),
+	tShapeConversion("Os1.6i-2.29"),
 
 	// Helix Constraints
 	helixMinBP(2,4,2),
@@ -105,6 +131,7 @@ CommandLineParsing::CommandLineParsing()
 	helixConstraint(NULL),
 
 	noSeedRequired(false),
+	seedTQ(""),
 	seedBP(2,20,7),
 	seedMaxUP(0,20,0),
 	seedQMaxUP(-1,20,-1),
@@ -117,11 +144,10 @@ CommandLineParsing::CommandLineParsing()
 
 	temperature(0,100,37),
 
-	helixMode("SU",'S'),
 	pred( "SPL", 'S'),
 	predMode( "HME", 'H'),
 #if INTARNA_MULITHREADING
-	threads( 1, omp_get_max_threads(), 1),
+	threads( 0, omp_get_max_threads(), 1),
 #endif
 
 	energy("BV",'V'),
@@ -135,7 +161,12 @@ CommandLineParsing::CommandLineParsing()
 	outOverlap( "NTQB", 'Q' ),
 	outDeltaE( 0.0, 100.0, 100.0),
 	outMaxE( -999.0, +999.0, 0.0),
+	outMinPu( 0.0, 1.0, 0.0),
 	outCsvCols(outCsvCols_default),
+	outPerRegion(false),
+	outSpotProbSpots(""),
+
+	logFileName(""),
 
 	vrnaHandler()
 
@@ -187,10 +218,23 @@ CommandLineParsing::CommandLineParsing()
 		;
 	opts_cmdline_short.add(opts_query);
 	opts_query.add_options()
+		("qSet"
+			, value<std::string>(&(qSetString))
+				->notifier(boost::bind(&CommandLineParsing::validate_qSet,this,_1))
+			, std::string("query subset : List of sequence indices to consider for prediction in the format 'from1-to1,from2-to2,..' assuming indexing starts with 1").c_str())
 		("qAccConstr"
 			, value<std::string>(&(qAccConstr))
 				->notifier(boost::bind(&CommandLineParsing::validate_qAccConstr,this,_1))
-			, std::string("accessibility computation : structure constraint for each sequence position: '.' no constraint, '"+toString(AccessibilityConstraint::dotBracket_accessible)+"' unpaired, '"+toString(AccessibilityConstraint::dotBracket_blocked)+"' blocked. Note, blocked positions are excluded from interaction prediction and considered unpaired!").c_str())
+			, std::string("accessibility computation : structure constraint :"
+					"\n EITHER a string of query sequence length encoding for each position:"
+					" '.' no constraint,"
+					" '"+toString(AccessibilityConstraint::dotBracket_accessible)+"' unpaired,"
+					" '"+toString(AccessibilityConstraint::dotBracket_paired)+"' paired (intramolecularly), or"
+					" '"+toString(AccessibilityConstraint::dotBracket_blocked)+"' blocked."
+					" Note, blocked positions are excluded from interaction prediction and constrained to be unpaired!"
+					"\n OR an index range based encoding that is prefixed by the according constraint letter and a colon,"
+					" e.g. 'b:3-4,33-40,p:1-2,12-20'"
+					).c_str())
 		("qAccFile"
 			, value<std::string>(&(qAccFile))
 			, std::string("accessibility computation : the file/stream to be parsed, if --qAcc is to be read from file. Used 'STDIN' if to read from standard input stream.").c_str())
@@ -213,7 +257,24 @@ CommandLineParsing::CommandLineParsing()
 		("qRegion"
 			, value<std::string>(&(qRegionString))
 				->notifier(boost::bind(&CommandLineParsing::validate_qRegion,this,_1))
-			, std::string("interaction site : query regions to be considered for interaction prediction. Either given as BED file (for multi-sequence FASTA input) or in the format 'from1-to1,from2-to2,..' assuming indexing starts with 1").c_str())
+			, std::string("interaction site : query regions to be considered for"
+					" interaction prediction. Either given as BED file (for"
+					" multi-sequence FASTA input) or in the format"
+					" 'from1-to1,from2-to2,..' assuming indexing starts with 1."
+					" Consider '--qRegionLenMax' for automatic region setup for"
+					" long sequences."
+					).c_str())
+		("qRegionLenMax"
+			, value<int>(&(qRegionLenMax.val))
+				->default_value(qRegionLenMax.def)
+				->notifier(boost::bind(&CommandLineParsing::validate_qRegionLenMax,this,_1))
+			, std::string("interaction site : maximal length of highly accessible regions"
+					" to be automatically identified. To this end, most inaccessible regions"
+					" of length '--seedBP' are iteratively removed from the available indices"
+					" until only regions below the given maximal length or remaining."
+					" (arg in range ["+toString(qRegionLenMax.min)+","+toString(qRegionLenMax.max)+"];"
+					" 0 defaults to no automatic range detection)"
+					).c_str())
 		;
 
 	////  TARGET SEQUENCE OPTIONS  ////////////////////////////////////
@@ -252,10 +313,23 @@ CommandLineParsing::CommandLineParsing()
 		;
 	opts_cmdline_short.add(opts_target);
 	opts_target.add_options()
+		("tSet"
+			, value<std::string>(&(tSetString))
+				->notifier(boost::bind(&CommandLineParsing::validate_tSet,this,_1))
+			, std::string("target subset : List of sequence indices to consider for prediction in the format 'from1-to1,from2-to2,..' assuming indexing starts with 1").c_str())
 		("tAccConstr"
 			, value<std::string>(&(tAccConstr))
 				->notifier(boost::bind(&CommandLineParsing::validate_tAccConstr,this,_1))
-			, std::string("accessibility computation : structure constraint for each sequence position: '.' no constraint, '"+toString(AccessibilityConstraint::dotBracket_accessible)+"' unpaired, '"+toString(AccessibilityConstraint::dotBracket_blocked)+"' blocked. Note, blocked positions are excluded from interaction prediction and considered unpaired!").c_str())
+			, std::string("accessibility computation : structure constraint :"
+					"\n EITHER a string of target sequence length encoding for each position:"
+					" '.' no constraint,"
+					" '"+toString(AccessibilityConstraint::dotBracket_accessible)+"' unpaired,"
+					" '"+toString(AccessibilityConstraint::dotBracket_paired)+"' paired (intramolecularly), or"
+					" '"+toString(AccessibilityConstraint::dotBracket_blocked)+"' blocked."
+					" Note, blocked positions are excluded from interaction prediction and constrained to be unpaired!"
+					"\n OR an index range based encoding that is prefixed by the according constraint letter and a colon,"
+					" e.g. 'b:3-4,33-40,p:1-2,12-20'"
+					).c_str())
 		("tAccFile"
 			, value<std::string>(&(tAccFile))
 			, std::string("accessibility computation : the file/stream to be parsed, if --tAcc is to be read from file. Used 'STDIN' if to read from standard input stream.").c_str())
@@ -278,7 +352,24 @@ CommandLineParsing::CommandLineParsing()
 		("tRegion"
 			, value<std::string>(&(tRegionString))
 				->notifier(boost::bind(&CommandLineParsing::validate_tRegion,this,_1))
-			, std::string("interaction site : target regions to be considered for interaction prediction. Either given as BED file (for multi-sequence FASTA input) or in the format 'from1-to1,from2-to2,..' assuming indexing starts with 1").c_str())
+			, std::string("interaction site : target regions to be considered for"
+					" interaction prediction. Either given as BED file (for"
+					" multi-sequence FASTA input) or in the format"
+					" 'from1-to1,from2-to2,..' assuming indexing starts with 1."
+					" Consider '--tRegionLenMax' for automatic region setup for"
+					" long sequences."
+					).c_str())
+		("tRegionLenMax"
+			, value<int>(&(tRegionLenMax.val))
+				->default_value(tRegionLenMax.def)
+				->notifier(boost::bind(&CommandLineParsing::validate_tRegionLenMax,this,_1))
+			, std::string("interaction site : maximal length of highly accessible regions"
+					" to be automatically identified. To this end, most inaccessible regions"
+					" of length '--seedBP' are iteratively removed from the available indices"
+					" until only regions below the given maximal length or remaining."
+					" (arg in range ["+toString(tRegionLenMax.min)+","+toString(tRegionLenMax.max)+"];"
+					" 0 defaults to no automatic range detection)"
+					).c_str())
 		;
 
 
@@ -313,6 +404,10 @@ CommandLineParsing::CommandLineParsing()
 	opts_seed.add_options()
 	    ("noSeed", "if present, no seed is enforced within the predicted interactions")
 
+		("seedTQ"
+			, value<std::string>(&(seedTQ))
+				->notifier(boost::bind(&CommandLineParsing::validate_seedTQ,this,_1))
+			, std::string("comma separated list of explicit seed base pair encoding(s) in the format startTbpsT&startQbpsQ, e.g. '3|||.|&7||.||', where startT/Q are the indices of the 5' seed ends in target/query sequence and 'bps' the dot-bar base pair encodings. This disables all other seed constraints and seed identification.").c_str())
 		("seedBP"
 			, value<int>(&(seedBP.val))
 				->default_value(seedBP.def)
@@ -362,20 +457,64 @@ CommandLineParsing::CommandLineParsing()
 			, std::string("interval(s) in the target to search for seeds in format 'from1-to1,from2-to2,...' (Note, only for single target)").c_str())
 		;
 
-	////  INTERACTION/ENERGY OPTIONS  ////////////////////////
-	opts_inter.add_options()
-			("helixMode"
-					, value<char>(&(helixMode.val))
-					   ->default_value(helixMode.def)
-					   ->notifier(boost::bind(&CommandLineParsing::validate_helixMode,this,_1))
-					, std::string("helix prediction mode : "
-								  "\n 'S' stacking only, "
-								  "\n 'U' unpaired bases allowed in helix"
+	////  SHAPE OPTIONS  ////////////////////////
 
-
-			 ).c_str())
+	opts_shape.add_options()
+		("qShape"
+			, value<std::string>(&qShape)
+				->notifier(boost::bind(&CommandLineParsing::validate_qShape,this,_1))
+			, "file name from where to read the query sequence's SHAPE reactivity data to guide its accessibility computation")
+		("tShape"
+			, value<std::string>(&tShape)
+				->notifier(boost::bind(&CommandLineParsing::validate_tShape,this,_1))
+			, "SHAPE: file name from where to read the target sequence's SHAPE reactivity data to guide its accessibility computation")
+		("qShapeMethod"
+				, value<std::string>(&qShapeMethod)
+					->notifier(boost::bind(&CommandLineParsing::validate_qShapeMethod,this,_1))
+				, std::string("SHAPE: method how to integrate SHAPE reactivity data into query accessibility computation via pseudo energies:"
+					"\n"
+					" 'D': Convert by using a linear equation according to Deigan et al. (2009). The calculated pseudo energies will "
+					"be applied for every nucleotide involved in a stacked pair. "
+					"The slope 'm' and the intercept 'b' can be set using e.g. 'Dm1.8b-0.6' (=defaults for 'D')."
+					"\n"
+					" 'Z':  Convert according to Zarringhalam et al. (2012) via pairing probabilities by using linear mapping. "
+					"Aberration from the observed pairing probabilities will be penalized, which can be adjusted by the factor beta e.g. 'Zb0.89' (=default for 'Z')."
+					"\n"
+					" 'W': Apply a given vector of perturbation energies to unpaired nucleotides according to Washietl et al. (2012). "
+					"Perturbation vectors can be calculated by using RNApvmin."
+					).c_str())
+		("tShapeMethod"
+			, value<std::string>(&tShapeMethod)
+				->notifier(boost::bind(&CommandLineParsing::validate_tShapeMethod,this,_1))
+			, std::string("SHAPE: method how to integrate SHAPE reactivity data into target accessibility computation via pseudo energies.\n"
+					"[for encodings see --qShapeMethod]"
+					).c_str())
+		("qShapeConversion"
+				, value<std::string>(&qShapeConversion)
+					->notifier(boost::bind(&CommandLineParsing::validate_qShapeConversion,this,_1))
+				, std::string("SHAPE: method how to convert SHAPE reactivities to pairing probabilities for query accessibility computation. "
+					"This parameter is useful when dealing with the SHAPE incorporation according to Zarringhalam et al. (2012). "
+					"The following methods can be used to convert SHAPE reactivities into the probability for a certain nucleotide to be unpaired:"
+					"\n"
+					" 'M': Linear mapping according to Zarringhalam et al. (2012)"
+					"\n"
+					" 'C': Use a cutoff-approach to divide into paired and unpaired nucleotides, e.g. 'C0.25' (= default for 'C')"
+					"\n"
+					" 'S': Skip the normalizing step since the input data already represents probabilities for being unpaired rather than raw reactivity values"
+					"\n"
+					" 'L': Linear model to convert reactivity into a probability for being unpaired, e.g. 'Ls0.68i0.2' for slope of 0.68 and intercept of 0.2 (=default for 'L')"
+					"\n"
+					" 'O': Linear model to convert the log reactivity into a probability for being unpaired, e.g. 'Os1.6i-2.29' to use a slope of 1.6 and an intercept of -2.29 (=default for 'O')"
+					).c_str())
+		("tShapeConversion"
+				, value<std::string>(&tShapeConversion)
+					->notifier(boost::bind(&CommandLineParsing::validate_tShapeConversion,this,_1))
+				, std::string("SHAPE: method how to convert SHAPE reactivities to pairing probabilities for target accessibility computation.\n"
+					"[for encodings see --qShapeConversion]"
+					).c_str())
 			;
-	opts_cmdline_short.add(opts_inter);
+
+	////  INTERACTION/ENERGY OPTIONS  ////////////////////////
 	opts_inter.add_options()
 		("mode,m"
 			, value<char>(&(predMode.val))
@@ -436,6 +575,7 @@ CommandLineParsing::CommandLineParsing()
 					"\n 'tAcc:' (target) ED accessibility values ('tPu'-like format)."
 					"\n 'tPu:' (target) unpaired probabilities values (RNAplfold format)."
 					"\n 'pMinE:' (query+target) for each index pair the minimal energy of any interaction covering the pair (CSV format)"
+					"\n 'spotProb:' (query+target) tracks for a given set of interaction spots their probability to be covered by an interaction. Spots are encoded by comma-separated 'idx1&idx2' pairs. For each spot a probability is provided in concert with the probability that none of the spots (encoded by '0&0') is covered (CSV format). The spot encoding is followed colon-separated by the output stream/file name, eg. '--out=\"spotProb:3&76,59&2:STDERR\"'. NOTE: value has to be quoted due to '&' symbol!"
 					"\nFor each, provide a file name or STDOUT/STDERR to write to the respective output stream."
 					).c_str())
 		("outMode"
@@ -473,6 +613,12 @@ CommandLineParsing::CommandLineParsing()
 				->notifier(boost::bind(&CommandLineParsing::validate_outMaxE,this,_1))
 			, std::string("only interactions with E <= maxE are reported"
 					" (arg in range ["+toString(outMaxE.min)+","+toString(outMaxE.max)+"])").c_str())
+	    ("outMinPu"
+			, value<double>(&(outMinPu.val))
+				->default_value(outMinPu.def)
+				->notifier(boost::bind(&CommandLineParsing::validate_outMinPu,this,_1))
+			, std::string("only interactions where all individual positions of both interacting sites have an unpaired probability >= minPu are reported"
+					" (arg in range ["+toString(outMinPu.min)+","+toString(outMinPu.max)+"])").c_str())
 	    ("outDeltaE"
 			, value<double>(&(outDeltaE.val))
 				->default_value(outDeltaE.def)
@@ -488,8 +634,10 @@ CommandLineParsing::CommandLineParsing()
 					+ boost::replace_all_copy(OutputHandlerCsv::list2string(OutputHandlerCsv::string2list("")), ",", ", ")+"."
 					+ "\nDefault = '"+outCsvCols+"'."
 					).c_str())
+	    ("outPerRegion", "output : if given, best interactions are reported independently"
+	    		" for all region combinations; otherwise only the best for each query-target combination")
 	    ("verbose,v", "verbose output") // handled via easylogging++
-//	    (logFile_argument.c_str(), "name of log file to be used for output")
+	    ("default-log-file", value<std::string>(&(logFileName)), "name of file to be used for log output (INFO, WARNING, VERBOSE, DEBUG)")
 	    ;
 
 	////  GENERAL OPTIONS  ////////////////////////////////////
@@ -501,6 +649,7 @@ CommandLineParsing::CommandLineParsing()
 				->default_value(threads.def)
 				->notifier(boost::bind(&CommandLineParsing::validate_threads,this,_1))
 			, std::string("maximal number of threads to be used for parallel computation of query-target combinations."
+					" A value of 0 requests all available CPUs."
 					" Note, the number of threads multiplies the required memory used for computation!"
 					" (arg in range ["+toString(threads.min)+","+toString(threads.max)+"])").c_str())
 #endif
@@ -511,8 +660,7 @@ CommandLineParsing::CommandLineParsing()
 	opts_cmdline_short.add(opts_general);
 
 	////  GENERAL OPTIONS  ////////////////////////////////////
-
-	opts_cmdline_all.add(opts_query).add(opts_target).add(opts_seed).add(opts_inter).add(opts_output).add(opts_general);
+	opts_cmdline_all.add(opts_query).add(opts_target).add(opts_helix).add(opts_seed).add(opts_shape).add(opts_inter).add(opts_output).add(opts_general);
 
 
 }
@@ -584,7 +732,16 @@ parse(int argc, char** argv)
 			return parsingCode;
 		}
 		if (vm.count("version")) {
-			std::cout <<INTARNA_PACKAGE_STRING << "\n";
+			std::cout
+					<<INTARNA_PACKAGE_STRING
+					<< "\n"
+					<<" using Vienna RNA package "
+						<<STRINGIFY(VRNA_VERSION)
+					<<" and boost "
+						<<(BOOST_VERSION / 100000)
+						<<'.'<<(BOOST_VERSION / 100 % 1000)
+						<<'.'<<(BOOST_VERSION%100)
+					<< "\n";
 			parsingCode = ReturnCode::STOP_ALL_FINE;
 			return parsingCode;
 		}
@@ -614,14 +771,14 @@ parse(int argc, char** argv)
 				outStream = newOutputStream( outPrefix2streamName.at(OutPrefixCode::OP_EMPTY) );
 				// check success
 				if (outStream == NULL) {
-					LOG(ERROR) <<"could not open output file --out='"<<outPrefix2streamName.at(OutPrefixCode::OP_EMPTY) << "' for writing";
-					updateParsingCode(ReturnCode::STOP_PARSING_ERROR);
+					throw error("could not open output file --out='"+toString(outPrefix2streamName.at(OutPrefixCode::OP_EMPTY))+ "' for writing");
 				}
 			}
+			outPerRegion = vm.count("outPerRegion") > 0;
 
 			// parse the sequences
-			parseSequences("query",queryArg,query);
-			parseSequences("target",targetArg,target);
+			parseSequences("query",queryArg,query,qSet);
+			parseSequences("target",targetArg,target,tSet);
 
 			// valide accessibility input from file (requires parsed sequences)
 			validate_qAccFile( qAccFile );
@@ -641,10 +798,15 @@ parse(int argc, char** argv)
 				}
 			}
 
+			// Ensure that min is smaller than max.
+			if (helixMinBP.val > helixMaxBP.val) {
+				throw error("the minimum number of base pairs (" +toString(helixMinBP.val)+") is higher than the maximum number of base pairs (" +toString(helixMaxBP.val)+")");
+			}
 			// check seed setup
 			noSeedRequired = vm.count("noSeed") > 0;
 			if (noSeedRequired) {
 				// input sanity check : maybe seed constraints defined -> warn
+				if (!seedTQ.empty()) LOG(INFO) <<"no seed constraint wanted, but explicit seedTQ provided (will be ignored)";
 				if (seedBP.val != seedBP.def) LOG(INFO) <<"no seed constraint wanted, but seedBP provided (will be ignored)";
 				if (seedMaxUP.val != seedMaxUP.def) LOG(INFO) <<"no seed constraint wanted, but seedMaxUP provided (will be ignored)";
 				if (seedQMaxUP.val != seedQMaxUP.def) LOG(INFO) <<"no seed constraint wanted, but seedQMaxUP provided (will be ignored)";
@@ -657,8 +819,7 @@ parse(int argc, char** argv)
 				// check query search ranges
 				if (!seedQRange.empty()) {
 					if (query.size()!=1) {
-						LOG(ERROR) <<"seedQRange given but not only one query sequence provided";
-						updateParsingCode(ReturnCode::STOP_PARSING_ERROR);
+						throw error("seedQRange given but not only one query sequence provided");
 					} else {
 						validate_indexRangeList("seedQRange",seedQRange, 1, query.begin()->size());
 					}
@@ -666,8 +827,7 @@ parse(int argc, char** argv)
 				// check target search ranges
 				if (!seedTRange.empty()) {
 					if (target.size()!=1) {
-						LOG(ERROR) <<"seedTRange given but not only one target sequence provided";
-						updateParsingCode(ReturnCode::STOP_PARSING_ERROR);
+						throw error("seedTRange given but not only one target sequence provided");
 					} else {
 						validate_indexRangeList("seedTRange",seedTRange, 1, target.begin()->size());
 					}
@@ -684,21 +844,50 @@ parse(int argc, char** argv)
 						throw error("length of target sequence "+toString(i+1)+" is below minimal number of seed base pairs (seedBP="+toString(seedBP.val)+")");
 					}
 				}
+
+				// check for explicit seed constraints
+				if (!seedTQ.empty()) {
+					if (target.size()>1 || query.size() > 1) {
+						throw error("explicit seed definition only for single query/target available");
+					}
+					// input sanity check : maybe seed constraints defined -> warn
+					if (seedBP.val != seedBP.def) LOG(INFO) <<"explicit seeds defined, but seedBP provided (will be ignored)";
+					if (seedMaxUP.val != seedMaxUP.def) LOG(INFO) <<"explicit seeds defined, but seedMaxUP provided (will be ignored)";
+					if (seedQMaxUP.val != seedQMaxUP.def) LOG(INFO) <<"explicit seeds defined, but seedQMaxUP provided (will be ignored)";
+					if (seedTMaxUP.val != seedTMaxUP.def) LOG(INFO) <<"explicit seeds defined, but seedTMaxUP provided (will be ignored)";
+					if (seedMaxE.val != seedMaxE.def) LOG(INFO) <<"explicit seeds defined, but seedMaxE provided (will be ignored)";
+					if (seedMinPu.val != seedMinPu.def) LOG(INFO) <<"explicit seeds defined, but seedMinPu provided (will be ignored)";
+					if (!seedQRange.empty()) LOG(INFO) <<"explicit seeds defined, but seedQRange provided (will be ignored)";
+					if (!seedTRange.empty()) LOG(INFO) <<"explicit seeds defined, but seedTRange provided (will be ignored)";
+				}
 			}
 
-			// parse regions to be used for interaction prediction
+			///////////////  PARSE AND PREPARE PREDICTION RANGES  //////////////
+
+			// check regions to be used for interaction prediction
+			if ( qRegionLenMax.val > 0 && qAcc.val == 'N' ) {
+				throw error("automatic query accessible region identification requested (--qRegionLenMax) but accessibility computation disabled (--qAcc=N)");
+			}
+			if ( tRegionLenMax.val > 0 && tAcc.val == 'N' ) {
+				throw error("automatic query accessible region identification requested (--tRegionLenMax) but accessibility computation disabled (--tAcc=N)");
+			}
+			if (qRegionLenMax.val > 0 && !qRegionString.empty()) {
+				throw error("automatic query accessible region identification requested (--qRegionLenMax) but manual regions provided via (--qRegion)");
+			}
+			if (tRegionLenMax.val > 0 && !tRegionString.empty()) {
+				throw error("automatic target accessible region identification requested (--tRegionLenMax) but manual regions provided via (--tRegion)");
+			}
+			// parse region string if available
 			parseRegion( "qRegion", qRegionString, query, qRegion );
 			parseRegion( "tRegion", tRegionString, target, tRegion );
+
+
+			//////////////// ACCESSIBILITY CONSTRAINTS ///////////////////
 
 			// check qAccConstr - query sequence compatibility
 			if (vm.count("qAccConstr") > 0) {
 				// only for single sequence input supported
-				if (validateSequenceNumber("qAccConstr",query,1,1)) {
-					// check length
-					if (qAccConstr.size() != query.at(0).size()) {
-						throw error("qAccConstr and query sequence differ in size");
-					}
-				} else {
+				if (!validateSequenceNumber("qAccConstr",query,1,1)) {
 					// TODO report error
 					INTARNA_NOT_IMPLEMENTED("--qAccConstr only supported for single sequence input");
 				}
@@ -709,12 +898,7 @@ parse(int argc, char** argv)
 			// check tAccConstr - target sequence compatibility
 			if (vm.count("tAccConstr") > 0) {
 				// only for single sequence input supported
-				if (validateSequenceNumber("tAccConstr",target,1,1)) {
-					// check length
-					if (tAccConstr.size() != target.at(0).size()) {
-						throw error("tAccConstr and target sequence differ in size");
-					}
-				} else {
+				if (!validateSequenceNumber("tAccConstr",target,1,1)) {
 					// TODO report error
 					INTARNA_NOT_IMPLEMENTED("--tAccConstr only supported for single sequence input");
 				}
@@ -733,6 +917,7 @@ parse(int argc, char** argv)
 			case 'P' : {
 				if (qAccFile.empty()) LOG(INFO) <<"qAcc = "<<qAcc.val<<" but no --qAccFile given";
 				if (vm.count("qAccConstr")>0) LOG(INFO) <<"qAcc = "<<qAcc.val<<" : accessibility constraints (--qAccConstr) possibly not used in computation of loaded ED values";
+				break;
 			}	// drop to next handling
 			case 'N' : {
 				if (qAccL.val != qAccL.def) LOG(INFO) <<"qAcc = "<<qAcc.val<<" : ignoring --qAccL";
@@ -750,6 +935,7 @@ parse(int argc, char** argv)
 			case 'P' : {
 				if (tAccFile.empty()) LOG(INFO) <<"tAcc = "<<tAcc.val<<" but no --tAccFile given";
 				if (vm.count("tAccConstr")>0) LOG(INFO) <<"tAcc = "<<tAcc.val<<" : accessibility constraints (--tAccConstr) possibly not used in computation of loaded ED values";
+				break;
 			}	// drop to next handling
 			case 'N' : {
 				if (tAccL.val != tAccL.def) LOG(INFO) <<"tAcc = "<<tAcc.val<<" : ignoring --tAccL";
@@ -766,20 +952,17 @@ parse(int argc, char** argv)
 
 			// check qAcc upper bound
 			if (qAccL.val > qAccW.val && qAccW.val != 0) {
-				LOG(ERROR) <<"qAccL = " <<qAccL.val <<" : has to be <= qAccW (=" <<qAccW.val<<")";
-				updateParsingCode(ReturnCode::STOP_PARSING_ERROR);
+				throw error("qAccL = " +toString(qAccL.val) + " : has to be <= qAccW (=" +toString(qAccW.val) + ")");
 			}
 
 			// check qAcc upper bound
 			if (tAccL.val > tAccW.val && tAccW.val != 0) {
-				LOG(ERROR) <<"tAccL = " <<tAccL.val <<" : has to be <= tAccW (=" <<tAccW.val<<")";
-				updateParsingCode(ReturnCode::STOP_PARSING_ERROR);
+				throw error("tAccL = " +toString(tAccL.val)+" : has to be <= tAccW (=" +toString(tAccW.val)+")");
 			}
 
 			// check CSV stuff
 			if (outCsvCols != outCsvCols_default && outMode.val != 'C') {
-				LOG(ERROR) <<"outCsvCols set but outMode != C ("<<outMode.val<<")";
-				updateParsingCode(ReturnCode::STOP_PARSING_ERROR);
+				throw error("outCsvCols set but outMode != C ("+toString(outMode.val)+")");
 			}
 
 			// check output sanity
@@ -791,8 +974,7 @@ parse(int argc, char** argv)
 					for (auto c2=c1; noDuplicate && (++c2)!=outPrefix2streamName.end();) {
 						if ( ! c2->second.empty() && boost::iequals( c1->second, c2->second ) ) {
 							noDuplicate = false;
-							LOG(ERROR) <<"--out argument shows multiple times '"<<c1->second<<"' as target file/stream.";
-							updateParsingCode(ReturnCode::STOP_PARSING_ERROR);
+							throw error("--out argument shows multiple times '"+toString(c1->second)+"' as target file/stream.");
 						}
 					}
 				}
@@ -800,13 +982,13 @@ parse(int argc, char** argv)
 
 #if INTARNA_MULITHREADING
 			// check if multi-threading
-			if (threads.val > 1 && getTargetSequences().size() > 1) {
+			if (threads.val != 1 && getTargetSequences().size() > 1) {
 				// warn if >= 4D space prediction enabled
 				if (pred.val != 'S' || predMode.val == 'E') {
 					LOG(WARNING) <<"Multi-threading enabled in high-mem-prediction mode : ensure you have enough memory available!";
 				}
 				if (outMode.val == '1' || outMode.val == 'O') {
-					throw std::runtime_error("Multi-threading not supported for IntaRNA v1 output");
+					throw error("Multi-threading not supported for IntaRNA v1 output");
 				}
 			}
 #endif
@@ -917,25 +1099,10 @@ void
 CommandLineParsing::
 validate_structureConstraintArgument(const std::string & name, const std::string & value)
 {
-	// check if valid alphabet
-	if (value.find_first_not_of(AccessibilityConstraint::dotBracketAlphabet) != std::string::npos) {
-		LOG(ERROR) <<""<<name<<" '"<<value <<"' : contains invalid characters!";
+	// check if valid encoding
+	if (!boost::regex_match( value, AccessibilityConstraint::regex, boost::match_perl )) {
+		LOG(ERROR) <<"constraint "<<name<<" = '"<<value <<"' is not correctly encoded!";
 		updateParsingCode(ReturnCode::STOP_PARSING_ERROR);
-	} else {
-		// check for base pair balance / nestedness
-		int bpStackLvl = 0;
-		for (std::string::const_iterator c = value.begin(); c!=value.end(); ++c) {
-			switch (*c) {
-			case '(' : ++bpStackLvl; break;
-			case ')' : --bpStackLvl; break;
-			default: break;
-			}
-			if (bpStackLvl<0) {
-				LOG(ERROR) <<""<<name<<" '"<<value <<"' : unbalanced base pairs!";
-				updateParsingCode(ReturnCode::STOP_PARSING_ERROR);
-			}
-		}
-
 	}
 }
 
@@ -986,6 +1153,12 @@ validateRegion( const std::string & argName, const std::string & value )
 	} else
 	// check if direct range input
 	if (boost::regex_match( value, IndexRangeList::regex, boost::match_perl )) {
+		try {
+			// test if parsable as ascending, non-overlapping range list
+			IndexRangeList tmpList(value);
+		} catch (std::exception & ex) {
+			return false;
+		}
 		return true;
 	} else
 	// might be BED file input
@@ -1078,7 +1251,13 @@ getQueryAccessibility( const size_t sequenceNumber ) const
 	const RnaSequence& seq = getQuerySequences().at(sequenceNumber);
 
 	// create temporary constraint object (will be copied)
-	AccessibilityConstraint accConstraint(qAccConstr,qAccL.val);
+	AccessibilityConstraint accConstraint(seq.size(),0,"","","");
+	try {
+		// try parsing
+		accConstraint = AccessibilityConstraint(seq.size(), qAccConstr, qAccL.val, qShape, qShapeMethod, qShapeConversion);
+	} catch (std::exception & ex) {
+		throw std::runtime_error(toString("query accessibility constraint : ")+ex.what());
+	}
 	// construct selected accessibility object
 	switch(qAcc.val) {
 
@@ -1164,9 +1343,15 @@ getTargetAccessibility( const size_t sequenceNumber ) const
 	if (sequenceNumber >= getTargetSequences().size()) {
 		throw std::runtime_error("CommandLineParsing::getTargetAccessibility : sequence number "+toString(sequenceNumber)+" is out of range (<"+toString(getTargetSequences().size())+")");
 	}
-	// create temporary constraint object (will be copied)
-	AccessibilityConstraint accConstraint(tAccConstr,tAccL.val);
 	const RnaSequence& seq = getTargetSequences().at(sequenceNumber);
+	// create temporary constraint object (will be copied)
+	AccessibilityConstraint accConstraint(seq.size(), 0, "","","");
+	try {
+		accConstraint = AccessibilityConstraint(seq.size(), tAccConstr, tAccL.val, tShape, tShapeMethod, tShapeConversion);
+	} catch (std::exception & ex) {
+		throw std::runtime_error(toString("target accessibility constraint : ")+ex.what());
+	}
+
 	switch(tAcc.val) {
 
 	case 'N' : // no accessibility
@@ -1249,7 +1434,7 @@ getEnergyHandler( const Accessibility& accTarget, const ReverseAccessibility& ac
 {
 	checkIfParsed();
 
-	// check whether to compute ES values (for multi-site predictions
+	// check whether to compute ES values (for multi-site predictions)
 	const bool initES = std::string("M").find(pred.val) != std::string::npos;
 
 	switch( energy.val ) {
@@ -1291,18 +1476,36 @@ void
 CommandLineParsing::
 parseSequences(const std::string & paramName,
 					const std::string& paramArg,
-					RnaSequenceVec& sequences )
+					RnaSequenceVec& sequences,
+					const IndexRangeList & seqSubset )
 {
+
 	// clear sequence container
 	sequences.clear();
 
 	// read FASTA from STDIN stream
 	if (boost::iequals(paramArg,"STDIN")) {
-		parseSequencesFasta(paramName, std::cin, sequences);
+		parseSequencesFasta(paramName, std::cin, sequences, seqSubset);
 	} else
 	if (RnaSequence::isValidSequenceIUPAC(paramArg)) {
-		// direct sequence input
-		sequences.push_back(RnaSequence(paramName,paramArg));
+		// check if sequence is to be stored
+		if (seqSubset.empty() || seqSubset.covers(1)) {
+			// direct sequence input
+			sequences.push_back(RnaSequence(paramName,paramArg));
+		} else {
+			// would result in no sequence -> error
+			LOG(ERROR) <<"Parsing of "<<paramName<<" : only single sequence given but not listed in sequence subset '"<<seqSubset<<"'";
+			updateParsingCode( ReturnCode::STOP_PARSING_ERROR );
+		}
+		// check if sequence index range is within number of sequences
+		if (!seqSubset.empty()
+				&& seqSubset.rbegin()->to < IndexRange::LAST_INDEX
+				&& seqSubset.rbegin()->to > 1)
+		{
+			// provide user warning of maybe wrongly defined sequence subset
+			LOG(WARNING) <<"Sequence subset definition "<<seqSubset<<" exceeds sequence number "<<1<<" for parameter "<<paramName;
+		}
+
 	} else
 	{
 		// open file handle
@@ -1312,7 +1515,7 @@ parseSequences(const std::string & paramName,
 				LOG(ERROR) <<"FASTA parsing of "<<paramName<<" : could not open FASTA file  '"<<paramArg<<"'";
 				updateParsingCode( ReturnCode::STOP_PARSING_ERROR );
 			} else {
-				parseSequencesFasta(paramName, infile, sequences);
+				parseSequencesFasta(paramName, infile, sequences, seqSubset);
 			}
 		} catch (std::exception & ex) {
 			LOG(ERROR) <<"error while FASTA parsing of "<<paramName<<" : "<<ex.what();
@@ -1326,7 +1529,7 @@ parseSequences(const std::string & paramName,
 	bool valid = true;
 
 	// ensure at least one sequence was parsed
-	valid = valid && validateSequenceNumber(paramName, sequences, 1, 99999);
+	valid = valid && validateSequenceNumber(paramName, sequences, 1, 999999);
 	// validate alphabet
 	valid = valid && validateSequenceAlphabet(paramName, sequences);
 
@@ -1339,11 +1542,13 @@ void
 CommandLineParsing::
 parseSequencesFasta( const std::string & paramName,
 					std::istream& input,
-					RnaSequenceVec& sequences)
+					RnaSequenceVec& sequences,
+					const IndexRangeList & seqSubset)
 {
 	// temporary variables
 	std::string line, name, sequence;
 	int trimStart = 0;
+	size_t seqNumber = 0;
 
 	// read linewise
 	while( std::getline( input, line ) ) {
@@ -1360,8 +1565,13 @@ parseSequencesFasta( const std::string & paramName,
 					LOG(ERROR) <<"FASTA parsing of "<<paramName<<" : no sequence for ID '"<<name<<"'";
 					updateParsingCode( ReturnCode::STOP_PARSING_ERROR );
 				} else {
-					// store sequence
-					sequences.push_back( RnaSequence( name, sequence ) );
+					// update sequence counter
+					seqNumber++;
+					// check if sequence is to be stored
+					if (seqSubset.empty() || seqSubset.covers(seqNumber)) {
+						// store sequence
+						sequences.push_back( RnaSequence( name, sequence ) );
+					}
 				}
 				// clear name data
 				name.clear();
@@ -1402,8 +1612,22 @@ parseSequencesFasta( const std::string & paramName,
 		LOG(ERROR) <<"FASTA parsing of "<<paramName<<" : no sequence for ID '"<<name<<"'";
 		updateParsingCode( ReturnCode::STOP_PARSING_ERROR );
 	} else {
-		// store sequence
-		sequences.push_back( RnaSequence( name, sequence ) );
+		// update sequence counter
+		seqNumber++;
+		// check if sequence is to be stored
+		if (seqSubset.empty() || seqSubset.covers(seqNumber)) {
+			// store sequence
+			sequences.push_back( RnaSequence( name, sequence ) );
+		}
+	}
+
+	// check if sequence index range is within number of sequences
+	if (!seqSubset.empty()
+			&& seqSubset.rbegin()->to < IndexRange::LAST_INDEX
+			&& seqSubset.rbegin()->to > seqNumber)
+	{
+		// provide user warning of maybe wrongly defined sequence subset
+		LOG(WARNING) <<"Sequence subset definition "<<seqSubset<<" exceeds sequence number "<<seqNumber<<" for parameter "<<paramName;
 	}
 }
 
@@ -1498,6 +1722,16 @@ getPredictor( const InteractionEnergy & energy, OutputHandler & output ) const
 						, "NA") );
 	}
 
+	// check if spotProbs are to be tracked
+	if (!outPrefix2streamName.at(OutPrefixCode::OP_spotProb).empty()) {
+		predTracker->addPredictionTracker(
+				new PredictionTrackerSpotProb( energy
+								// get encoding
+								, outSpotProbSpots
+								, outPrefix2streamName.at(OutPrefixCode::OP_spotProb) )
+							);
+	}
+
 	// check if any tracker registered
 	if (predTracker->empty()) {
 		// cleanup to avoid overhead
@@ -1510,7 +1744,7 @@ getPredictor( const InteractionEnergy & energy, OutputHandler & output ) const
 		switch( pred.val ) {
 		case 'L':  {
 			switch ( predMode.val ) {
-			case 'H' :	return new PredictorMfe2dLimStackHeuristic( energy, output, predTracker, getHelixHandler( energy ));
+			case 'H' :	return new PredictorMfe2dLimStackHeuristic( energy, output, predTracker, getHelixConstraint(energy));
 			default :  INTARNA_NOT_IMPLEMENTED("mode "+toString(predMode.val)+" not implemented for prediction target "+toString(pred.val));
 			}
 		} break;
@@ -1541,12 +1775,18 @@ getPredictor( const InteractionEnergy & energy, OutputHandler & output ) const
 	} else {
 		// seed-constrained predictors
 		switch( pred.val ) {
+		case 'L' : {
+			switch  ( predMode.val ) {
+				case 'H' : return new PredictorMfe2dLimStackHeuristicSeed(energy, output, predTracker, getHelixConstraint(energy), getSeedHandler(energy));
+				default :  INTARNA_NOT_IMPLEMENTED("mode "+toString(predMode.val)+" not implemented for prediction target "+toString(pred.val));
+			}
+		} break;
 		// single-site mfe interactions (contain only interior loops)
 		case 'S' : {
 			switch ( predMode.val ) {
-			case 'H' :  return new PredictorMfe2dHeuristicSeed( energy, output, predTracker, getSeedConstraint( energy ) );
-			case 'M' :  return new PredictorMfe2dSeed( energy, output, predTracker, getSeedConstraint( energy ) );
-			case 'E' :  return new PredictorMfe4dSeed( energy, output, predTracker, getSeedConstraint( energy ) );
+			case 'H' :  return new PredictorMfe2dHeuristicSeed( energy, output, predTracker, getSeedHandler( energy ) );
+			case 'M' :  return new PredictorMfe2dSeed( energy, output, predTracker, getSeedHandler( energy ) );
+			case 'E' :  return new PredictorMfe4dSeed( energy, output, predTracker, getSeedHandler( energy ) );
 			}
 		} break;
 		// single-site max-prob interactions (contain only interior loops)
@@ -1665,24 +1905,6 @@ getHelixConstraint(const InteractionEnergy &energy) const
 
 ////////////////////////////////////////////////////////////////////////////
 
-HelixHandler *
-CommandLineParsing::
-getHelixHandler(const InteractionEnergy &energy) const {
-	// get helix constraint
-	const HelixConstraint &helixConstr = getHelixConstraint(energy);
-
-	switch (helixMode.val) {
-	case 'S' :
-		// create new helix handler with stackings only
-		return new HelixHandlerStackingOnly(energy, helixConstr);
-
-	}
-
-	// TODO: Add helixModes
-}
-
-////////////////////////////////////////////////////////////////////////////
-
 const SeedConstraint &
 CommandLineParsing::
 getSeedConstraint( const InteractionEnergy & energy ) const
@@ -1699,6 +1921,7 @@ getSeedConstraint( const InteractionEnergy & energy ) const
 							// shift ranges to start counting with 0
 							, IndexRangeList( seedTRange ).shift(-1,energy.size1()-1)
 							, IndexRangeList( seedQRange ).shift(-1,energy.size2()-1).reverse(energy.size2())
+							, seedTQ
 						);
 	}
 	return *seedConstraint;
@@ -1706,16 +1929,51 @@ getSeedConstraint( const InteractionEnergy & energy ) const
 
 ////////////////////////////////////////////////////////////////////////////
 
+SeedHandler *
+CommandLineParsing::
+getSeedHandler( const InteractionEnergy & energy ) const
+{
+	// get seed constraint
+	const SeedConstraint & seedConstr = getSeedConstraint( energy );
+
+	if (!seedTQ.empty()) {
+		// create new seed handler for explicit seed definitions
+		return new SeedHandlerExplicit( energy, seedConstr );
+	} else {
+		// create new seed handler using mfe computation
+		return new SeedHandlerMfe( energy, seedConstr );
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////
+
 const IndexRangeList&
 CommandLineParsing::
-getQueryRanges( const size_t sequenceNumber ) const
+getQueryRanges( const InteractionEnergy & energy, const size_t sequenceNumber ) const
 {
+	checkIfParsed();
 #if INTARNA_IN_DEBUG_MODE
 	if (sequenceNumber>=qRegion.size())
 		throw std::runtime_error("CommandLineParsing::getQueryRanges("+toString(sequenceNumber)+") out of bounds");
 	if (qRegion.at(sequenceNumber).empty())
 		throw std::runtime_error("CommandLineParsing::getQueryRanges("+toString(sequenceNumber)+") is empty");
 #endif
+
+	// check if ranges are to be computed
+	if (qRegionLenMax.val > 0) {
+		// check if computation is needed
+		if (qRegion.at(sequenceNumber).begin()->to - qRegion.at(sequenceNumber).begin()->from +1 > qRegionLenMax.val) {
+			// compute highly accessible regions using ED-window-size = seedBP and minRangeLength = seedBP
+			qRegion.at(sequenceNumber) = getQueryAccessibility( sequenceNumber )->decomposeByMaxED( qRegionLenMax.val, seedBP.val, seedBP.val);
+			// inform user
+			VLOG(1) <<"detected accessible regions for query '"<<getQuerySequences().at(sequenceNumber).getId()<<"' : "<<qRegion.at(sequenceNumber);
+		}
+	}
+
+	// decompose ranges based in minimal unpaired probability value per position
+	// since all ranges covering a position will have a lower unpaired probability
+	getQueryAccessibility( sequenceNumber )->decomposeByMinPu( qRegion.at(sequenceNumber), outMinPu.val, energy.getRT() );
+
 	return qRegion.at(sequenceNumber);
 }
 
@@ -1723,14 +1981,32 @@ getQueryRanges( const size_t sequenceNumber ) const
 
 const IndexRangeList&
 CommandLineParsing::
-getTargetRanges( const size_t sequenceNumber ) const
+getTargetRanges( const InteractionEnergy & energy, const size_t sequenceNumber ) const
 {
+	checkIfParsed();
 #if INTARNA_IN_DEBUG_MODE
 	if (sequenceNumber>=tRegion.size())
 		throw std::runtime_error("CommandLineParsing::getTargetRanges("+toString(sequenceNumber)+") out of bounds");
 	if (tRegion.at(sequenceNumber).empty())
 		throw std::runtime_error("CommandLineParsing::getTargetRanges("+toString(sequenceNumber)+") is empty");
 #endif
+
+	// check if to be computed
+	if (tRegionLenMax.val > 0) {
+		// check if computation is needed
+		if (tRegion.at(sequenceNumber).begin()->to - tRegion.at(sequenceNumber).begin()->from +1 > tRegionLenMax.val) {
+			// compute highly accessible regions using ED-window-size = seedBP and minRangeLength = seedBP
+			tRegion.at(sequenceNumber) = getTargetAccessibility( sequenceNumber )->decomposeByMaxED( tRegionLenMax.val, seedBP.val, seedBP.val);
+			// inform user
+			VLOG(1) <<"detected accessible regions for target '"<<getTargetSequences().at(sequenceNumber).getId()<<"' : "<<tRegion.at(sequenceNumber);
+		}
+	}
+
+	// decompose ranges based in minimal unpaired probability value per position
+	// since all ranges covering a position will have a lower unpaired probability
+	getTargetAccessibility( sequenceNumber )->decomposeByMinPu( tRegion.at(sequenceNumber), outMinPu.val, energy.getRT() );
+
+
 	return tRegion.at(sequenceNumber);
 }
 

@@ -11,6 +11,9 @@ using namespace IntaRNA;
 
 TEST_CASE( "InteractionEnergyBasePair", "[InteractionEnergyBasePair]" ) {
 
+	// setup easylogging++ stuff if not already done
+	#include "testEasyLoggingSetup.icc"
+
 	RnaSequence rna("test","ACGU");
 
 	AccessibilityDisabled acc(rna,rna.size(),NULL);
@@ -69,8 +72,8 @@ TEST_CASE( "InteractionEnergyBasePair", "[InteractionEnergyBasePair]" ) {
 	}
 
   SECTION("ES computation") {
-    REQUIRE( abs(energy.getES1(0, 3) - (-1.313186)) < 1e-4 );
-    REQUIRE( abs(energy.getES2(0, 3) - (-1.313186)) < 1e-4 );
+    REQUIRE( std::abs(energy.getES1(0, 3) - (-1.313186)) < 1e-4 );
+    REQUIRE( std::abs(energy.getES2(0, 3) - (-1.313186)) < 1e-4 );
     REQUIRE( std::isinf(energy.getES1(0, 2)) );
     REQUIRE( std::isinf(energy.getES1(1, 2)) );
     REQUIRE( std::isinf(energy.getES2(0, 2)) );

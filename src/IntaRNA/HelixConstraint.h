@@ -74,6 +74,13 @@ public:
 	getMaxLength2() const;
 
 	/**
+	 * Provides the minimum interior loop length depending on the maximum allowed number of unpaired bases
+	 * @return minimum interior loop length
+	 */
+	size_t
+	getMinInternalLoopSize() const;
+
+	/**
 	 * Prints the helix constraint details to stream
 	 * @param out the ostream to write to
 	 * @param c the object to add
@@ -91,6 +98,7 @@ protected:
 
 	//! the maximally allowed number of unpaired bases in the helix
 	size_t maxUnpaired;
+
 };
 
 
@@ -106,9 +114,9 @@ HelixConstraint::HelixConstraint(
 	:
 		minBP(minBP_)
 	  , maxBP(maxBP_)
-      , maxUnpaired(maxUnpaired_) // exclude too large boundaries
+      , maxUnpaired(maxUnpaired_)
 {
-	if (minBP < 2) throw std::runtime_error("HelixConstraint() : base pair number ("+toString(minBP)+") < 2");
+	if (minBP < 2) throw std::runtime_error("HelixConstraint() : minimal base pair number ("+toString(minBP)+") < 2");
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -161,6 +169,15 @@ size_t
 HelixConstraint::
 getMaxLength2() const {
 	return getMaxBasePairs() + getMaxUnpaired();
+}
+
+/////////////////////////////////////////////////////////////////////////////
+
+inline
+size_t
+HelixConstraint::
+getMinInternalLoopSize() const {
+	return getMaxUnpaired();
 }
 
 /////////////////////////////////////////////////////////////////////////////
