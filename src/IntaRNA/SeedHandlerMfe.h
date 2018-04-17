@@ -59,6 +59,23 @@ public:
 	 */
 	virtual ~SeedHandlerMfe();
 
+
+	/**
+	 * Access to the underlying seed constraint
+	 * @return the used seed constraint
+	 */
+	virtual
+	const SeedConstraint&
+	getConstraint() const;
+
+	/**
+	 * Access to the underlying interaction energy function
+	 * @return the used energy function
+	 */
+	virtual
+	const InteractionEnergy&
+	getInteractionEnergy() const;
+
 	/**
 	 * Computes the seed matrix for the given interval boundaries
 	 * @param i1 the first index of seq1 that might interact
@@ -119,6 +136,12 @@ public:
 
 
 protected:
+
+	//! the used energy function
+	const InteractionEnergy& energy;
+
+	//! the seed constraint to be applied
+	const SeedConstraint & seedConstraint;
 
 	//! the recursion data for the computation of a seed interaction
 	//! i1..(i1+bpInbetween+u1-1) with i2..(i2+bpInbetween+u2-1)
@@ -227,7 +250,8 @@ SeedHandlerMfe::SeedHandlerMfe(
 		, const SeedConstraint & seedConstraint
 		)
 	:
-		SeedHandler(energy,seedConstraint)
+		energy(energy)
+		, seedConstraint(seedConstraint)
 		, seedE_rec( SeedIndex({{ 0,0,0,0,0 }}))
 		, seed()
 		, offset1(0)
@@ -245,6 +269,27 @@ SeedHandlerMfe::SeedHandlerMfe(
 inline
 SeedHandlerMfe::~SeedHandlerMfe()
 {
+}
+
+
+////////////////////////////////////////////////////////////////////////////
+
+inline
+const SeedConstraint&
+SeedHandlerMfe::
+getConstraint() const
+{
+	return seedConstraint;
+}
+
+//////////////////////////////////////////////////////////////////////////
+
+inline
+const InteractionEnergy&
+SeedHandlerMfe::
+getInteractionEnergy() const
+{
+	return energy;
 }
 
 //////////////////////////////////////////////////////////////////////////

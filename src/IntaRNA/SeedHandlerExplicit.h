@@ -38,6 +38,23 @@ public:
 
 
 	/**
+	 * Access to the underlying seed constraint
+	 * @return the used seed constraint
+	 */
+	virtual
+	const SeedConstraint&
+	getConstraint() const;
+
+	/**
+	 * Access to the underlying interaction energy function
+	 * @return the used energy function
+	 */
+	virtual
+	const InteractionEnergy&
+	getInteractionEnergy() const;
+
+
+	/**
 	 * Computes the seed information for the given interval boundaries
 	 * @param i1 the first index of seq1 that might interact
 	 * @param j1 the last index of seq1 that might interact
@@ -150,10 +167,39 @@ public:
 
 protected:
 
+	//! the used energy function
+	const InteractionEnergy& energy;
+
+	//! the seed constraint to be applied
+	const SeedConstraint & seedConstraint;
+
 	//! container to store
 	boost::unordered_map< Interaction::BasePair, SeedData > seedForLeftEnd;
 
 };
+
+////////////////////////////////////////////////////////////////////////////
+
+inline
+const SeedConstraint&
+SeedHandlerExplicit::
+getConstraint() const
+{
+	return seedConstraint;
+}
+
+//////////////////////////////////////////////////////////////////////////
+
+inline
+const InteractionEnergy&
+SeedHandlerExplicit::
+getInteractionEnergy() const
+{
+	return energy;
+}
+
+//////////////////////////////////////////////////////////////////////////
+
 
 } /* namespace IntaRNA */
 

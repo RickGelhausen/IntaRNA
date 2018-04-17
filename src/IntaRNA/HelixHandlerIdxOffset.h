@@ -445,17 +445,11 @@ void
 HelixHandlerIdxOffset::
 setSeedHandler(SeedHandlerIdxOffset & seedHandler)
 {
-	SeedHandlerIdxOffset * shOffset = dynamic_cast<SeedHandlerIdxOffset*>(&seedHandler);
-#if INTARNA_IN_DEBUG_MODE
-	if (shOffset == NULL) {
-		throw std::runtime_error("HelixHandlerIdxOffset.setSeedHandler(). Given seedHandler is not of type SeedHandlerIdxOffset.");
-	}
-#endif
 	// store locally (might be useful later)
-	seedHandlerIdxOffset = shOffset;
+	seedHandlerIdxOffset = &seedHandler;
 
 	// forward seedHandler to helixHandler
-	helixHandlerOriginal->setSeedHandler(seedHandlerIdxOffset->getOriginalSeedHandler());
+	helixHandlerOriginal->setSeedHandler( & seedHandler.getOriginalSeedHandler());
 }
 
 } // namespace

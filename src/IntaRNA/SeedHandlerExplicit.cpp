@@ -15,7 +15,8 @@ SeedHandlerExplicit(
 		const InteractionEnergy & energy
 		, const SeedConstraint & seedConstraint
 		)
- :	SeedHandler(energy,seedConstraint)
+ :	energy(energy)
+	, seedConstraint(seedConstraint)
 	, seedForLeftEnd()
 {
 #if INTARNA_IN_DEBUG_MODE

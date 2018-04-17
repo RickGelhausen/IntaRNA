@@ -21,13 +21,8 @@ public:
 
 	/**
 	 * Construction
-	 * @param energy the energy function to be used for seed prediction
-	 * @param seedConstraint the seed constraint to be applied
 	 */
-	SeedHandler(
-			const InteractionEnergy & energy
-			, const SeedConstraint & seedConstraint
-			);
+	SeedHandler();
 
 	/**
 	 * destruction
@@ -40,7 +35,7 @@ public:
 	 */
 	virtual
 	const SeedConstraint&
-	getConstraint() const;
+	getConstraint() const = 0;
 
 	/**
 	 * Access to the underlying interaction energy function
@@ -48,7 +43,7 @@ public:
 	 */
 	virtual
 	const InteractionEnergy&
-	getInteractionEnergy() const;
+	getInteractionEnergy() const = 0;
 
 
 	/**
@@ -110,15 +105,6 @@ public:
 
 
 
-protected:
-
-	//! the used energy function
-	const InteractionEnergy& energy;
-
-	//! the seed constraint to be applied
-	const SeedConstraint & seedConstraint;
-
-
 };
 
 
@@ -128,13 +114,7 @@ protected:
 
 
 inline
-SeedHandler::SeedHandler(
-		const InteractionEnergy & energy
-		, const SeedConstraint & seedConstraint
-		)
-	:
-		energy(energy)
-		, seedConstraint(seedConstraint)
+SeedHandler::SeedHandler()
 {
 }
 
@@ -143,26 +123,6 @@ SeedHandler::SeedHandler(
 inline
 SeedHandler::~SeedHandler()
 {
-}
-
-////////////////////////////////////////////////////////////////////////////
-
-inline
-const SeedConstraint&
-SeedHandler::
-getConstraint() const
-{
-	return seedConstraint;
-}
-
-//////////////////////////////////////////////////////////////////////////
-
-inline
-const InteractionEnergy&
-SeedHandler::
-getInteractionEnergy() const
-{
-	return energy;
 }
 
 //////////////////////////////////////////////////////////////////////////
