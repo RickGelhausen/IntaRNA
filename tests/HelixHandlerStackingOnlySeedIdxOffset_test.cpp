@@ -35,7 +35,7 @@ TEST_CASE( "HelixHandlerIdxOffset for StackingOnlySeed", "[HelixHandlerIdxOffset
 		HelixHandler *hhS = new HelixHandlerStackingOnly(energy, hC);
 		SeedHandler *sH = new SeedHandlerMfe(energy, sC);
 
-		hhS->setSeedHandler(sH);
+		hhS->setSeedHandler(*sH);
 
 		SeedHandlerIdxOffset sHIO(sH);
 		HelixHandlerIdxOffset hhIO(hhS);
@@ -132,7 +132,7 @@ TEST_CASE( "HelixHandlerIdxOffset for StackingOnlySeed", "[HelixHandlerIdxOffset
 		HelixHandler *hhS = new HelixHandlerStackingOnly(energy, hC);
 		SeedHandler *sH = new SeedHandlerMfe(energy, sC);
 
-		hhS->setSeedHandler(sH);
+		hhS->setSeedHandler(*sH);
 
 		SeedHandlerIdxOffset sHIO(sH);
 		HelixHandlerIdxOffset hhIO(hhS);
@@ -195,7 +195,7 @@ TEST_CASE( "HelixHandlerIdxOffset for StackingOnlySeed", "[HelixHandlerIdxOffset
 		HelixHandler *hhS = new HelixHandlerStackingOnly(energy, hC);
 		SeedHandler *sH = new SeedHandlerMfe(energy, sC);
 
-		hhS->setSeedHandler(sH);
+		hhS->setSeedHandler(*sH);
 
 		SeedHandlerIdxOffset sHIO(sH);
 		HelixHandlerIdxOffset hhIO(hhS);
@@ -270,7 +270,7 @@ TEST_CASE( "HelixHandlerIdxOffset for StackingOnlySeed", "[HelixHandlerIdxOffset
 		HelixHandler *hhS = new HelixHandlerStackingOnly(energy, hC);
 		SeedHandler *sH = new SeedHandlerMfe(energy, sC);
 
-		hhS->setSeedHandler(sH);
+		hhS->setSeedHandler(*sH);
 
 		SeedHandlerIdxOffset sHIO(sH);
 		HelixHandlerIdxOffset hhIO(hhS);
@@ -365,7 +365,7 @@ TEST_CASE( "HelixHandlerIdxOffset for StackingOnlySeed", "[HelixHandlerIdxOffset
 		HelixHandler *hhS = new HelixHandlerStackingOnly(energy, hC);
 		SeedHandler *sH = new SeedHandlerMfe(energy, sC);
 
-		hhS->setSeedHandler(sH);
+		hhS->setSeedHandler(*sH);
 
 		SeedHandlerIdxOffset sHIO(sH);
 		HelixHandlerIdxOffset hhIO(hhS);
