@@ -19,7 +19,7 @@ namespace IntaRNA {
  * @author Martin Mann
  *
  */
-class SeedHandlerIdxOffset
+class SeedHandlerIdxOffset : public SeedHandler
 {
 
 public:
@@ -35,6 +35,14 @@ public:
 	 * destruction of this object and the wrapped seed handler
 	 */
 	virtual ~SeedHandlerIdxOffset();
+
+	/**
+	 * Access to the underlying interaction energy function
+	 * @return the used energy function
+	 */
+	virtual
+	const InteractionEnergy&
+	getInteractionEnergy() const;
 
 	/**
 	 * Access to the currently used index offset for sequence 1
@@ -146,9 +154,15 @@ public:
 	getSeedLength2( const size_t i1, const size_t i2 ) const;
 
 
+	/**
+	 * Access to the wrapped SeedHandler instance.
+	 *
+	 * @return the internally used SeedHandler without offset
+	 */
 	virtual
-	SeedHandler*
+	SeedHandler&
 	getOriginalSeedHandler();
+
 
 protected:
 
@@ -204,6 +218,16 @@ SeedHandlerIdxOffset::
 getConstraint() const
 {
 	return seedConstraintOffset;
+}
+
+////////////////////////////////////////////////////////////////////////////
+
+inline
+const InteractionEnergy&
+SeedHandlerIdxOffset::
+getInteractionEnergy() const
+{
+	return seedHandlerOriginal->getInteractionEnergy();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -320,12 +344,14 @@ setOffset2( const size_t offset )
 ////////////////////////////////////////////////////////////////////////////
 
 inline
-SeedHandler*
+SeedHandler&
 SeedHandlerIdxOffset::
 getOriginalSeedHandler()
 {
-	return seedHandlerOriginal;
+	return *seedHandlerOriginal;
 }
+
+////////////////////////////////////////////////////////////////////////////
 
 } // namespace
 

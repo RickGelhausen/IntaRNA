@@ -22,11 +22,7 @@ public:
 	 * @param energy the energy function to be used for helix prediction
 	 * @param helixConstraint the helix constraint to be applied
 	 */
-	HelixHandler(
-			const InteractionEnergy & energy
-			, const HelixConstraint & helixConstraint
-			, SeedHandler * const seedHandler = NULL
-	);
+	HelixHandler();
 
 	/**
 	 * Provides a newly allocated helixHandler according to the user defined
@@ -52,7 +48,7 @@ public:
 	 */
 	virtual
 	const HelixConstraint&
-	getConstraint() const;
+	getConstraint() const = 0;
 
 	/**
 	 * Access to the underlying interaction energy function
@@ -60,7 +56,7 @@ public:
 	 */
 	virtual
 	const InteractionEnergy&
-	getInteractionEnergy() const;
+	getInteractionEnergy() const = 0;
 
 
 	/**
@@ -179,19 +175,8 @@ public:
  	 */
 	virtual
 	void
-	setSeedHandler( SeedHandler * const seedHandler ) = 0;
+	setSeedHandler( SeedHandler & seedHandler ) = 0;
 
-protected:
-
-	//! the used energy function
-	const InteractionEnergy& energy;
-
-	//! the helix constraint to be applied
-	const HelixConstraint & helixConstraint;
-
-	// TODO: Might have to handle this
-	//! the seed handler (with idx offset)
- 	// SeedHandler * const seedHandler;
 };
 
 
@@ -201,14 +186,7 @@ protected:
 
 
 inline
-HelixHandler::HelixHandler(
-		const InteractionEnergy & energy
-		, const HelixConstraint & helixConstraint
-		, SeedHandler * const seedHandlerInstance
-)
-		:
-		energy(energy)
-		, helixConstraint(helixConstraint)
+HelixHandler::HelixHandler()
 {
 }
 
@@ -217,26 +195,6 @@ HelixHandler::HelixHandler(
 inline
 HelixHandler::~HelixHandler()
 {
-}
-
-////////////////////////////////////////////////////////////////////////////
-
-inline
-const HelixConstraint&
-HelixHandler::
-getConstraint() const
-{
-	return helixConstraint;
-}
-
-//////////////////////////////////////////////////////////////////////////
-
-inline
-const InteractionEnergy&
-HelixHandler::
-getInteractionEnergy() const
-{
-	return energy;
 }
 
 //////////////////////////////////////////////////////////////////////////

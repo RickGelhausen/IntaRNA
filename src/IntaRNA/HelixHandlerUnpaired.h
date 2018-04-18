@@ -55,6 +55,22 @@ public:
 	virtual ~HelixHandlerUnpaired();
 
 	/**
+	 * Access to the underlying helix constraint
+	 * @return the used helix constraint
+	 */
+	virtual
+	const HelixConstraint&
+	getConstraint() const;
+
+	/**
+	 * Access to the underlying interaction energy function
+	 * @return the used energy function
+	 */
+	virtual
+	const InteractionEnergy&
+	getInteractionEnergy() const;
+
+	/**
 	 * Compute the helix matrix for the given interval boundaries
 	 * @param i1 the first index of seq1 that might interact
 	 * @param j1 the last index of seq1 that might interact
@@ -168,7 +184,7 @@ public:
 	 * Set the seedHandler in order to compute helixSeed
 	 * @param seedHandler seedHandler to be used in the helix computation
 	 */
-	void setSeedHandler(SeedHandler * const seedHandler);
+	void setSeedHandler(SeedHandler & seedHandler);
 
 protected:
 
@@ -325,7 +341,14 @@ protected:
 			, const size_t u1, const size_t u2 );
 
 
+
 protected:
+
+	//! the used energy function
+	const InteractionEnergy& energy;
+
+	//! the helix constraint to be applied
+	const HelixConstraint & helixConstraint;
 
 	//! the recursion data for the computation of a helix interaction
 	//! bp: the number of bases
@@ -367,7 +390,8 @@ HelixHandlerUnpaired::HelixHandlerUnpaired(
 		, SeedHandler * const seedHandler
 )
 		:
-		HelixHandler(energy, helixConstraint, seedHandler)
+		energy(energy)
+		, helixConstraint(helixConstraint)
 		, seedHandler(seedHandler)
 		, helixE_rec( HelixIndex({{ 0, 0, 0, 0, 0 }}))
 		, helixSeedE_rec( HelixIndex({{ 0, 0, 0, 0, 0 }}))
@@ -376,6 +400,9 @@ HelixHandlerUnpaired::HelixHandlerUnpaired(
 		, offset1(0)
 		, offset2(0)
 {
+	if (seedHandler != NULL) {
+		setSeedHandler(*seedHandler);
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -383,6 +410,26 @@ HelixHandlerUnpaired::HelixHandlerUnpaired(
 inline
 HelixHandlerUnpaired::~HelixHandlerUnpaired()
 {
+}
+
+////////////////////////////////////////////////////////////////////////////
+
+inline
+const InteractionEnergy&
+HelixHandlerUnpaired::
+getInteractionEnergy() const
+{
+	return energy;
+}
+
+////////////////////////////////////////////////////////////////////////////
+
+inline
+const HelixConstraint&
+HelixHandlerUnpaired::
+getConstraint() const
+{
+	return helixConstraint;
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -639,8 +686,8 @@ decodeHelixSeedLength2(const size_t code) const
 inline
 void
 HelixHandlerUnpaired::
-setSeedHandler(SeedHandler *const seedHandler) {
-	this->seedHandler = seedHandler;
+setSeedHandler(SeedHandler & seedHandler) {
+	this->seedHandler = &seedHandler;
 }
 
 } // namespace

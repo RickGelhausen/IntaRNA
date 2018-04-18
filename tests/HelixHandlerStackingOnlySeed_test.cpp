@@ -36,7 +36,7 @@ TEST_CASE( "HelixHandlerStackingOnlySeed", "[HelixHandlerStackingOnly]" ) {
 		HelixHandlerStackingOnly hhS(energy, hC);
 
 		sH.fillSeed(0, energy.size1()-1, 0,energy.size2()-1);
-		hhS.setSeedHandler(&sH);
+		hhS.setSeedHandler(sH);
 
 		//////////////////////////////////////////////////////////////////////////////////////////////////////////
 		//////////////////////////////////////////   FILLHELIXSEED  //////////////////////////////////////////////
@@ -123,7 +123,7 @@ TEST_CASE( "HelixHandlerStackingOnlySeed", "[HelixHandlerStackingOnly]" ) {
 		HelixHandlerStackingOnly hhS(energy, hC);
 
 		sH.fillSeed(0, energy.size1()-1, 0,energy.size2()-1);
-		hhS.setSeedHandler(&sH);
+		hhS.setSeedHandler(sH);
 
 		//////////////////////////////////////////////////////////////////////////////////////////////////////////
 		//////////////////////////////////////////   FILLHELIXSEED  //////////////////////////////////////////////
@@ -176,7 +176,7 @@ TEST_CASE( "HelixHandlerStackingOnlySeed", "[HelixHandlerStackingOnly]" ) {
 		HelixHandlerStackingOnly hhS(energy, hC);
 
 		sH.fillSeed(0, energy.size1()-1, 0,energy.size2()-1);
-		hhS.setSeedHandler(&sH);
+		hhS.setSeedHandler(sH);
 
 
 		//////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -242,7 +242,7 @@ TEST_CASE( "HelixHandlerStackingOnlySeed", "[HelixHandlerStackingOnly]" ) {
 		HelixHandlerStackingOnly hhS(energy, hC);
 
 		sH.fillSeed(0, energy.size1()-1, 0,energy.size2()-1);
-		hhS.setSeedHandler(&sH);
+		hhS.setSeedHandler(sH);
 
 
 		//////////////////////////////////////////////////////////////////////////////////////////////////////////

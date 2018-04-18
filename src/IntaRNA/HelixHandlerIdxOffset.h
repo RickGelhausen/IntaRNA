@@ -18,7 +18,7 @@ namespace IntaRNA {
  *
  * @author Rick Gelhausen
  */
-class HelixHandlerIdxOffset
+class HelixHandlerIdxOffset : public HelixHandler
 {
 
 public:
@@ -33,6 +33,14 @@ public:
 	 * destruction
 	 */
 	virtual ~HelixHandlerIdxOffset();
+
+	/**
+	 * Access to the underlying interaction energy function
+	 * @return the used energy function
+	 */
+	virtual
+	const InteractionEnergy&
+	getInteractionEnergy() const;
 
 	/**
 	 * Access to the currently used index offset for sequence 1
@@ -216,7 +224,7 @@ public:
 	 */
 	virtual
 	void
-	setSeedHandler( SeedHandlerIdxOffset & seedHandler);
+	setSeedHandler( SeedHandler & seedHandler);
 
 protected:
 
@@ -266,6 +274,16 @@ HelixHandlerIdxOffset::~HelixHandlerIdxOffset()
 		delete helixHandlerOriginal;
 		helixHandlerOriginal = NULL;
 	}
+}
+
+////////////////////////////////////////////////////////////////////////////
+
+inline
+const InteractionEnergy&
+HelixHandlerIdxOffset::
+getInteractionEnergy() const
+{
+	return helixHandlerOriginal->getInteractionEnergy();
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -443,19 +461,23 @@ setOffset2( const size_t offset )
 inline
 void
 HelixHandlerIdxOffset::
-setSeedHandler(SeedHandlerIdxOffset & seedHandler)
+setSeedHandler(SeedHandler & seedHandler)
 {
+	// cast input
 	SeedHandlerIdxOffset * shOffset = dynamic_cast<SeedHandlerIdxOffset*>(&seedHandler);
+
 #if INTARNA_IN_DEBUG_MODE
+	// sanity check
 	if (shOffset == NULL) {
 		throw std::runtime_error("HelixHandlerIdxOffset.setSeedHandler(). Given seedHandler is not of type SeedHandlerIdxOffset.");
 	}
 #endif
+
 	// store locally (might be useful later)
 	seedHandlerIdxOffset = shOffset;
 
 	// forward seedHandler to helixHandler
-	helixHandlerOriginal->setSeedHandler(seedHandlerIdxOffset->getOriginalSeedHandler());
+	helixHandlerOriginal->setSeedHandler( shOffset->getOriginalSeedHandler());
 }
 
 } // namespace
