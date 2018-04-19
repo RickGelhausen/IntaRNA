@@ -23,7 +23,7 @@ TEST_CASE( "HelixHandlerStackingOnlySeed", "[HelixHandlerStackingOnly]" ) {
 		ReverseAccessibility racc(acc2);
 		InteractionEnergyBasePair energy(acc1, racc);
 
-		HelixConstraint hC(2,4,0);
+		HelixConstraint hC(2,4,0, 0, false);
 
 		// seedBP / seedMaxUP / seedTMaxUP / seedQMaxUP / seedMaxE / seedMaxED / seedTRange / seedQRange / seedTQ
 		SeedConstraint sC(3,0,0,0,0
@@ -113,7 +113,7 @@ TEST_CASE( "HelixHandlerStackingOnlySeed", "[HelixHandlerStackingOnly]" ) {
 		ReverseAccessibility racc(acc2);
 		InteractionEnergyBasePair energy(acc1, racc);
 
-		HelixConstraint hC(2, 4, 0);
+		HelixConstraint hC(2, 4, 0, 0, false);
 
 		// seedBP / seedMaxUP / seedTMaxUP / seedQMaxUP / seedMaxE / seedMaxED / seedTRange / seedQRange / seedTQ
 		SeedConstraint sC(3, 0, 0, 0, 0, AccessibilityDisabled::ED_UPPER_BOUND, IndexRangeList(""), IndexRangeList(""),
@@ -166,7 +166,7 @@ TEST_CASE( "HelixHandlerStackingOnlySeed", "[HelixHandlerStackingOnly]" ) {
 		ReverseAccessibility racc(acc2);
 		InteractionEnergyBasePair energy(acc1, racc);
 
-		HelixConstraint hC(2, 4, 0);
+		HelixConstraint hC(2, 4, 0, 0, false);
 
 		// seedBP / seedMaxUP / seedTMaxUP / seedQMaxUP / seedMaxE / seedMaxED / seedTRange / seedQRange / seedTQ
 		SeedConstraint sC(3, 0, 0, 0, 0, AccessibilityDisabled::ED_UPPER_BOUND, IndexRangeList(""), IndexRangeList(""),
@@ -232,7 +232,7 @@ TEST_CASE( "HelixHandlerStackingOnlySeed", "[HelixHandlerStackingOnly]" ) {
 		ReverseAccessibility racc(acc2);
 		InteractionEnergyBasePair energy(acc1, racc);
 
-		HelixConstraint hC(2, 4, 0);
+		HelixConstraint hC(2, 4, 0, 0, false);
 
 		// seedBP / seedMaxUP / seedTMaxUP / seedQMaxUP / seedMaxE / seedMaxED / seedTRange / seedQRange / seedTQ
 		SeedConstraint sC(3, 2, 1, 1, 0, AccessibilityDisabled::ED_UPPER_BOUND, IndexRangeList(""), IndexRangeList(""),

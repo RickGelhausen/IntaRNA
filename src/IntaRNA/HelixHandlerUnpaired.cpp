@@ -137,10 +137,19 @@ fillHelix(const size_t i1min, const size_t i1max, const size_t i2min, const size
 				j1 = i1 + curBP - 1 + u1;
 				j2 = i2 + curBP - 1 + u2;
 
-				// get overall interaction energy
-				curE = energy.getE(i1, j1, i2, j2, getHelixE(i1 - offset1, i2 - offset2, curBP, u1, u2)) +
-					   energy.getE_init();
-
+				// skip if ED boundary exceeded and ED value computation is enabled
+				if (helixConstraint.withED())
+				{
+					if (energy.getED1(i1, j1) > helixConstraint.getMaxED()
+						|| energy.getED2(i2, j2) > helixConstraint.getMaxED()) {
+						continue;
+					}
+					// get overall interaction energy
+					curE = energy.getE(i1, j1, i2, j2, getHelixE(i1 - offset1, i2 - offset2, curBP, u1, u2)) +
+						   energy.getE_init();
+				} else {
+					curE = getHelixE(i1 - offset1, i2 - offset2, curBP, u1, u2) + energy.getE_init();
+				}
 				// check if better than what is known so far
 				if (curE < bestE) {
 					bestE = curE;

@@ -467,6 +467,10 @@ protected:
 	NumberParameter<int> helixMaxBP;
 	//! max overall unpaired in helix
 	NumberParameter<int> helixMaxUP;
+	//! minimal unpaired probability (per sequence) of a helix to be considered (used for maxED)
+	NumberParameter<E_type> helixMinPu;
+	//! whether or not ED values are added in the helix computation
+	bool helixWithED;
 	//! the final helix constraint to be used
 	mutable HelixConstraint * helixConstraint;
 
@@ -714,6 +718,12 @@ protected:
 	 * @param value the argument value to validate
 	 */
 	void validate_helixMaxUP(const int & value);
+
+	/**
+	 * Validates the helixMinPu argument.
+	 * @param value the argument value to validate
+	 */
+	void validate_helixMinPu(const E_type & value);
 
 	/**
 	 * Validates the target's region argument.
@@ -1466,8 +1476,6 @@ void CommandLineParsing::validate_helixMaxBP(const int &value) {
 	validate_numberArgument("helixMaxBP", helixMaxBP, value);
 }
 
-
-
 ////////////////////////////////////////////////////////////////////////////
 
 inline
@@ -1476,6 +1484,13 @@ void CommandLineParsing::validate_helixMaxUP(const int &value) {
 	validate_numberArgument("helixMaxUP", helixMaxUP, value);
 }
 
+////////////////////////////////////////////////////////////////////////////
+
+inline
+void CommandLineParsing::validate_helixMinPu(const E_type & value) {
+	// forward check to general method
+	validate_numberArgument("helixMinPu", helixMinPu, value);
+}
 
 ////////////////////////////////////////////////////////////////////////////
 

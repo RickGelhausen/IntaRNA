@@ -128,6 +128,8 @@ CommandLineParsing::CommandLineParsing()
 	helixMinBP(2,4,2),
 	helixMaxBP(2,10,10),
 	helixMaxUP(0,2,0),
+	helixMinPu(0,1,0),
+	helixWithED(false),
 	helixConstraint(NULL),
 
 	noSeedRequired(false),
@@ -396,6 +398,15 @@ CommandLineParsing::CommandLineParsing()
 					->notifier(boost::bind(&CommandLineParsing::validate_helixMaxUP, this,_1))
 			, std::string("maximal number of unpaired bases inside a helix"
 								  " (arg in range ["+toString(helixMaxUP.min)+","+toString(helixMaxUP.max)+"])").c_str())
+
+			("helixMinPu"
+			, value<E_type>(&(helixMinPu.val))
+					->default_value(helixMinPu.def)
+					->notifier(boost::bind(&CommandLineParsing::validate_helixMinPu, this,_1))
+			, std::string("minimal unpaired probability (per sequence) a helix may have"
+								  " (arg in range ["+toString(helixMinPu.min)+","+toString(helixMinPu.max)+"]).").c_str())
+
+			("withED", "if present, ED-values will be considered in helix computation")
 			;
 	opts_cmdline_short.add(opts_helix);
 
@@ -802,6 +813,13 @@ parse(int argc, char** argv)
 			if (helixMinBP.val > helixMaxBP.val) {
 				throw error("the minimum number of base pairs (" +toString(helixMinBP.val)+") is higher than the maximum number of base pairs (" +toString(helixMaxBP.val)+")");
 			}
+
+			// check for helixWithED
+			helixWithED = vm.count("helixWithED") > 0;
+			if (!helixWithED) {
+				if (helixMinPu.val != helixMinPu.def) LOG(INFO) << "no helix ED-value consideration wanted, but helixMinPu provided (will be ignored)";
+			}
+
 			// check seed setup
 			noSeedRequired = vm.count("noSeed") > 0;
 			if (noSeedRequired) {
@@ -1895,9 +1913,12 @@ getHelixConstraint(const InteractionEnergy &energy) const
 {
 	if (helixConstraint == NULL) {
 		// setup according to user data
-		helixConstraint = new HelixConstraint(helixMinBP.val,
-											  helixMaxBP.val,
-											  helixMaxUP.val
+		helixConstraint = new HelixConstraint(
+				  helixMinBP.val
+				, helixMaxBP.val
+				, helixMaxUP.val
+				, (helixMinPu.val>0 ? std::min<E_type>(Accessibility::ED_UPPER_BOUND, energy.getE( helixMinPu.val )) : Accessibility::ED_UPPER_BOUND) // transform unpaired prob to ED value
+				, helixWithED
 		);
 	}
 	return *helixConstraint;

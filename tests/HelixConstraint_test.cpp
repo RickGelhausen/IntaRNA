@@ -11,9 +11,10 @@ TEST_CASE( "HelixConstraint", "[HelixConstraint]" ) {
 
 	SECTION( "getter", "[HelixConstraint]" ) {
 
-		size_t minBP= 2, maxBP = 10, maxUP=2;
+		size_t minBP= 2, maxBP = 10, maxUP=2, maxED=0;
+		bool withED=false;
 
-		HelixConstraint hC( minBP, maxBP, maxUP );
+		HelixConstraint hC( minBP, maxBP, maxUP, maxED, withED);
 
 		// check data access
 		REQUIRE( hC.getMinBasePairs() == 2);
@@ -21,6 +22,8 @@ TEST_CASE( "HelixConstraint", "[HelixConstraint]" ) {
 		REQUIRE( hC.getMaxUnpaired() == 2);
 		REQUIRE( hC.getMaxLength1() == 12);
 		REQUIRE( hC.getMaxLength2() == 12);
+		REQUIRE( hC.getMaxED() == 0);
+		REQUIRE( hC.withED() == false);
 	}
 
 
