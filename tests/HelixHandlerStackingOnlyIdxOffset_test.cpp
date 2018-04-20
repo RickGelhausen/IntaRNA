@@ -316,17 +316,18 @@ TEST_CASE( "HelixHandlerIdxOffset for StackingOnly", "[HelixHandlerIdxOffset]") 
 		////////////////////////////////////////////   TRACEBACK   ///////////////////////////////////////////////
 		//////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+#if INTARNA_IN_DEBUG_MODE
+
 		// Case (0,0)
 		Interaction interaction(r1,r2);
-		hhIO.traceBackHelix(interaction,0,0);
+		REQUIRE_THROWS_WITH(hhIO.traceBackHelix(interaction, 0, 0), "HelixHandlerStackingOnly::traceBackHelix(i1=1,i2=1) no helix known (E_INF)");
 
-		REQUIRE(interaction.basePairs.size() == 0);
 
 		// Case (2,1)
 		interaction.clear();
-		hhIO.traceBackHelix(interaction,2,1);
+		REQUIRE_THROWS_WITH(hhIO.traceBackHelix(interaction, 2, 1), "HelixHandlerStackingOnly::traceBackHelix(i1=3,i2=2) no helix known (E_INF)");
 
-		REQUIRE(interaction.basePairs.size() == 0);
+#endif
 
 	}
 
@@ -435,14 +436,6 @@ TEST_CASE( "HelixHandlerIdxOffset for StackingOnly", "[HelixHandlerIdxOffset]") 
 		REQUIRE(interaction.basePairs.rbegin()->first == 3);
 		REQUIRE(interaction.basePairs.rbegin()->second == 5);
 
-		// Case (2,1) - Not Possible
-		//////////////////////
-
-		interaction.clear();
-		hhIO.traceBackHelix(interaction, 2, 1);
-
-		REQUIRE(interaction.basePairs.size() == 0);
-
 		// Case (5,5) - Possible but only 2 base pairs long (e.g no bp needs to be reported)
 		//////////////////////
 
@@ -450,6 +443,18 @@ TEST_CASE( "HelixHandlerIdxOffset for StackingOnly", "[HelixHandlerIdxOffset]") 
 		hhIO.traceBackHelix(interaction, 5, 5);
 
 		REQUIRE(interaction.basePairs.size() == 0);
+
+		// Exceptions are only thrown in debug mode
+#if INTARNA_IN_DEBUG_MODE
+
+		// Case (2,1) - Not Possible
+		//////////////////////
+
+		interaction.clear();
+
+		REQUIRE_THROWS_WITH(hhIO.traceBackHelix(interaction, 2, 1), "HelixHandlerStackingOnly::traceBackHelix(i1=4,i2=3) no helix known (E_INF)");
+
+#endif
 	}
 
 	SECTION("Helix with Offset: Case 4 - uneven offset", "[HelixHandlerIdxOffset]") {
@@ -539,14 +544,6 @@ TEST_CASE( "HelixHandlerIdxOffset for StackingOnly", "[HelixHandlerIdxOffset]") 
 		REQUIRE(interaction.basePairs.rbegin()->first == 2);
 		REQUIRE(interaction.basePairs.rbegin()->second == 1);
 
-		// Case (2,1) - Not Possible
-		//////////////////////
-
-		interaction.clear();
-		hhIO.traceBackHelix(interaction, 3, 2);
-
-		REQUIRE(interaction.basePairs.size() == 0);
-
 		// Case (5,5) - Possible but only 2 base pairs long (e.g no bp needs to be reported)
 		//////////////////////
 
@@ -554,5 +551,15 @@ TEST_CASE( "HelixHandlerIdxOffset for StackingOnly", "[HelixHandlerIdxOffset]") 
 		hhIO.traceBackHelix(interaction, 2, 1);
 
 		REQUIRE(interaction.basePairs.size() == 0);
+
+		// Exceptions are only thrown in debug mode
+#if INTARNA_IN_DEBUG_MODE
+		// Case (3,2) - Not Possible
+		//////////////////////
+
+		interaction.clear();
+		REQUIRE_THROWS_WITH(hhIO.traceBackHelix(interaction, 3, 2), "HelixHandlerStackingOnly::traceBackHelix(i1=4,i2=4) no helix known (E_INF)");
+
+#endif
 	}
 }

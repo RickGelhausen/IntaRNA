@@ -19,20 +19,27 @@ fillHelix(const size_t i1min, const size_t i1max, const size_t i2min, const size
 #endif
 
 	helix.resize( i1max-i1min+1, i2max-i2min+1 );
+	helixE_rec.resize( HelixIndex({{(HelixRecMatrix::index)(helix.size1())
+										   , (HelixRecMatrix::index)(helix.size2())
+										   , (HelixRecMatrix::index)(getConstraint().getMaxBasePairs()+1)}}));
+
+	// Initialize helixE_rec with E_INF in order to ensure that skipped values are not considered.
+	std::fill( helixE_rec.origin(), helixE_rec.origin() + helixE_rec.num_elements(), E_INF);
 
 	// store index offset due to restricted matrix size generation
 	offset1 = i1min;
 	offset2 = i2min;
 
 	// temporary variables
-	size_t i1, i2, curBP, j1, j2;
+	size_t i1, i2, curBP, j1, j2, k1, k2, bestBP;
+	E_type curE, bestE;
 
-	size_t  helixCountNotInf = 0, helixCount = 0;
+	size_t helixCountNotInf = 0, helixCount = 0;
 
 	// fill for all start indices
-	// in increasing index order
-	for (i1=i1min; i1 < i1max+1; i1++ ) {
-	for (i2=i2min; i2 < i2max+1; i2++ ) {
+	// in decreasing index order
+	for (i1=i1max+1; i1-- > i1min;) {
+	for (i2=i2max+1; i2-- > i2min;) {
 
 		// count possible helices
 		helixCount++;
@@ -50,30 +57,83 @@ fillHelix(const size_t i1min, const size_t i1max, const size_t i2min, const size
 		for (curBP=2; curBP < helixConstraint.getMaxBasePairs()+1 && (i1+curBP-1-offset1<helix.size1())
 					  											  && (i2+curBP-1-offset2<helix.size2()); curBP++) {
 
+			// right helix boundaries
 			j1 = i1+curBP-1;
 			j2 = i2+curBP-1;
 
-			// if next base pair is not complementary skip to next (i1,i2)
-			if (!energy.areComplementary(j1,j2)) {
+			// init current helix energy
+			curE = E_INF;
+
+			// Check whether right boundaries are complementary
+			if (energy.areComplementary(j1,j2)) {
+				// base case: only left and right base pair present
+				if (curBP == 2) {
+					curE = energy.getE_interLeft(i1,j1,i2,j2);
+				} else {
+					// splitting base pair
+					k1 = i1 + 1;
+					k2 = i2 + 1;
+
+					// check if split pair is complementary
+					// and recursed entry is < E_INF
+					if (!(energy.areComplementary(k1,k2)) && E_isNotINF(getHelixE(k1-offset1, k2-offset2, curBP-1))) {
+						continue; // not complementary -> skip
+					}
+
+					// update mfe for split at k1,k2
+					curE = energy.getE_interLeft(i1,k1,i2,k2) + getHelixE(k1-offset1, k2-offset2, curBP-1);
+				}
+			} else {
 				break;
 			}
+			// store helix energy
+			setHelixE(i1-offset1, i2-offset2, curBP, curE);
 
-			// Calculate next energy
-			leftHelixE += energy.getE_interLeft(j1-1,j1, j2-1,j2);
+		} // curBP
 
+		// find best combination in helix for i1, i2, bp
+		bestBP = 0;
+		bestE = E_INF;
 
-			// check whether this helix has best energy and is within lower boundary
-			if (leftHelixE < helix(i1-offset1,i2-offset2).first && curBP >= helixConstraint.getMinBasePairs() && leftHelixE != 0.0 ) {
-				helix(i1-offset1, i2-offset2) = HelixMatrix::value_type( leftHelixE, encodeHelixLength(curBP, curBP) );
+		// Calculate energy for all different number of base pairs
+		// Ensure minimum number of base pairs
+		for (curBP = helixConstraint.getMinBasePairs(); curBP < helixConstraint.getMaxBasePairs() + 1
+														&& (i1+curBP-1-offset1) < helix.size1()
+														&& (i2+curBP-1-offset2) < helix.size2(); curBP++) {
+			// right helix boundaries
+			j1 = i1 + curBP-1;
+			j2 = i2 + curBP-1;
+
+			// skip if ED boundary exceeded and ED value computation is disabled
+			if (helixConstraint.withED())
+			{
+				if (energy.getED1(i1, j1) > helixConstraint.getMaxED()
+					|| energy.getED2(i2, j2) > helixConstraint.getMaxED()) {
+					continue;
+				}
+
+				// get overall interaction energy
+				curE = energy.getE(i1,i2,j1,j2,getHelixE(i1-offset1, i2-offset2, curBP)) + energy.getE_init();
+			} else {
+				curE = getHelixE(i1-offset1, i2-offset2, curBP) + energy.getE_init();
+ 			}
+			// check if better than what is know so far
+			if (curE < bestE) {
+				bestE = curE;
+				bestBP = curBP;
 			}
-		}
+		} // curBP
 
-		// Ensures that the helixCount is only inceased for the mfe helix.
-		if (E_isNotINF(helix(i1-offset1, i2-offset2).first)) {
-			// count possible helices
+		// reduce bestE to hybridization energy only (init+loops)
+		if (E_isNotINF(bestE)) {
+			// get helix hybridization loop energies only
+			bestE = getHelixE(i1-offset1, i2-offset2, bestBP);
+			// count true helix
 			helixCountNotInf++;
 		}
 
+		// store best (mfe) helix for left boundary i1, i2
+		helix(i1-offset1, i2-offset2) = HelixMatrix::value_type(bestE, E_isINF(bestE) ? 0: encodeHelixLength(bestBP, bestBP));
 	} // i2
 	} // i1
 
@@ -91,24 +151,18 @@ void
 HelixHandlerStackingOnly::
 traceBackHelix( Interaction & interaction
 		, const size_t i1_
-		, const size_t i2_)
+		, const size_t i2_
+		, const size_t bp)
 {
 
 	// get boundaries
-	size_t 	  i1 = i1_-offset1
-	, i2 = i2_-offset2;
-
-	// Get base pair length of best interaction
-	size_t numberOfBP = decodeHelixLength1(helix(i1,i2).second);
-
-	// Check whether minimum requirement met to avoid unexpected behavior
-	if (numberOfBP < helixConstraint.getMinBasePairs())
-		return;
+	size_t 	  i1 = i1_
+	, i2 = i2_;
 
 	// trace helices
 	// trace each helix base pair (excluding right most)
-	for (size_t bp = 0; bp < numberOfBP-1; bp++) {
-		if (i1 != i1_-offset1) {
+	for (size_t curBP = 0; curBP < bp-1; curBP++) {
+		if (i1 != i1_) {
 			interaction.basePairs.push_back(energy.getBasePair(i1+offset1, i2+offset2));
 		}
 		i1++;

@@ -79,7 +79,7 @@ fillHelix(const size_t i1min, const size_t i1max, const size_t i2min, const size
 						// energy for stacking/bulge/interior depending on u1/u2
 						curE = energy.getE_interLeft(i1, j1, i2, j2);
 
-						} else {
+					} else {
 						// split helix recursively into all possible leading interior loops
 						// i1 .. i1+u1p+1 .. j1
 						// i2 .. i2+u2p+1 .. j2
@@ -137,7 +137,7 @@ fillHelix(const size_t i1min, const size_t i1max, const size_t i2min, const size
 				j1 = i1 + curBP - 1 + u1;
 				j2 = i2 + curBP - 1 + u2;
 
-				// skip if ED boundary exceeded and ED value computation is enabled
+				// skip if ED boundary exceeded and ED value computation is disabled
 				if (helixConstraint.withED())
 				{
 					if (energy.getED1(i1, j1) > helixConstraint.getMaxED()

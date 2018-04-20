@@ -19,6 +19,15 @@ class HelixHandlerStackingOnly : public HelixHandler {
 
 public:
 
+	//! 3D matrix type to hold the mfe energies for helix interactions
+	//! of the ranges i1..(i1+bp-1) and i2..(i2+bp-1) with
+	//! i1,i2 = start indices of the helix in seq1/2 respectively
+	//! bp = the number of base pairs within this helix
+	typedef boost::multi_array<E_type, 3> HelixRecMatrix;
+
+	//! defines the helix data (( i1, i2, bp )) to access elements of the HelixRecMatrix
+	typedef boost::array<HelixRecMatrix::index, 3> HelixIndex;
+
 	//! matrix to store the helix information for each helix left side (i1, i2)
 	//! it holds both the energy (first) as well as the length of the helix using
 	//! the length combination of encodeHelixLength()
@@ -175,6 +184,29 @@ public:
 
 protected:
 	/**
+	 * Provides the helix energy during the recursion
+	 *
+	 * @param i1 the helix left end in seq 1 (index including offset)
+	 * @param i2 the helix left end in seq 2 (index including offset)
+	 * @param bp the number of base pairs
+	 *
+	 * @return the energy of the according helix
+	 */
+	E_type
+	getHelixE(const size_t i1, const size_t i2, const size_t bp);
+
+	/**
+	 * Fills the helix energy during the recursion
+	 *
+	 * @param i1 the helix left end in seq 1 (index including offset)
+	 * @param i2 the helix left end in seq 2 (index including offset)
+	 * @param bp the number of base pairs
+	 * @param E the energy value to be set
+	 */
+	void
+	setHelixE( const size_t i1, const size_t i2, const size_t bp, const E_type E );
+
+	/**
 	 * Encodes the seed lengths into one number
 	 * @param l1 the length of the seed in seq1
 	 * @param l2 the length of the seed in seq2
@@ -228,6 +260,18 @@ protected:
 	size_t
 	decodeHelixSeedLength2( const size_t code ) const;
 
+	/**
+	 * Fills a given interaction with the according
+	 * hybridizing base pairs of the provided helix interaction
+	 *
+	 * @param interaction IN/OUT the interaction to fill
+	 * @param i1 the helix left end in seq 1 (index including offset)
+	 * @param i2 the helix left end in seq 2 (index including offset)
+	 * @param bp the number of base pairs
+	 */
+	void
+	traceBackHelix( Interaction & interaction
+			, const size_t i1, const size_t i2, const size_t bp);
 
 protected:
 
@@ -236,6 +280,12 @@ protected:
 
 	//! the helix constraint to be applied
 	const HelixConstraint & helixConstraint;
+
+	//! the recurstion data for the cimputation of a helix interaction
+	//! bp = the number of base pairs
+	//! i1..(i1+bp-1) and i2..(i2+bp-1)
+	//! using the indexing [i1][i2][bp]
+	HelixRecMatrix helixE_rec;
 
 	//! the helix mfe information for helix starting at (i1, i2)
 	HelixMatrix helix;
@@ -249,7 +299,7 @@ protected:
 	//! offset for seq2 indices for the current matrices
 	size_t offset2;
 
-
+	// seedHandler used in helixSeed computation
 	SeedHandler * seedHandler;
 };
 
@@ -266,7 +316,6 @@ HelixHandlerStackingOnly::HelixHandlerStackingOnly(
 		:
 		energy(energy)
 		, helixConstraint(helixConstraint)
-		, seedHandler(seedHandler)
 		, helix()
 		, helixSeed()
 		, offset1(0)
@@ -307,6 +356,32 @@ getConstraint() const
 ////////////////////////////////////////////////////////////////////////////
 
 inline
+void
+HelixHandlerStackingOnly::
+traceBackHelix(Interaction &interaction
+		, const size_t i1
+		, const size_t i2
+)
+{
+#if INTARNA_IN_DEBUG_MODE
+	if ( i1 < offset1 ) throw std::runtime_error("HelixHandlerStackingOnly::traceBackHelix(i1="+toString(i1)+") is out of range (>"+toString(offset1)+")");
+	if ( i1-offset1 >= helix.size1() ) throw std::runtime_error("HelixHandlerStackingOnly::traceBackHelix(i1="+toString(i1)+") is out of range (<"+toString(helix.size1()+offset1)+")");
+	if ( i2 < offset2 ) throw std::runtime_error("HelixHandlerStackingOnly::traceBackHelix(i2="+toString(i2)+") is out of range (>"+toString(offset2)+")");
+	if ( i2-offset2 >= helix.size2() ) throw std::runtime_error("HelixHandlerStackingOnly::traceBackHelix(i2="+toString(i2)+") is out of range (<"+toString(helix.size2()+offset2)+")");
+	if ( E_isINF( getHelixE(i1,i2) ) ) throw std::runtime_error("HelixHandlerStackingOnly::traceBackHelix(i1="+toString(i1)+",i2="+toString(i2)+") no helix known (E_INF)");
+	if ( i1+getHelixLength1(i1,i2)-1-offset1 >= helix.size1() ) throw std::runtime_error("HelixHandlerStackingOnly::traceBackHelix(i1="+toString(i1)+") helix length ("+toString(getHelixLength1(i1,i2))+") exceeds of range (<"+toString(helix.size1()+offset1)+")");
+	if ( i2+getHelixLength2(i1,i2)-1-offset2 >= helix.size2() ) throw std::runtime_error("HelixHandlerStackingOnly::traceBackHelix(i2="+toString(i2)+") helix length ("+toString(getHelixLength2(i1,i2))+") exceeds of range (<"+toString(helix.size2()+offset2)+")");
+#endif
+	// get number of base pairs for best helix
+	const size_t bestBP = getHelixLength1(i1,i2);
+
+	// trace back the according helix
+	traceBackHelix( interaction, i1-offset1, i2-offset2, bestBP);
+}
+
+////////////////////////////////////////////////////////////////////////////
+
+inline
 E_type
 HelixHandlerStackingOnly::
 getHelixE(const size_t i1, const size_t i2) const
@@ -322,6 +397,28 @@ HelixHandlerStackingOnly::
 getHelixSeedE(const size_t i1, const size_t i2) const
 {
 	return helixSeed(i1-offset1, i2-offset2).first;
+}
+
+////////////////////////////////////////////////////////////////////////////
+inline
+E_type
+HelixHandlerStackingOnly::
+getHelixE(const size_t i1, const size_t i2, const size_t bp)
+{
+	return helixE_rec( HelixIndex({{(HelixRecMatrix::index) i1
+										   , (HelixRecMatrix::index) i2
+										   , (HelixRecMatrix::index) bp}}));
+}
+
+////////////////////////////////////////////////////////////////////////////
+inline
+void
+HelixHandlerStackingOnly::
+setHelixE(const size_t i1, const size_t i2, const size_t bp, const E_type E)
+{
+	helixE_rec(HelixIndex({{ (HelixRecMatrix::index) i1
+								   , (HelixRecMatrix::index) i2
+								   , (HelixRecMatrix::index) bp}})) = E;
 }
 
 ////////////////////////////////////////////////////////////////////////////
