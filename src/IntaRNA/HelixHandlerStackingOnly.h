@@ -122,6 +122,7 @@ public:
 	 * @param i1 the left most interaction base of seq1
 	 * @param i2 the left most interaction base of seq2
 	 * @return the mfe of any helix starting at (i1,i2) or E_INF if none possible
+	 * 			or return 0 if bp is 0 or 1 (used in helixHandlerSeed computation to avoid too many conditions)
 	 */
 	virtual
 	E_type getHelixE( const size_t i1, const size_t i2 ) const;
@@ -405,9 +406,13 @@ E_type
 HelixHandlerStackingOnly::
 getHelixE(const size_t i1, const size_t i2, const size_t bp)
 {
-	return helixE_rec( HelixIndex({{(HelixRecMatrix::index) i1
-										   , (HelixRecMatrix::index) i2
-										   , (HelixRecMatrix::index) bp}}));
+	// if no base pair is given return 0 in order to simplify helixHandlerSeed computation.
+	if (bp <= 1) {
+		return 0;
+	} else {
+		return helixE_rec(
+				HelixIndex({{(HelixRecMatrix::index) i1, (HelixRecMatrix::index) i2, (HelixRecMatrix::index) bp}}));
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////

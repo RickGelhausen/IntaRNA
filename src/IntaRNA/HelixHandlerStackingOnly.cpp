@@ -8,6 +8,7 @@ size_t
 HelixHandlerStackingOnly::
 fillHelix(const size_t i1min, const size_t i1max, const size_t i2min, const size_t i2max)
 {
+	LOG(DEBUG) << "HELIX START";
 
 #if INTARNA_IN_DEBUG_MODE
 	if ( i1min > i1max ) throw std::runtime_error("HelixHandlerStackingOnly::fillHelix: i1min("+toString(i1min)+") > i1max("+toString(i1max)+")");
@@ -52,7 +53,6 @@ fillHelix(const size_t i1min, const size_t i1max, const size_t i2min, const size
 			continue; // go to next helixE index
 		}
 
-		E_type leftHelixE = 0.0;
 		// screen over all possible base pair combinations (starting at 2)
 		for (curBP=2; curBP < helixConstraint.getMaxBasePairs()+1 && (i1+curBP-1-offset1<helix.size1())
 					  											  && (i2+curBP-1-offset2<helix.size2()); curBP++) {
@@ -86,6 +86,7 @@ fillHelix(const size_t i1min, const size_t i1max, const size_t i2min, const size
 			} else {
 				break;
 			}
+			LOG(DEBUG) << "i1, i2, curBP, curE: " << i1 << " " << i2 << " " << curBP << " " << curE;
 			// store helix energy
 			setHelixE(i1-offset1, i2-offset2, curBP, curE);
 
@@ -155,7 +156,7 @@ traceBackHelix( Interaction & interaction
 		, const size_t bp)
 {
 
-	// get boundaries
+		// get boundaries
 	size_t 	  i1 = i1_
 	, i2 = i2_;
 
