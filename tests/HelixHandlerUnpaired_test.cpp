@@ -544,6 +544,8 @@ TEST_CASE( "HelixHandlerUnpaired", "[HelixHandlerUnpaired]") {
 		////////////////////////////////////////////   TRACEBACK   ///////////////////////////////////////////////
 		//////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+		// Exceptions are only thrown in debug mode
+#if INTARNA_IN_DEBUG_MODE
 
 		// Case (0,0)
 		//////////////////////
@@ -556,6 +558,7 @@ TEST_CASE( "HelixHandlerUnpaired", "[HelixHandlerUnpaired]") {
 		interaction.clear();
 
 		REQUIRE_THROWS_WITH(hhU.traceBackHelix(interaction, 1, 3), "HelixHandlerUnpaired::traceBackHelix(i1=1,i2=3) no helix known (E_INF)");
+#endif
 
 	}
 
