@@ -36,6 +36,7 @@ public:
 	//! the length combination of encodeHelixLength()
 	//! The third entry is the bestBP, i.e. the optimal number of bases for this left boundary
 	typedef boost::numeric::ublas::matrix< std::tuple<E_type, size_t, size_t> > HelixMatrix;
+	typedef boost::numeric::ublas::matrix< std::pair<E_type, size_t> > HelixSeedMatrix;
 
 public:
 
@@ -109,8 +110,10 @@ public:
 	traceBackHelix( Interaction & interaction, const size_t i1, const size_t i2);
 
 	/**
-	 * Identifies the base pairs of the mfe helix interaction, constaining a seed, starting at i1,i2
+	 * Identifies the base pairs of the mfe helix interaction starting at i1,i2
 	 * and writes them to the provided container
+	 *
+	 * Note: the right most base pair is excluded!
 	 *
 	 * @param interaction the container to add the base pairs too
 	 * @param i1 the start of the helix in seq1
@@ -224,34 +227,7 @@ protected:
 	void
 	setHelixE( const size_t i1, const size_t i2, const size_t bp
 				, const size_t u1, const size_t u2, const E_type E );
-	/**
-	 * Provides the helix energy during recursion
-	 *
-	 * @param i1 the helix left end in seq 1 (index including offset)
-	 * @param i2 the helix left end in seq 2 (index including offset)
-	 * @param bp the number of base pairs
-	 * @param u1 the number of unpaired bases within seq 1
-	 * @param u2 the number of unpaired bases within seq 2
-	 *
-	 * @return the energy of the according helix
-	 */
-	E_type
-	getHelixSeedE( const size_t i1, const size_t i2, const size_t bp, const size_t u1, const size_t u2 );
 
-
-	/**
-	 * Fills the helix energy during recursion
-	 *
-	 * @param i1 the helix left end in seq 1 (index including offset)
-	 * @param i2 the helix left end in seq 2 (index including offset)
-	 * @param bp the number of base pairs
-	 * @param u1 the number of unpaired bases within seq 1
-	 * @param u2 the number of unpaired bases within seq 2
-	 * @param E the energy value to be set
-	 */
-	void
-	setHelixSeedE( const size_t i1, const size_t i2, const size_t bp
-			, const size_t u1, const size_t u2, const E_type E );
 
 	/**
 	 * Encodes the helix lengths into one number
@@ -324,21 +300,7 @@ protected:
 			, const size_t i1, const size_t i2, const size_t bp
 			, const size_t u1, const size_t u2 );
 
-	/**
-	 * Fills a given interaction with the according
-	 * hybridizing base pairs of the provided helix interaction
-	 *
-	 * @param interaction IN/OUT the interaction to fill
-	 * @param i1 the helix left end in seq 1 (index including offset)
-	 * @param i2 the helix left end in seq 2 (index including offset)
-	 * @param bp the number of base pairs (bestBP)
-	 * @param u1 the number of unpaired bases within seq 1
-	 * @param u2 the number of unpaired bases within seq 2
-	 */
-	void
-	traceBackHelixSeed( Interaction & interaction
-			, const size_t i1, const size_t i2, const size_t bp
-			, const size_t u1, const size_t u2 );
+
 
 
 
@@ -356,17 +318,11 @@ protected:
 	//! using the indexing [i1][i2][bp][u1][u2]
 	HelixRecMatrix helixE_rec;
 
-	//! the recursion data for the computation of a helix interaction
-	//! bp: the number of bases
-	//! i1..(i1+bp+u1-1) and i2..(i2+bp+u2-1)
-	//! using the indexing [i1][i2][bp][u1][u2]
-	HelixRecMatrix helixSeedE_rec;
-
 	//! the helix mfe information for helix starting at (i1, i2)
 	HelixMatrix helix;
 
 	//! the helix mfe information for helix with seed starting at (i1, i2)
-	HelixMatrix helixSeed;
+	HelixSeedMatrix helixSeed;
 
 	//! offset for seq1 indices for the current matrices
 	size_t offset1;
@@ -394,7 +350,6 @@ HelixHandlerUnpaired::HelixHandlerUnpaired(
 		, helixConstraint(helixConstraint)
 		, seedHandler(seedHandler)
 		, helixE_rec( HelixIndex({{ 0, 0, 0, 0, 0 }}))
-		, helixSeedE_rec( HelixIndex({{ 0, 0, 0, 0, 0 }}))
 		, helix()
 		, helixSeed()
 		, offset1(0)
@@ -459,34 +414,7 @@ HelixHandlerUnpaired::traceBackHelix(Interaction &interaction
 			, getHelixLength1(i1,i2)-bestBP
 			, getHelixLength2(i1,i2)-bestBP);
 }
-////////////////////////////////////////////////////////////////////////////
 
-inline
-void
-HelixHandlerUnpaired::traceBackHelixSeed(Interaction &interaction
-		, const size_t i1
-		, const size_t i2
-)
-{
-	INTARNA_NOT_IMPLEMENTED("Seed for unpaired not yet implemented");
-#if INTARNA_IN_DEBUG_MODE
-	if ( i1 < offset1 ) throw std::runtime_error("HelixHandlerUnpaired::traceBackHelixSeed(i1="+toString(i1)+") is out of range (>"+toString(offset1)+")");
-	if ( i1-offset1 >= helix.size1() ) throw std::runtime_error("HelixHandlerUnpaired::traceBackHelixSeed(i1="+toString(i1)+") is out of range (<"+toString(helix.size1()+offset1)+")");
-	if ( i2 < offset2 ) throw std::runtime_error("HelixHandlerUnpaired::traceBackHelixSeed(i2="+toString(i2)+") is out of range (>"+toString(offset2)+")");
-	if ( i2-offset2 >= helix.size2() ) throw std::runtime_error("HelixHandlerUnpaired::traceBackHelixSeed(i2="+toString(i2)+") is out of range (<"+toString(helix.size2()+offset2)+")");
-	if ( E_isINF( getHelixE(i1,i2) ) ) throw std::runtime_error("HelixHandlerUnpaired::traceBackHelixSeed(i1="+toString(i1)+",i2="+toString(i2)+") no helix known (E_INF)");
-	if ( i1+getHelixLength1(i1,i2)-1-offset1 >= helix.size1() ) throw std::runtime_error("HelixHandlerUnpaired::traceBackHelixSeed(i1="+toString(i1)+") helix length ("+toString(getHelixLength1(i1,i2))+") exceeds of range (<"+toString(helix.size1()+offset1)+")");
-	if ( i2+getHelixLength2(i1,i2)-1-offset2 >= helix.size2() ) throw std::runtime_error("HelixHandlerUnpaired::traceBackHelixSeed(i2="+toString(i2)+") helix length ("+toString(getHelixLength2(i1,i2))+") exceeds of range (<"+toString(helix.size2()+offset2)+")");
-#endif
-	// get number of base pairs allowed within the helix
-	const size_t bestBP = getBestBP(i1,i2);
-
-	// trace back the according helix
-	traceBackHelixSeed( interaction, i1-offset1, i2-offset2
-			, bestBP
-			, getHelixLength1(i1,i2)-bestBP
-			, getHelixLength2(i1,i2)-bestBP);
-}
 ////////////////////////////////////////////////////////////////////////////
 
 inline
@@ -504,7 +432,7 @@ E_type
 HelixHandlerUnpaired::
 getHelixSeedE(const size_t i1, const size_t i2) const
 {
-	return std::get<0>(helixSeed(i1-offset1, i2-offset2));
+	return helixSeed(i1-offset1, i2-offset2).first;
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -534,7 +462,7 @@ size_t
 HelixHandlerUnpaired::
 getHelixSeedLength1(const size_t i1, const size_t i2) const
 {
-	return decodeHelixSeedLength1(std::get<1>(helix(i1-offset1, i2-offset2)));
+	return decodeHelixSeedLength1(helixSeed(i1-offset1, i2-offset2).second);
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -544,7 +472,7 @@ size_t
 HelixHandlerUnpaired::
 getHelixSeedLength2(const size_t i1, const size_t i2) const
 {
-	return decodeHelixSeedLength2(std::get<1>(helix(i1-offset1, i2-offset2)));
+	return decodeHelixSeedLength2(helixSeed(i1-offset1, i2-offset2).second);
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -565,12 +493,12 @@ HelixHandlerUnpaired::
 getHelixE(const size_t i1, const size_t i2, const size_t bp
 		, const size_t u1, const size_t u2)
 {
-	return helixE_rec( HelixIndex({{
-				   (HelixRecMatrix::index) i1
-				   , (HelixRecMatrix::index) i2
-				   , (HelixRecMatrix::index) bp
-				   , (HelixRecMatrix::index) u1
-				   , (HelixRecMatrix::index) u2}}) );
+	// if no base pair is given return 0 in order to simplify helixHandlerSeed computation.
+	if (bp <= 1) {
+		return 0;
+	} else {
+		return helixE_rec(HelixIndex({{(HelixRecMatrix::index) i1, (HelixRecMatrix::index) i2, (HelixRecMatrix::index) bp, (HelixRecMatrix::index) u1, (HelixRecMatrix::index) u2}}));
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -587,38 +515,6 @@ setHelixE(const size_t i1, const size_t i2, const size_t bp
 			, (HelixRecMatrix::index) bp
 			, (HelixRecMatrix::index) u1
 			, (HelixRecMatrix::index) u2}}) ) = E;
-}
-
-////////////////////////////////////////////////////////////////////////////
-
-inline
-E_type
-HelixHandlerUnpaired::
-getHelixSeedE(const size_t i1, const size_t i2, const size_t bp
-		, const size_t u1, const size_t u2)
-{
-	return helixSeedE_rec( HelixIndex({{
-										   (HelixRecMatrix::index) i1
-										   , (HelixRecMatrix::index) i2
-										   , (HelixRecMatrix::index) bp
-										   , (HelixRecMatrix::index) u1
-										   , (HelixRecMatrix::index) u2}}) );
-}
-
-////////////////////////////////////////////////////////////////////////////
-
-inline
-void
-HelixHandlerUnpaired::
-setHelixSeedE(const size_t i1, const size_t i2, const size_t bp
-		, const size_t u1, const size_t u2, const E_type E)
-{
-	helixSeedE_rec( HelixIndex({{
-									(HelixRecMatrix::index) i1
-									, (HelixRecMatrix::index) i2
-									, (HelixRecMatrix::index) bp
-									, (HelixRecMatrix::index) u1
-									, (HelixRecMatrix::index) u2}}) ) = E;
 }
 
 ////////////////////////////////////////////////////////////////////////////

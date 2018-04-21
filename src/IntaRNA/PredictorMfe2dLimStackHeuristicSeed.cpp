@@ -151,7 +151,7 @@ predict( const IndexRange & r1
 		if ( E_isNotINF( helixHandler.getHelixSeedE(i1,i2) ) ) {
 			// helixHandlerSeed Lengths
 			h1 = helixHandler.getHelixSeedLength1(i1,i2)-1; assert(i1+h1 < hybridE_seed.size1());
-			h2 = helixHandler.getHelixSeedLength2(i1,i2)-1; assert(i2+h1 < hybridE_seed.size2());
+			h2 = helixHandler.getHelixSeedLength2(i1,i2)-1; assert(i2+h2 < hybridE_seed.size2());
 
 			///////////////////////////////////////////////////////////////////
 			// Case: Helix_seed + E_init

@@ -9,6 +9,7 @@ size_t
 SeedHandlerMfe::
 fillSeed( const size_t i1min, const size_t i1max, const size_t i2min, const size_t i2max)
 {
+	LOG(DEBUG) << "FILLING HELIX";
 #if INTARNA_IN_DEBUG_MODE
 	if ( i1min > i1max ) throw std::runtime_error("SeedHandlerMfe::fillSeed: i1min("+toString(i1min)+") > i1max("+toString(i1max)+")");
 	if ( i2min > i2max ) throw std::runtime_error("SeedHandlerMfe::fillSeed: i2min("+toString(i2min)+") > i2max("+toString(i2max)+")");
@@ -174,6 +175,7 @@ fillSeed( const size_t i1min, const size_t i1max, const size_t i2min, const size
 					}
 				}
 
+				LOG(DEBUG) << "i1, i2, bestE: " << i1 << " " << i2 << " " << bestE;
 				// store best (mfe) seed for all u1/u2
 				seed(i1-offset1,i2-offset2) = SeedMatrix::value_type( bestE
 						, E_isINF(bestE)?0:encodeSeedLength(bpIn+2+u1best,bpIn+2+u2best) );
