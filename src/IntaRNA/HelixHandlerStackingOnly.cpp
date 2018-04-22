@@ -8,7 +8,6 @@ size_t
 HelixHandlerStackingOnly::
 fillHelix(const size_t i1min, const size_t i1max, const size_t i2min, const size_t i2max)
 {
-//	LOG(DEBUG) << "HELIX START";
 
 #if INTARNA_IN_DEBUG_MODE
 	if ( i1min > i1max ) throw std::runtime_error("HelixHandlerStackingOnly::fillHelix: i1min("+toString(i1min)+") > i1max("+toString(i1max)+")");
@@ -86,7 +85,7 @@ fillHelix(const size_t i1min, const size_t i1max, const size_t i2min, const size
 			} else {
 				break;
 			}
-//			LOG(DEBUG) << "i1, i2, curBP, curE: " << i1-offset1 << " " << i2-offset2 << " " << curBP << " " << curE;
+
 			// store helix energy
 			setHelixE(i1-offset1, i2-offset2, curBP, curE);
 

@@ -108,7 +108,7 @@ fillHelix(const size_t i1min, const size_t i1max, const size_t i2min, const size
 
 				// store helix energy
 				setHelixE(i1 - offset1, i2 - offset2, curBP, u1, u2, curE);
-//				LOG(DEBUG) << "i1,i2,curBP,u1,u2,curE: " << i1 << " " << i2 << " " << curBP << " " << u1 << " " << u2 << " " << curE;
+
 			} // u2
 			} // u1
 
@@ -167,7 +167,7 @@ fillHelix(const size_t i1min, const size_t i1max, const size_t i2min, const size
 			// count true helix
 			helixCountNotInf++;
 		}
-//		LOG(DEBUG) << "i1, i2, bestE, bestBP, u1best, u2best: " << i1 << " " << i2 << " " << bestE << " " << bestBP << " " << u1best << " " << u2best;
+
 		// store best (mfe) helix for all u1/u2
 		helix(i1 - offset1, i2 - offset2) = HelixMatrix::value_type(bestE,
 																	E_isINF(bestE) ? 0 : encodeHelixLength(
