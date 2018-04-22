@@ -121,7 +121,11 @@ fillHelixSeed(const size_t i1min, const size_t i1max, const size_t i2min, const 
 							curE = tmpE;
 							bestL1 = leadingBP + u1L + seedHandler->getSeedLength1(seedStart1, seedStart2) + trailingBP + u1T;
 							bestL2 = leadingBP + u2L + seedHandler->getSeedLength2(seedStart1, seedStart2) + trailingBP + u2T;
-						}
+							LOG(DEBUG) << "leadingBP,u1L,u2L,seedL1,seedL2,trailingBP,u1T,u2T,curE: " << leadingBP << " " << u1L << " " << u2L << " "
+									   << seedHandler->getSeedLength1(seedStart1, seedStart2) << " " << seedHandler->getSeedLength2(seedStart1, seedStart2)
+									   << " " << trailingBP << " " << u1T << " " << u2T << " " << curE;
+							LOG(DEBUG) << "BestL1, BestL2: "<< bestL1 << " " << bestL2;
+ 						}
 						LOG(DEBUG) << "-";
 					} // u2T
 					} // u1T
@@ -162,7 +166,7 @@ traceBackHelixSeed( Interaction & interaction
 	bool traceNotFound = true;
 
 	E_type curE = getHelixSeedE(i1_,i2_);
-
+	LOG(DEBUG) << "i1, i2, curE: " << i1_<< " " << i2_ << " " << curE;
 	// No traceback possible for current boundary
 	if (E_isINF(curE)) {
 		return;
@@ -210,7 +214,7 @@ traceBackHelixSeed( Interaction & interaction
 										&& seedEnd1 + trailingBP - offset1 < helixSeed.size1()
 										&& seedEnd2 + trailingBP - offset2 < helixSeed.size2(); trailingBP++) {
 
-				for (u1T = 0; u1T < getConstraint().getMaxUnpaired()+1 - (u1L+u2L) && (seedEnd1+trailingBP+u1L-offset1) < helixSeed.size1(); u1T++) {
+				for (u1T = 0; u1T < getConstraint().getMaxUnpaired()+1 - (u1L+u2L) && (seedEnd1+trailingBP+u1T-offset1) < helixSeed.size1(); u1T++) {
 				for (u2T = 0; u2T < getConstraint().getMaxUnpaired()+1 - (u1L + u2L + u1T) && (seedEnd2 + trailingBP + u2T - offset2) < helixSeed.size2(); u2T++) {
 
 					// If trailing base pairs exist and helixE = E_INF -> skip to the next leadingBP
