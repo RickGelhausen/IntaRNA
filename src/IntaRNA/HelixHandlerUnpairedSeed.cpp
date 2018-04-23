@@ -162,8 +162,8 @@ traceBackHelixSeed( Interaction & interaction
 							 && leadingBP <= possibleBasePairs
 							 && i1 + leadingBP-offset1 < helixSeed.size1()
 							 && i2 + leadingBP-offset2 < helixSeed.size2(); leadingBP++) {
-		for (u1L = 0; u1L < getConstraint().getMaxUnpaired()+1 && (i1+leadingBP+u1L-offset1) < helixSeed.size1(); u1L++) {
-		for (u2L = 0; u2L < getConstraint().getMaxUnpaired()+1-u1L && (i2+leadingBP+u2L-offset2) < helixSeed.size2(); u2L++) {
+		for (u1L = 0; u1L < getConstraint().getMaxUnpaired()+1 && traceNotFound && (i1+leadingBP+u1L-offset1) < helixSeed.size1(); u1L++) {
+		for (u2L = 0; u2L < getConstraint().getMaxUnpaired()+1-u1L && traceNotFound && (i2+leadingBP+u2L-offset2) < helixSeed.size2(); u2L++) {
 			// If leading base pairs exist and helixE = E_INF -> skip to the next leadingBP
 			if (leadingBP != 0) {
 				if (E_isINF(getHelixE(i1-offset1,i2-offset2,leadingBP+1,u1L, u2L))) {
@@ -190,12 +190,13 @@ traceBackHelixSeed( Interaction & interaction
 
 
 			// Trailing base pairs
-			for (size_t trailingBP = 0; trailingBP <= possibleBasePairs - leadingBP
+			for (size_t trailingBP = 0; traceNotFound
+										&& trailingBP <= possibleBasePairs - leadingBP
 										&& seedEnd1 + trailingBP - offset1 < helixSeed.size1()
 										&& seedEnd2 + trailingBP - offset2 < helixSeed.size2(); trailingBP++) {
 
-				for (u1T = 0; u1T < getConstraint().getMaxUnpaired()+1 - (u1L+u2L) && (seedEnd1+trailingBP+u1T-offset1) < helixSeed.size1(); u1T++) {
-				for (u2T = 0; u2T < getConstraint().getMaxUnpaired()+1 - (u1L + u2L + u1T) && (seedEnd2 + trailingBP + u2T - offset2) < helixSeed.size2(); u2T++) {
+				for (u1T = 0; u1T < getConstraint().getMaxUnpaired()+1 - (u1L+u2L) && traceNotFound && (seedEnd1+trailingBP+u1T-offset1) < helixSeed.size1(); u1T++) {
+				for (u2T = 0; u2T < getConstraint().getMaxUnpaired()+1 - (u1L + u2L + u1T) && traceNotFound && (seedEnd2 + trailingBP + u2T - offset2) < helixSeed.size2(); u2T++) {
 
 					// If trailing base pairs exist and helixE = E_INF -> skip to the next leadingBP
 					if (trailingBP != 0) {
@@ -211,6 +212,7 @@ traceBackHelixSeed( Interaction & interaction
 					if (E_equal(curE, getHelixE(i1 - offset1, i2 - offset2, leadingBP + 1, u1L, u2L)
 									  + seedHandler->getSeedE(seedStart1, seedStart2)
 									  + getHelixE(seedEnd1 - offset1, seedEnd2 - offset2, trailingBP + 1, u1T, u2T))) {
+
 						// Trace the first part if existing
 						if (leadingBP != 0) {
 							traceBackHelix(interaction, i1 - offset1, i2 - offset2, leadingBP + 1,u1L,u2L);

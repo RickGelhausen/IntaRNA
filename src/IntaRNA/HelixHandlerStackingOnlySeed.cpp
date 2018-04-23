@@ -159,7 +159,8 @@ traceBackHelixSeed( Interaction & interaction
 
 
 		// Trailing base pairs
-		for (size_t trailingBP = 0; trailingBP <= possibleBasePairs - leadingBP
+		for (size_t trailingBP = 0; traceNotFound
+									&& trailingBP <= possibleBasePairs - leadingBP
 									&& seedEnd1+trailingBP-offset1 < helixSeed.size1()
 									&& seedEnd2+trailingBP-offset2 < helixSeed.size2(); trailingBP++) {
 
