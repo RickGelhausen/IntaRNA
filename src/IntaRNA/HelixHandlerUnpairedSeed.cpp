@@ -87,23 +87,38 @@ fillHelixSeed(const size_t i1min, const size_t i1max, const size_t i2min, const 
 										  && (seedEnd1+trailingBP-offset1) < helixSeed.size1()
 										  && (seedEnd2+trailingBP-offset2) < helixSeed.size2(); trailingBP++) {
 
+//					LOG(DEBUG) << "TrailingBP: " << trailingBP;
+//					LOG(DEBUG) << "helixSizes: " << helixSeed.size1() << " " << helixSeed.size2();
+//					LOG(DEBUG) << "seedEnd+trailingBP: " << seedEnd1+trailingBP << " " << seedEnd2+trailingBP;
 					for (u1T = 0; u1T < getConstraint().getMaxUnpaired()+1 - (u1L+u2L) && (seedEnd1+trailingBP+u1T-offset1) < helixSeed.size1(); u1T++) {
 					for (u2T = 0; u2T < getConstraint().getMaxUnpaired()+1 - (u1L+u2L+u1T) && (seedEnd2+trailingBP+u2T-offset2) < helixSeed.size2(); u2T++) {
 
+//						LOG(DEBUG) << "u1T, u2T: " << u1T << " "<< u2T;
 						// If trailing base pairs exist and helixE = E_INF -> skip to the next leadingBP
 						if (trailingBP != 0) {
 							if (E_isINF(getHelixE(seedEnd1 - offset1, seedEnd2 - offset2, trailingBP + 1, u1T, u2T))) {
-								break;
+								continue;
 							}
 						} else {
 							// ensure no dangling unpaired bases are considered
 							if (u1T != 0 || u2T != 0)
 								break;
 						}
+//						LOG(DEBUG) << "i1, i2: " << i1 << " " << i2;
+//						LOG(DEBUG) << "leadingBP+1: " << leadingBP+1;
+//						LOG(DEBUG) << "u1L, u2L: " << u1L << " " << u2L;
+//						LOG(DEBUG) << "seedStart1, seedStart2: " << seedStart1 << " " << seedStart2;
+//						LOG(DEBUG) << "seedEnd1, seedEnd2: " << seedEnd1 << " " << seedEnd2;
+//						LOG(DEBUG) << "trailingBP+1: " << trailingBP+1;
+//						LOG(DEBUG) << "u1T, u2T: " << u1T << " " << u2T;
+//						LOG(DEBUG) << "Energie: " << getHelixE(i1 - offset1, i2 - offset2, leadingBP + 1, u1L, u2L)
+//								   << " + "<< seedHandler->getSeedE(seedStart1, seedStart2)
+//								   << " + "<< getHelixE(seedEnd1 - offset1, seedEnd2 - offset2, trailingBP + 1, u1T, u2T);
 
-						tmpE = getHelixE(i1 - offset1, i2 - offset2, leadingBP + 1, u1L, u2L) +
-							   seedHandler->getSeedE(seedStart1, seedStart2) +
-							   getHelixE(seedEnd1 - offset1, seedEnd2 - offset2, trailingBP + 1, u1T, u2T);
+						tmpE = getHelixE(i1 - offset1, i2 - offset2, leadingBP + 1, u1L, u2L)
+							   + seedHandler->getSeedE(seedStart1, seedStart2)
+							   + getHelixE(seedEnd1 - offset1, seedEnd2 - offset2, trailingBP + 1, u1T, u2T);
+
 						if (tmpE < curE) {
 							curE = tmpE;
 							bestL1 = leadingBP + u1L + seedHandler->getSeedLength1(seedStart1, seedStart2) + trailingBP + u1T;
@@ -201,7 +216,7 @@ traceBackHelixSeed( Interaction & interaction
 					// If trailing base pairs exist and helixE = E_INF -> skip to the next leadingBP
 					if (trailingBP != 0) {
 						if (E_isINF(getHelixE(seedEnd1 - offset1, seedEnd2 - offset2, trailingBP + 1, u1T, u2T))) {
-							break;
+							continue;
 						}
 					} else {
 						// ensure no dangling unpaired bases are considered
@@ -212,7 +227,14 @@ traceBackHelixSeed( Interaction & interaction
 					if (E_equal(curE, getHelixE(i1 - offset1, i2 - offset2, leadingBP + 1, u1L, u2L)
 									  + seedHandler->getSeedE(seedStart1, seedStart2)
 									  + getHelixE(seedEnd1 - offset1, seedEnd2 - offset2, trailingBP + 1, u1T, u2T))) {
-
+//						LOG(DEBUG) << "Found Trace!";
+//						LOG(DEBUG) << "i1, i2: " << i1 << " " << i2;
+//						LOG(DEBUG) << "LeadingBP: " << leadingBP;
+//						LOG(DEBUG) << "u1L, u2L: " << u1L << " " << u2L;
+//						LOG(DEBUG) << "seedStart1, seedStart2: " << seedStart1 << " " << seedStart2;
+//						LOG(DEBUG) << "TrailingBP: " << trailingBP;
+//						LOG(DEBUG) << "u1T, u2T: " << u1T << " " << u2T;
+//						LOG(DEBUG) << "seedEnd1, seedEnd2: " << seedEnd1 << " " << seedEnd2;
 						// Trace the first part if existing
 						if (leadingBP != 0) {
 							traceBackHelix(interaction, i1 - offset1, i2 - offset2, leadingBP + 1,u1L,u2L);

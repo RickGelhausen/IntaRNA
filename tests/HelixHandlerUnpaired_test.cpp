@@ -639,4 +639,121 @@ TEST_CASE( "HelixHandlerUnpaired", "[HelixHandlerUnpaired]") {
 		REQUIRE(interaction.basePairs.size() == 0);
 
 	}
+
+	SECTION("Helix: Case 7 - unpaired bases after 2,2 ", "[HelixHandlerUnpaired]") {
+		// Case 4 -NO HELIX POSSIBLE
+		RnaSequence r1("r1", "GGGAGG");
+		RnaSequence r2("r2", "CCACCC");
+		AccessibilityDisabled acc1(r1, 0, NULL);
+		AccessibilityDisabled acc2(r2, 0, NULL);
+		ReverseAccessibility racc(acc2);
+		InteractionEnergyBasePair energy(acc1, racc);
+
+		HelixConstraint hC(2, 5, 2, 0, false);
+		HelixHandlerUnpaired hhU(energy, hC);
+
+		//////////////////////////////////////////////////////////////////////////////////////////////////////////
+		////////////////////////////////////////////   FILLHELIX  ////////////////////////////////////////////////
+		//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		REQUIRE(hhU.fillHelix(0, energy.size1() - 1, 0, energy.size2() - 1) == 16);
+
+		// (0,0)
+		REQUIRE(hhU.getHelixE(0, 0) == -4);
+		REQUIRE(hhU.getHelixLength1(0, 0) == 6);
+		REQUIRE(hhU.getHelixLength2(0, 0) == 6);
+
+		// (0,1)
+		REQUIRE(hhU.getHelixE(0, 1) == -3);
+		REQUIRE(hhU.getHelixLength1(0, 1) == 5);
+		REQUIRE(hhU.getHelixLength2(0, 1) == 5);
+
+		// (0,2)
+		REQUIRE(hhU.getHelixE(0, 2) == -2);
+		REQUIRE(hhU.getHelixLength1(0, 2) == 3);
+		REQUIRE(hhU.getHelixLength2(0, 2) == 4);
+
+		// (0,4)
+		REQUIRE(hhU.getHelixE(0, 4) == -1);
+		REQUIRE(hhU.getHelixLength1(0, 4) == 2);
+		REQUIRE(hhU.getHelixLength2(0, 4) == 2);
+
+		// (1,0)
+		REQUIRE(hhU.getHelixE(1, 0) == -3);
+		REQUIRE(hhU.getHelixLength1(1, 0) == 5);
+		REQUIRE(hhU.getHelixLength2(1, 0) == 5);
+
+		// (1,1)
+		REQUIRE(hhU.getHelixE(1, 1) == -3);
+		REQUIRE(hhU.getHelixLength1(1, 1) == 5);
+		REQUIRE(hhU.getHelixLength2(1, 1) == 5);
+
+		// (1,2)
+		REQUIRE(hhU.getHelixE(1, 2) == -2);
+		REQUIRE(hhU.getHelixLength1(1, 2) == 4);
+		REQUIRE(hhU.getHelixLength2(1, 2) == 4);
+
+		// (1,4)
+		REQUIRE(hhU.getHelixE(1, 4) == -1);
+		REQUIRE(hhU.getHelixLength1(1, 4) == 2);
+		REQUIRE(hhU.getHelixLength2(1, 4) == 2);
+
+		// (2,0)
+		REQUIRE(hhU.getHelixE(2, 0) == -2);
+		REQUIRE(hhU.getHelixLength1(2, 0) == 4);
+		REQUIRE(hhU.getHelixLength2(2, 0) == 3);
+
+		// (2,1)
+		REQUIRE(hhU.getHelixE(2, 1) == -2);
+		REQUIRE(hhU.getHelixLength1(2, 1) == 4);
+		REQUIRE(hhU.getHelixLength2(2, 1) == 4);
+
+		// (2,2)
+		REQUIRE(hhU.getHelixE(2, 2) == -2);
+		REQUIRE(hhU.getHelixLength1(2, 2) == 4);
+		REQUIRE(hhU.getHelixLength2(2, 2) == 4);
+
+		// (2,4)
+		REQUIRE(hhU.getHelixE(2, 4) == -1);
+		REQUIRE(hhU.getHelixLength1(2, 4) == 3);
+		REQUIRE(hhU.getHelixLength2(2, 4) == 2);
+
+		// (4,0)
+		REQUIRE(hhU.getHelixE(4, 0) == -1);
+		REQUIRE(hhU.getHelixLength1(4, 0) == 2);
+		REQUIRE(hhU.getHelixLength2(4, 0) == 2);
+
+		// (4,1)
+		REQUIRE(hhU.getHelixE(4, 1) == -1);
+		REQUIRE(hhU.getHelixLength1(4, 1) == 2);
+		REQUIRE(hhU.getHelixLength2(4, 1) == 2);
+
+		// (4,2)
+		REQUIRE(hhU.getHelixE(4, 2) == -1);
+		REQUIRE(hhU.getHelixLength1(4, 2) == 2);
+		REQUIRE(hhU.getHelixLength2(4, 2) == 3);
+
+		// (4,4)
+		REQUIRE(hhU.getHelixE(4, 4) == -1);
+		REQUIRE(hhU.getHelixLength1(4, 4) == 2);
+		REQUIRE(hhU.getHelixLength2(4, 4) == 2);
+
+		//////////////////////////////////////////////////////////////////////////////////////////////////////////
+		////////////////////////////////////////////   TRACEBACK   ///////////////////////////////////////////////
+		//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		// Case (2,2)
+		//////////////////////
+		Interaction interaction(r1,r2);
+		hhU.traceBackHelix(interaction, 2, 2);
+
+		REQUIRE(interaction.basePairs.size() == 1);
+		// First / last base pair of helix
+		REQUIRE(interaction.basePairs.begin()->first == 4);
+		REQUIRE(interaction.basePairs.begin()->second == 1);
+
+		REQUIRE(interaction.basePairs.rbegin()->first == 4);
+		REQUIRE(interaction.basePairs.rbegin()->second == 1);
+
+	}
 }

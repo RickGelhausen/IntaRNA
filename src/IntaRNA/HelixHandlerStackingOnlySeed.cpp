@@ -157,7 +157,6 @@ traceBackHelixSeed( Interaction & interaction
 		seedEnd1 = seedStart1+seedHandler->getSeedLength1(seedStart1,seedStart2)-1;
 		seedEnd2 = seedStart2+seedHandler->getSeedLength2(seedStart1,seedStart2)-1;
 
-
 		// Trailing base pairs
 		for (size_t trailingBP = 0; traceNotFound
 									&& trailingBP <= possibleBasePairs - leadingBP

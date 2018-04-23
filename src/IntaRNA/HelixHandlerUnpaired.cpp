@@ -41,7 +41,6 @@ fillHelix(const size_t i1min, const size_t i1max, const size_t i2min, const size
 	// in decreasing index order
 	for (i1=i1max+1; i1-- > i1min;) {
 	for (i2=i2max+1; i2-- > i2min;) {
-
 		// count possible helices
 		helixCount++;
 
@@ -78,7 +77,6 @@ fillHelix(const size_t i1min, const size_t i1max, const size_t i2min, const size
 					if (curBP == 2) {
 						// energy for stacking/bulge/interior depending on u1/u2
 						curE = energy.getE_interLeft(i1, j1, i2, j2);
-
 					} else {
 						// split helix recursively into all possible leading interior loops
 						// i1 .. i1+u1p+1 .. j1
@@ -106,6 +104,7 @@ fillHelix(const size_t i1min, const size_t i1max, const size_t i2min, const size
 					} // more than two base pairs
 				} // (j1, j2) complementary
 
+//				LOG(DEBUG) << "i1, i2, curBP, u1, u2, curE: " << i1 << " " << i2 << " " << curBP << " " << u1 << " " << u2 << " " << curE;
 				// store helix energy
 				setHelixE(i1 - offset1, i2 - offset2, curBP, u1, u2, curE);
 
