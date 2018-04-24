@@ -8,6 +8,8 @@ size_t
 HelixHandlerUnpaired::
 fillHelixSeed(const size_t i1min, const size_t i1max, const size_t i2min, const size_t i2max)
 {
+//	LOG(DEBUG) << "";
+//	LOG(DEBUG) << "FILLHELIX SEED";
 	helixSeed.resize( i1max-i1min+1, i2max-i2min+1 );
 
 	// store index offset due to restricted matrix size generation
@@ -52,9 +54,11 @@ fillHelixSeed(const size_t i1min, const size_t i1max, const size_t i2min, const 
 		bestL2 = 0;
 
 		// screen over all possible leading and trailing base pair combinations
-		for (size_t leadingBP=0; leadingBP <= possibleBasePairs && (i1+leadingBP-offset1) < helixSeed.size1()
+		for (size_t leadingBP=0; leadingBP <= possibleBasePairs
+								 && (i1+leadingBP-offset1) < helixSeed.size1()
 								 && (i2+leadingBP-offset2) < helixSeed.size2(); leadingBP++) {
 
+			// Check all leading unpaired bases combinations
 			for (u1L = 0; u1L < getConstraint().getMaxUnpaired()+1 && (i1+leadingBP+u1L-offset1) < helixSeed.size1(); u1L++) {
 			for (u2L = 0; u2L < getConstraint().getMaxUnpaired()+1-u1L && (i2+leadingBP+u2L-offset2) < helixSeed.size2(); u2L++) {
 
@@ -90,6 +94,7 @@ fillHelixSeed(const size_t i1min, const size_t i1max, const size_t i2min, const 
 //					LOG(DEBUG) << "TrailingBP: " << trailingBP;
 //					LOG(DEBUG) << "helixSizes: " << helixSeed.size1() << " " << helixSeed.size2();
 //					LOG(DEBUG) << "seedEnd+trailingBP: " << seedEnd1+trailingBP << " " << seedEnd2+trailingBP;
+					// check all trailing unpaired bases combinations
 					for (u1T = 0; u1T < getConstraint().getMaxUnpaired()+1 - (u1L+u2L) && (seedEnd1+trailingBP+u1T-offset1) < helixSeed.size1(); u1T++) {
 					for (u2T = 0; u2T < getConstraint().getMaxUnpaired()+1 - (u1L+u2L+u1T) && (seedEnd2+trailingBP+u2T-offset2) < helixSeed.size2(); u2T++) {
 
@@ -136,6 +141,7 @@ fillHelixSeed(const size_t i1min, const size_t i1max, const size_t i2min, const 
 
 		// Ensures that the helixCount is only increased for the mfe helix.
 		if (E_isNotINF(curE)) {
+//			LOG(DEBUG) << "i1, i2: " << i1-offset1 << " " << i2-offset2 << " " << curE;
 			helixCountNotInf++;
 		}
 	} // i2

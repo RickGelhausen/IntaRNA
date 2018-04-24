@@ -467,10 +467,14 @@ protected:
 	NumberParameter<int> helixMaxBP;
 	//! max overall unpaired in helix
 	NumberParameter<int> helixMaxUP;
-	//! minimal unpaired probability (per sequence) of a helix to be considered (used for maxED)
-	NumberParameter<E_type> helixMinPu;
-	//! whether or not ED values are added in the helix computation
-	bool helixWithED;
+	//! maximal internal loop size in the helix computation (0-2)
+	NumberParameter<int> helixMaxIL;
+	//! maximal ED-value allowed (per sequence) of a helix to be considered
+	NumberParameter<E_type> helixMaxED;
+	//! maximal energy of a helix to be considered
+	NumberParameter<E_type> helixMaxE;
+	//! when set, no ED values are added in the helix computation
+	bool helixNoED;
 	//! the final helix constraint to be used
 	mutable HelixConstraint * helixConstraint;
 
@@ -720,10 +724,22 @@ protected:
 	void validate_helixMaxUP(const int & value);
 
 	/**
-	 * Validates the helixMinPu argument.
+	 * Validates the helixMaxIL argument.
 	 * @param value the argument value to validate
 	 */
-	void validate_helixMinPu(const E_type & value);
+	void validate_helixMaxIL(const int & value);
+
+	/**
+	 * Validates the helixMaxED argument.
+	 * @param value the argument value to validate
+	 */
+	void validate_helixMaxED(const E_type & value);
+
+	/**
+	 * Validates the helixMaxE argument.
+	 * @param value the argument value to validate
+	 */
+	void validate_helixMaxE(const E_type & value);
 
 	/**
 	 * Validates the target's region argument.
@@ -1487,9 +1503,25 @@ void CommandLineParsing::validate_helixMaxUP(const int &value) {
 ////////////////////////////////////////////////////////////////////////////
 
 inline
-void CommandLineParsing::validate_helixMinPu(const E_type & value) {
+void CommandLineParsing::validate_helixMaxIL(const int & value) {
 	// forward check to general method
-	validate_numberArgument("helixMinPu", helixMinPu, value);
+	validate_numberArgument("helixMaxIL", helixMaxIL, value);
+}
+
+////////////////////////////////////////////////////////////////////////////
+
+inline
+void CommandLineParsing::validate_helixMaxED(const E_type & value) {
+	// forward check to general method
+	validate_numberArgument("helixMaxED", helixMaxED, value);
+}
+
+////////////////////////////////////////////////////////////////////////////
+
+inline
+void CommandLineParsing::validate_helixMaxE(const E_type & value) {
+	// forward check to general method
+	validate_numberArgument("helixMaxE", helixMaxE, value);
 }
 
 ////////////////////////////////////////////////////////////////////////////

@@ -26,7 +26,7 @@ TEST_CASE( "HelixHandlerUnpaired", "[HelixHandlerUnpaired]") {
 		ReverseAccessibility racc(acc2);
 		InteractionEnergyBasePair energy(acc1, racc);
 
-		HelixConstraint hC(2, 10, 2, 0, false);
+		HelixConstraint hC(2, 10, 2, 0, 999, 0, false);
 		HelixHandlerUnpaired hhU(energy, hC);
 
 		REQUIRE(&hhU.getInteractionEnergy() == &energy);
@@ -44,7 +44,7 @@ TEST_CASE( "HelixHandlerUnpaired", "[HelixHandlerUnpaired]") {
 		ReverseAccessibility racc(acc2);
 		InteractionEnergyBasePair energy(acc1, racc);
 
-		HelixConstraint hC(2, 4, 2, 0, false);
+		HelixConstraint hC(2, 4, 2, 0, 999, 0, false);
 		HelixHandlerUnpaired hhU(energy, hC);
 
 		//////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -200,7 +200,7 @@ TEST_CASE( "HelixHandlerUnpaired", "[HelixHandlerUnpaired]") {
 		ReverseAccessibility racc(acc2);
 		InteractionEnergyBasePair energy(acc1, racc);
 
-		HelixConstraint hC(2, 4, 2, 0, false);
+		HelixConstraint hC(2, 4, 2, 0, 999, 0, false);
 		HelixHandlerUnpaired hhU(energy, hC);
 
 		//////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -353,7 +353,7 @@ TEST_CASE( "HelixHandlerUnpaired", "[HelixHandlerUnpaired]") {
 		ReverseAccessibility racc(acc2);
 		InteractionEnergyBasePair energy(acc1, racc);
 
-		HelixConstraint hC(2, 4, 2, 0, false);
+		HelixConstraint hC(2, 4, 2, 0, 999, 0, false);
 		HelixHandlerUnpaired hhU(energy, hC);
 
 		//////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -520,7 +520,7 @@ TEST_CASE( "HelixHandlerUnpaired", "[HelixHandlerUnpaired]") {
 		ReverseAccessibility racc(acc2);
 		InteractionEnergyBasePair energy(acc1, racc);
 
-		HelixConstraint hC(2, 4, 2, 0, false);
+		HelixConstraint hC(2, 4, 2, 0, 999, 0, false);
 		HelixHandlerUnpaired hhU(energy, hC);
 
 		//////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -571,7 +571,7 @@ TEST_CASE( "HelixHandlerUnpaired", "[HelixHandlerUnpaired]") {
 		ReverseAccessibility racc(acc2);
 		InteractionEnergyBasePair energy(acc1, racc);
 
-		HelixConstraint hC(2, 4, 2, 0, false);
+		HelixConstraint hC(2, 4, 2, 0, 999, 0, false);
 		HelixHandlerUnpaired hhU(energy, hC);
 
 		//////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -613,7 +613,7 @@ TEST_CASE( "HelixHandlerUnpaired", "[HelixHandlerUnpaired]") {
 		ReverseAccessibility racc(acc2);
 		InteractionEnergyBasePair energy(acc1, racc);
 
-		HelixConstraint hC(2, 4, 2, 0, false);
+		HelixConstraint hC(2, 4, 2, 0, 999, 0, false);
 		HelixHandlerUnpaired hhU(energy, hC);
 
 		//////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -649,7 +649,7 @@ TEST_CASE( "HelixHandlerUnpaired", "[HelixHandlerUnpaired]") {
 		ReverseAccessibility racc(acc2);
 		InteractionEnergyBasePair energy(acc1, racc);
 
-		HelixConstraint hC(2, 5, 2, 0, false);
+		HelixConstraint hC(2, 5, 2, 0, 999, 0, false);
 		HelixHandlerUnpaired hhU(energy, hC);
 
 		//////////////////////////////////////////////////////////////////////////////////////////////////////////

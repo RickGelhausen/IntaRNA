@@ -104,19 +104,20 @@ fillHelix(const size_t i1min, const size_t i1max, const size_t i2min, const size
 			j1 = i1 + curBP-1;
 			j2 = i2 + curBP-1;
 
-			// skip if ED boundary exceeded and ED value computation is disabled
-			if (helixConstraint.withED())
+			// ensure that ED-values are within the boundaries (default 999)
+			if (energy.getED1(i1, j1) > helixConstraint.getMaxED()
+				|| energy.getED2(i2, j2) > helixConstraint.getMaxED())
 			{
-				if (energy.getED1(i1, j1) > helixConstraint.getMaxED()
-					|| energy.getED2(i2, j2) > helixConstraint.getMaxED()) {
-					continue;
-				}
+				continue;
+			}
 
-				// get overall interaction energy
-				curE = energy.getE(i1,i2,j1,j2,getHelixE(i1-offset1, i2-offset2, curBP)) + energy.getE_init();
-			} else {
-				curE = getHelixE(i1-offset1, i2-offset2, curBP) + energy.getE_init();
- 			}
+			// calculate energy with ED values
+			curE = energy.getE(i1,j1,i2,j2,getHelixE(i1-offset1, i2-offset2, curBP)) + energy.getE_init();
+
+			// if noED option is set, ED-values are skipped, remove them.
+			if (helixConstraint.noED())
+				curE -= (energy.getED1(i1, j1) + energy.getED2(i2, j2));
+
 			// check if better than what is know so far
 			if (curE < bestE) {
 				bestE = curE;
@@ -125,11 +126,16 @@ fillHelix(const size_t i1min, const size_t i1max, const size_t i2min, const size
 		} // curBP
 
 		// reduce bestE to hybridization energy only (init+loops)
-		if (E_isNotINF(bestE)) {
-			// get helix hybridization loop energies only
-			bestE = getHelixE(i1-offset1, i2-offset2, bestBP);
-			// count true helix
-			helixCountNotInf++;
+		if (E_isNotINF( bestE )) {
+			// overwrite all helices with too high energy -> infeasible start interactions
+			if (bestE > helixConstraint.getMaxE()) {
+				bestE = E_INF;
+			} else {
+				// get helix hybridization loop energies only
+				bestE = getHelixE(i1 - offset1, i2 - offset2, bestBP);
+				// count true helix
+				helixCountNotInf++;
+			}
 		}
 
 		// store best (mfe) helix for left boundary i1, i2

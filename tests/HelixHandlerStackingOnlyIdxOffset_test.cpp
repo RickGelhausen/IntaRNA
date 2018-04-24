@@ -27,7 +27,7 @@ TEST_CASE( "HelixHandlerIdxOffset for StackingOnly", "[HelixHandlerIdxOffset]") 
 		ReverseAccessibility racc(acc2);
 		InteractionEnergyBasePair energy(acc1, racc);
 
-		HelixConstraint hC(2, 10, 0, 0, false);
+		HelixConstraint hC(2, 10, 0, 0, 999, 0, false);
 		HelixHandlerIdxOffset hhIO(new HelixHandlerStackingOnly(energy, hC));
 
 		// Initial offset of 0
@@ -56,7 +56,7 @@ TEST_CASE( "HelixHandlerIdxOffset for StackingOnly", "[HelixHandlerIdxOffset]") 
 		ReverseAccessibility racc(acc2);
 		InteractionEnergyBasePair energy(acc1, racc);
 
-		HelixConstraint hC(2,4,0, 0, false);
+		HelixConstraint hC(2,4,0, 0, 999, 0, false);
 		HelixHandlerIdxOffset hhIO(new HelixHandlerStackingOnly(energy, hC));
 
 		// Set the offsets
@@ -123,7 +123,7 @@ TEST_CASE( "HelixHandlerIdxOffset for StackingOnly", "[HelixHandlerIdxOffset]") 
 		ReverseAccessibility racc(acc2);
 		InteractionEnergyBasePair energy(acc1, racc);
 
-		HelixConstraint hC(2,4,0, 0, false);
+		HelixConstraint hC(2,4,0, 0, 999, 0, false);
 		HelixHandlerIdxOffset hhIO(new HelixHandlerStackingOnly(energy, hC));
 
 		// Set the offsets
@@ -276,7 +276,7 @@ TEST_CASE( "HelixHandlerIdxOffset for StackingOnly", "[HelixHandlerIdxOffset]") 
 		ReverseAccessibility racc(acc2);
 		InteractionEnergyBasePair energy(acc1, racc);
 
-		HelixConstraint hC(2,4,0, 0, false);
+		HelixConstraint hC(2,4,0, 0, 999, 0, false);
 		HelixHandlerIdxOffset hhIO(new HelixHandlerStackingOnly(energy, hC));
 
 		// Set the offsets
@@ -340,7 +340,7 @@ TEST_CASE( "HelixHandlerIdxOffset for StackingOnly", "[HelixHandlerIdxOffset]") 
 		ReverseAccessibility racc(acc2);
 		InteractionEnergyBasePair energy(acc1, racc);
 
-		HelixConstraint hC(2,4,0, 0, false);
+		HelixConstraint hC(2,4,0, 0, 999, 0, false);
 		HelixHandlerIdxOffset hhIO(new HelixHandlerStackingOnly(energy, hC));
 
 		// Set the offsets
@@ -466,7 +466,7 @@ TEST_CASE( "HelixHandlerIdxOffset for StackingOnly", "[HelixHandlerIdxOffset]") 
 		ReverseAccessibility racc(acc2);
 		InteractionEnergyBasePair energy(acc1, racc);
 
-		HelixConstraint hC(2,4,0, 0, false);
+		HelixConstraint hC(2,4,0, 0, 999, 0, false);
 		HelixHandlerIdxOffset hhIO(new HelixHandlerStackingOnly(energy, hC));
 
 		// Set the offsets

@@ -15,10 +15,10 @@ fillHelixSeed(const size_t i1min, const size_t i1max, const size_t i2min, const 
 	offset2 = i2min;
 
 	// temporary variables
-	size_t i1, i2, seedStart1, seedStart2, seedEnd1, seedEnd2, bestL1, bestL2, possibleBasePairs;
+	size_t i1, i2,j1,j2, seedStart1, seedStart2, seedEnd1, seedEnd2, bestL1, bestL2, possibleBasePairs;
 	size_t  helixCountNotInf = 0, helixCount = 0;
 
-	E_type curE, tmpE;
+	E_type bestE, curE, bestRawE, rawE;
 
 	// fill for all start indices
 	// in decreasing index order
@@ -48,6 +48,9 @@ fillHelixSeed(const size_t i1min, const size_t i1max, const size_t i2min, const 
 
 		// Initialuze variables
 		curE = E_INF;
+		rawE = E_INF;
+		bestE = E_INF;
+		bestRawE = E_INF;
 		bestL1 = 0;
 		bestL2 = 0;
 
@@ -84,21 +87,48 @@ fillHelixSeed(const size_t i1min, const size_t i1max, const size_t i2min, const 
 						break;
 					}
 
-				tmpE = getHelixE(i1-offset1,i2-offset2,leadingBP+1) + seedHandler->getSeedE(seedStart1, seedStart2) + getHelixE(seedEnd1-offset1,seedEnd2-offset2,trailingBP+1);
-				if (tmpE < curE) {
-					curE = tmpE;
+				j1 = seedEnd1+trailingBP;
+				j2 = seedEnd2+trailingBP;
+
+				// ensure that ED-values are within the boundaries (default 999)
+				if (energy.getED1(i1, j1) > helixConstraint.getMaxED()
+					|| energy.getED2(i2, j2) > helixConstraint.getMaxED()) {
+					continue;
+				}
+
+				// energy value without dangling ends and E_init
+				rawE = getHelixE(i1-offset1,i2-offset2,leadingBP+1) + seedHandler->getSeedE(seedStart1, seedStart2) + getHelixE(seedEnd1-offset1,seedEnd2-offset2,trailingBP+1);
+
+				// energy value
+				curE = energy.getE(i1,j1,i2,j2, rawE) + energy.getE_init();
+
+				if (helixConstraint.noED())
+					curE -= (energy.getED1(i1,j1) + energy.getED2(i2,j2));
+
+				if (curE < bestE) {
+					bestE = curE;
+					bestRawE = rawE;
 					bestL1 = leadingBP + seedHandler->getSeedLength1(seedStart1,seedStart2) + trailingBP;
 					bestL2 = leadingBP + seedHandler->getSeedLength2(seedStart1,seedStart2) + trailingBP;
 				}
 			} // trailingBP
 		} // leadingBP
 
-		helixSeed(i1-offset1, i2-offset2) = HelixMatrix::value_type(curE, E_isINF(curE) ? 0: encodeHelixSeedLength(bestL1,bestL2));
-
-		// Ensures that the helixCount is only increased for the mfe helix.
-		if (E_isNotINF(curE)) {
-			helixCountNotInf++;
+		// reduce bestE to hybridization energy only (init+loops)
+		if (E_isNotINF( bestE )) {
+			// overwrite all helices with too high energy -> infeasible start interactions
+			if (bestE > helixConstraint.getMaxE()) {
+				bestE = E_INF;
+			} else {
+				// get helix hybridization loop energies only
+				bestE = bestRawE;
+				// count true helix
+				helixCountNotInf++;
+			}
 		}
+		// store best (mfe) helix for left boundary i1, i2
+		helixSeed(i1-offset1, i2-offset2) = HelixMatrix::value_type(bestE, E_isINF(bestE) ? 0: encodeHelixSeedLength(bestL1,bestL2));
+
 	} // i2
 	} // i1
 

@@ -137,7 +137,7 @@ fillHelix(const size_t i1min, const size_t i1max, const size_t i2min, const size
 				j2 = i2 + curBP - 1 + u2;
 
 				// skip if ED boundary exceeded and ED value computation is disabled
-				if (helixConstraint.withED())
+				if (!helixConstraint.noED())
 				{
 					if (energy.getED1(i1, j1) > helixConstraint.getMaxED()
 						|| energy.getED2(i2, j2) > helixConstraint.getMaxED()) {
