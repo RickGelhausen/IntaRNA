@@ -24,8 +24,8 @@ TEST_CASE( "HelixConstraint", "[HelixConstraint]" ) {
 		REQUIRE( hC.getMaxED() == 0 );
 		REQUIRE( hC.getMaxE() == 0 );
 		REQUIRE( !hC.noED() );
-		REQUIRE( hC.getMaxLength1() == 12 );
-		REQUIRE( hC.getMaxLength2() == 12 );
+		REQUIRE( hC.getMaxLength1() == 28 );
+		REQUIRE( hC.getMaxLength2() == 28 );
 	}
 
 

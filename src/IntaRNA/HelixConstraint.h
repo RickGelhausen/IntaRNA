@@ -247,8 +247,7 @@ inline
 size_t
 HelixConstraint::
 getMaxLength1() const {
-//	return (getMaxBasePairs()-1) * getMaxIL();
-	return getMaxBasePairs() + getMaxUnpaired();
+	return getMaxBasePairs() + (getMaxBasePairs()-1) * getMaxIL();
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -257,8 +256,7 @@ inline
 size_t
 HelixConstraint::
 getMaxLength2() const {
-//	return (getMaxBasePairs()-1) * getMaxIL();
-	return getMaxBasePairs() + getMaxUnpaired();
+	return getMaxBasePairs() + (getMaxBasePairs()-1) * getMaxIL();
 }
 
 /////////////////////////////////////////////////////////////////////////////

@@ -87,7 +87,6 @@ libIntaRNA_a_SOURCES =    \
 					HelixHandlerStackingOnly.cpp \
 					HelixHandlerStackingOnlySeed.cpp \
 				    HelixHandlerUnpaired.cpp \
-				    HelixHandlerUnpairedSeed.cpp \
 					IndexRange.cpp \
 					IndexRangeList.cpp \
 					Interaction.cpp \

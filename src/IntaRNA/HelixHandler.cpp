@@ -8,7 +8,7 @@ HelixHandler* HelixHandler::getHelixHandler(const InteractionEnergy &energy,
 											const HelixConstraint &helixConstraint,
 											SeedHandler * const seedHandler) {
 
-	if (helixConstraint.getMaxUnpaired() == 0) {
+	if (helixConstraint.getMaxIL() == 0) {
 		return new HelixHandlerStackingOnly(energy, helixConstraint, seedHandler);
 	} else {
 		return new HelixHandlerUnpaired(energy, helixConstraint, seedHandler);

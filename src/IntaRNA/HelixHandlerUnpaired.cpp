@@ -8,7 +8,8 @@ size_t
 HelixHandlerUnpaired::
 fillHelix(const size_t i1min, const size_t i1max, const size_t i2min, const size_t i2max)
 {
-
+//	LOG(DEBUG) << "         ";
+//	LOG(DEBUG) << "         ";
 #if INTARNA_IN_DEBUG_MODE
 	if ( i1min > i1max ) throw std::runtime_error("HelixHandlerUnpaired::fillHelix: i1min("+toString(i1min)+") > i1max("+toString(i1max)+")");
 	if ( i2min > i2max ) throw std::runtime_error("HelixHandlerUnpaired::fillHelix: i2min("+toString(i2min)+") > i2max("+toString(i2max)+")");
@@ -23,16 +24,15 @@ fillHelix(const size_t i1min, const size_t i1max, const size_t i2min, const size
 	helixE_rec.resize( HelixIndex({{
 				   (HelixRecMatrix::index)(helix.size1())
 				   , (HelixRecMatrix::index)(helix.size2())
-				   , (HelixRecMatrix::index)(getConstraint().getMaxBasePairs()+1)
-				   , (HelixRecMatrix::index)(getConstraint().getMaxUnpaired()+1)
-				   , (HelixRecMatrix::index)(getConstraint().getMaxUnpaired()+1)}}) );
+				   , (HelixRecMatrix::index)(getConstraint().getMaxBasePairs()+1)}}) );
+	std::fill( helixE_rec.origin(), helixE_rec.origin() + helixE_rec.num_elements(), std::make_pair(E_INF,0));
 
 	// store index offset due to restricted matrix size generation
 	offset1 = i1min;
 	offset2 = i2min;
 
 	// temporary variables
-	size_t i1, i2, curBP, bestBP, u1, u2, j1, j2, u1p, u2p, k1, k2, u1best, u2best;
+	size_t i1, i2, curBP, bestBP, u1, u2, j1, j2, hL1, hL2, k1, k2, u1best, u2best, bestL1, bestL2;
 	E_type curE, bestE;
 
 	size_t  helixCountNotInf = 0, helixCount = 0;
@@ -43,7 +43,7 @@ fillHelix(const size_t i1min, const size_t i1max, const size_t i2min, const size
 	for (i2=i2max+1; i2-- > i2min;) {
 		// count possible helices
 		helixCount++;
-
+//		LOG(DEBUG) << "i1, i2: " << i1 << " " << i2;
 		// init according to no helix interaction
 		helix(i1-offset1,i2-offset2) = HelixMatrix::value_type( E_INF, 0, 0 );
 
@@ -57,67 +57,80 @@ fillHelix(const size_t i1min, const size_t i1max, const size_t i2min, const size
 					  && (i1+curBP-1-offset1) < helix.size1()
 					  && (i2+curBP-1-offset2) < helix.size2(); curBP++) {
 
-			// for feasible unpaired in seq1 in increasing order
-			for (u1 = 0; u1 < helixE_rec.shape()[3] && (i1 + curBP - 1 + u1 - offset1) < helix.size1(); u1++) {
 
-			// for feasible unpaired in seq2 in increasing order
-			for (u2 = 0; u2 < helixE_rec.shape()[4] - u1 && (i2 + curBP - 1 + u2 - offset2) < helix.size2(); u2++) {
+//			LOG(DEBUG) << ">> curBP: " << curBP;
+			// init current helix energy
+			curE = E_INF;
+			bestE = E_INF;
+			bestL1 = 0;
+			bestL2 = 0;
 
-				// get right helix boundaries
-				j1 = i1 + curBP - 1 + u1;
-				j2 = i2 + curBP - 1 + u2;
+			// for feasible unpaired bases
+			for (u1 = 0; u1 < getConstraint().getMaxIL()+1 && (i1+u1+1 -offset1)< helix.size1(); u1++) {
+			for (u2 = 0; u2 < getConstraint().getMaxIL()+1 - u1 && (i2+u2+1 -offset2) < helix.size2(); u2++) {
 
-				// init current helix energy
-				curE = E_INF;
+//				LOG(DEBUG) << ">>>> u1, u2: " << u1 << " " << u2;
+				// get split base pair (right boundaries when curBP = 2)
+				k1 = i1 + u1 +1;
+				k2 = i2 + u2 +1;
 
-				// check if right boundary is complementary
-				if (energy.areComplementary(j1, j2)) {
+//				LOG(DEBUG) << ">>>> k1, k2: " << k1 << " " << k2;
+				// check if split base pair is complementary
+				if (energy.areComplementary(k1, k2)) {
 
 					// base case: only left and right base pair present
 					if (curBP == 2) {
 						// energy for stacking/bulge/interior depending on u1/u2
-						curE = energy.getE_interLeft(i1, j1, i2, j2);
+						curE = energy.getE_interLeft(i1, k1, i2, k2);
+//						LOG(DEBUG) << "i1, i2, curBP, u1, u2, curE: " << i1 << " " << i2 << " " << curBP << " " << u1 << " " << u2 << " " << curE;
+						// save the best energy among all u1/u2 combinations
+						if (curE < bestE) {
+							bestE = curE;
+							bestL1 = curBP +u1;
+							bestL2 = curBP +u2;
+						}
 					} else {
-						// split helix recursively into all possible leading interior loops
-						// i1 .. i1+u1p+1 .. j1
-						// i2 .. i2+u2p+1 .. j2
-						for (u1p = 1 + std::min(u1, energy.getMaxInternalLoopSize1()); u1p-- > 0;) {
-						for (u2p = 1 + std::min(u2, energy.getMaxInternalLoopSize2()); u2p-- > 0;) {
+//							LOG(DEBUG) << "i1, i2, u1, u2, curBP: " << i1 << " " << i2 << " " << u1p << " " << u2p << " " << curBP;
+//						LOG(DEBUG) << ">>>>>> k1, k2: " << k1 << " " << k2;
 
-							k1 = i1 + u1p + 1;
-							k2 = i2 + u2p + 1;
-							// check if split pair is complementary
-							// and recursed entry is < E_INF
-							if (!(energy.areComplementary(k1, k2) && E_isNotINF(
-									getHelixE(k1 - offset1, k2 - offset2, curBP - 1, u1 - u1p, u2 - u2p)))) {
-								continue; // not complementary -> skip
-							}
+						// check if recursed entry is < E_INF
+						if (E_isINF(getHelixE(k1 - offset1, k2 - offset2, curBP - 1))) {
+							continue; // invalid entry -> skip
+						}
 
-							// update mfe for split at k1,k2
-							curE = std::min(curE,
-											energy.getE_interLeft(i1, k1, i2, k2)
-											+ getHelixE(k1 - offset1, k2 - offset2, curBP - 1, u1 - u1p, u2 - u2p)
-							);
+//						LOG(DEBUG) << "HelixE: " << getHelixE(k1 - offset1, k2 - offset2, curBP - 1);
+						// check right boundaries
+						if (i1 + u1 + getHelixLength1(k1-offset1, k2-offset2,curBP-1) -offset1 >= helix.size1()
+							|| i2 + u2 + getHelixLength2(k1-offset1, k2-offset2, curBP-1)-offset2 >= helix.size2()) {
+							continue; // not within the boundaries -> skip
+						}
 
-						} // u2p
-						} // u1p
+						// update mfe for split at k1,k2
+						curE = energy.getE_interLeft(i1, k1, i2, k2) + getHelixE(k1 - offset1, k2 - offset2, curBP - 1);
+//						LOG(DEBUG) << "i1, i2, curBP, u1, u2, curE: " << i1 << " " << i2 << " " << curBP << " " << u1 << " " << u2 << " " << curE;
+
+						// store best energy only
+						if (curE < bestE) {
+							bestE = curE;
+							bestL1 = u1 + getHelixLength1(k1 - offset1, k2 - offset2, curBP - 1) + 1;
+							bestL2 = u2 + getHelixLength2(k1 - offset1, k2 - offset2, curBP - 1) + 1;
+//								LOG(DEBUG) << curBP;
+//								LOG(DEBUG) << "bestE, bestL1, bestL2: " << bestE << " " << bestL1 << " " << bestL2;
+						}
 					} // more than two base pairs
 				} // (j1, j2) complementary
 
-//				LOG(DEBUG) << "i1, i2, curBP, u1, u2, curE: " << i1 << " " << i2 << " " << curBP << " " << u1 << " " << u2 << " " << curE;
-				// store helix energy
-				setHelixE(i1 - offset1, i2 - offset2, curBP, u1, u2, curE);
 
 			} // u2
 			} // u1
-
+			// store helix energy and length
+//			LOG(DEBUG) << "SetHelix: i1, i2, curBP, bestE, l1, l2: " << i1 << " " << i2 << " " << curBP << " " << bestE << " " << bestL1 << " " << bestL2;
+			setHelixPair(i1 - offset1, i2 - offset2, curBP, bestE, encodeHelixLength(bestL1, bestL2));
 
 		} // curBP
 
 		// TODO: Possible runtime improvement by checking this while calculating
 		// find best unpaired combination in helx for i1,i2,bp
-		u1best = 0;
-		u2best = 0;
 		bestBP = 0;
 		bestE = E_INF;
 
@@ -127,52 +140,55 @@ fillHelix(const size_t i1min, const size_t i1max, const size_t i2min, const size
 						&& (i1 + curBP - 1 - offset1) < helix.size1()
 						&& (i2 + curBP - 1 - offset2) < helix.size2(); curBP++) {
 
-			// for feasible unpaired in seq1 in increasing order
-			for (u1 = 0; u1 < helixE_rec.shape()[3] && (i1 + curBP - 1 + u1 - offset1) < helix.size1(); u1++) {
-			// for feasible unpaired in seq2 in increaing order
-			for (u2 = 0; u2 < helixE_rec.shape()[4]-u1 && (i2 + curBP - 1 + u2 - offset2) < helix.size2(); u2++) {
+			if (E_isINF(getHelixE(i1-offset1, i2-offset2, curBP))) {
+				continue;
+			}
+			// get right helix boundaries
+			j1 = i1 + getHelixLength1(i1-offset1, i2-offset2, curBP)-1;
+			j2 = i2 + getHelixLength2(i1-offset1, i2-offset2, curBP)-1;
+//			LOG(DEBUG) << "i1, i2, j1, j2: " << i1 << " " << i2 << " " << j1 << " " << j2;
 
-				// get right helix boundaries
-				j1 = i1 + curBP - 1 + u1;
-				j2 = i2 + curBP - 1 + u2;
+			if (energy.getED1(i1, j1) > helixConstraint.getMaxED()
+				|| energy.getED2(i2, j2) > helixConstraint.getMaxED()) {
+				continue;
+			}
 
-				// skip if ED boundary exceeded and ED value computation is disabled
-				if (!helixConstraint.noED())
-				{
-					if (energy.getED1(i1, j1) > helixConstraint.getMaxED()
-						|| energy.getED2(i2, j2) > helixConstraint.getMaxED()) {
-						continue;
-					}
-					// get overall interaction energy
-					curE = energy.getE(i1, j1, i2, j2, getHelixE(i1 - offset1, i2 - offset2, curBP, u1, u2)) +
-						   energy.getE_init();
-				} else {
-					curE = getHelixE(i1 - offset1, i2 - offset2, curBP, u1, u2) + energy.getE_init();
-				}
-				// check if better than what is known so far
-				if (curE < bestE) {
-					bestE = curE;
-					u1best = u1;
-					u2best = u2;
-					bestBP = curBP;
-				}
-			} // u2
-			} // u1
+			// get overall interaction energy
+			curE = energy.getE(i1, j1, i2, j2, getHelixE(i1 - offset1, i2 - offset2, curBP)) + energy.getE_init();
+
+			// skip if ED boundary exceeded and ED value computation is disabled
+			if (helixConstraint.noED())
+			{
+				curE -= (energy.getED1(i1,j1) + energy.getED2(i2,j2));
+			}
+
+			// check if better than what is known so far
+			if (curE < bestE) {
+				bestE = curE;
+				bestBP = curBP;
+			}
 		} // curBP
+
 		// reduce bestE to hybridization energy only (init+loops)
 		if (E_isNotINF(bestE)) {
-			// get helix hybridization loop energies only
-			bestE = getHelixE(i1 - offset1, i2 - offset2, bestBP, u1best, u2best);
-			// count true helix
-			helixCountNotInf++;
+			// overwrite all helices with too high energy -> infeasible start interactions
+			if (bestE > helixConstraint.getMaxE()) {
+				bestE = E_INF;
+			} else {
+				// get helix hybridization loop energies only
+				bestE = getHelixE(i1 - offset1, i2 - offset2, bestBP);
+				// count true helix
+				helixCountNotInf++;
+			}
 		}
 
+//		LOG(DEBUG) << "i1,i2, bestE: " << i1 << " " << i2 << " " << bestE;
 		// store best (mfe) helix for all u1/u2
 		helix(i1 - offset1, i2 - offset2) = HelixMatrix::value_type(bestE,
 																	E_isINF(bestE) ? 0 : encodeHelixLength(
-																			bestBP + u1best,
-																			bestBP + u2best),
-																	E_isINF(bestE) ? 0 : bestBP);
+																			getHelixLength1(i1-offset1, i2-offset2, bestBP),
+																			getHelixLength2(i1-offset1, i2-offset2, bestBP)),
+																	E_isINF(bestE) ? 0: bestBP);
 
 
 	} // i2
@@ -193,28 +209,22 @@ HelixHandlerUnpaired::
 traceBackHelix( Interaction & interaction
 			, const size_t i1_
 			, const size_t i2_
-			, const size_t bestBP
-			, const size_t u1_
-			, const size_t u2_)
+			, const size_t bp)
 {
 	// get boundaries
 	size_t 	  i1 = i1_
 			, i2 = i2_
-			, u1max = u1_
-			, u2max = u2_
-			, uMax = helixConstraint.getMaxUnpaired()
 			, u1, u2
 			, k1, k2
 			;
 
 	// get energy of provided seed
-	E_type curE = getHelixE(i1_,i2_,bestBP,u1_,u2_);
-
+	E_type curE = getHelixE(i1_,i2_,bp);
 	// trace helices
 	// trace each helix base pair (excluding right most)
-	for ( size_t bp=1+bestBP; bp-- > 2; ) {
-		// base case: only left and right base pair present
-		if (bp==2) {
+	for ( size_t curBP=1+bp; curBP-- > 2; ) {
+ 		// base case: only left and right base pair present
+		if (curBP==2) {
 			// add left base pair if not left helix boundary
 			if (i1 != i1_) {
 				interaction.basePairs.push_back( energy.getBasePair( i1+offset1, i2+offset2 ) );
@@ -222,39 +232,35 @@ traceBackHelix( Interaction & interaction
 
 		} else {
 			// split helix recursively into all possible leading interior loops
-			// i1 .. i1+u1p+1 .. j1
-			// i2 .. i2+u2p+1 .. j2
+			// i1 .. i1+u1+1 .. j1
+			// i2 .. i2+u2+1 .. j2
 			bool traceNotFound = true;
-			for (u1=1+u1max; traceNotFound && u1-- > 0;) {
-			for (u2=1+u2max; traceNotFound && u2-- > 0;) {
-				// TODO umax might be useless here
-				// check if overall number of unpaired is not exceeded
-				if (u1+u2 > uMax) {
-					continue;
-				}
+			for (u1=0; u1 < getConstraint().getMaxIL()+1 && traceNotFound; u1++) {
+			for (u2=0; u2 < getConstraint().getMaxIL()+1-u1 && traceNotFound; u2++) {
 				k1 = i1+u1+1;
 				k2 = i2+u2+1;
 
+				// check right boundary
+				if ( k1-offset1 >= helix.size1() || k2-offset2 >= helix.size2()) {
+					continue;
+				}
+
 				// check if valid trace
-				if ( E_isNotINF( getHelixE( k1, k2, bp-1, u1max-u1, u2max-u2) ) ) {
+				if ( E_isNotINF( getHelixE( k1, k2, curBP-1) ) ) {
 
 					// check if correct trace
 					if ( E_equal( curE, energy.getE_interLeft(i1+offset1, k1+offset1, i2+offset2, k2+offset2)
-										+ getHelixE( k1, k2, bp-1, u1max-u1, u2max-u2 )) )
+										+ getHelixE( k1, k2, curBP-1 )) )
 					{
 						// store left base pair if not left helix boundary
 						if (i1 != i1_) {
 							interaction.basePairs.push_back( energy.getBasePair(i1+offset1, i2+offset2) );
 						}
 						// store next energy value in trace
-						curE = getHelixE( k1, k2, bp-1, u1max-u1, u2max-u2 );
+						curE = getHelixE( k1, k2, curBP-1 );
 						// reset for next trace step
 						i1 = k1;
 						i2 = k2;
-						// update boundaries for unpaired positions to reduce trace effort
-						u1max -= u1;
-						u2max -= u2;
-						uMax -= (u1+u2);
 						// mark trace step done
 						traceNotFound = false;
 					}

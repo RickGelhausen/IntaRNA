@@ -867,6 +867,10 @@ parse(int argc, char** argv)
 					}
 				}
 
+				// check if helixMaxBP >= seedBP
+				if (helixMaxBP.val < seedBP.val) {
+					throw error("maximum number of allowed seed base pairs ("+toString(seedBP.val)+") exceeds the maximal allowed number of helix base pairs ("+toString(helixMaxBP.val)+")");
+				}
 				// check for minimal sequence length (>=seedBP)
 				for( size_t i=0; i<query.size(); i++) {
 					if (query.at(i).size() < seedBP.val) {

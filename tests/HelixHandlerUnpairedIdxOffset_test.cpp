@@ -27,7 +27,7 @@ TEST_CASE( "HelixHandlerIdxOffset for Unpaired", "[HelixHandlerIdxOffset]") {
 		ReverseAccessibility racc(acc2);
 		InteractionEnergyBasePair energy(acc1, racc);
 
-		HelixConstraint hC(2, 10, 2, 0, 999, 0, false);
+		HelixConstraint hC(2, 10, 2, 2, 999, 0, false);
 		HelixHandlerIdxOffset hhIO(new HelixHandlerUnpaired(energy, hC));
 
 		// Initial offset of 0
@@ -57,9 +57,9 @@ TEST_CASE( "HelixHandlerIdxOffset for Unpaired", "[HelixHandlerIdxOffset]") {
 		ReverseAccessibility racc(acc2);
 		InteractionEnergyBasePair energy(acc1, racc);
 
-		HelixConstraint hC(2, 4, 2, 0, 999, 0, false);
+		HelixConstraint hC(2, 4, 2, 2, 999, 0, false);
 		HelixHandlerIdxOffset hhIO(new HelixHandlerUnpaired(energy, hC));
-		
+
 		//////////////////////////////////////////////////////////////////////////////////////////////////////////
 		////////////////////////////////////////////   FILLHELIX  ////////////////////////////////////////////////
 		//////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -216,7 +216,7 @@ TEST_CASE( "HelixHandlerIdxOffset for Unpaired", "[HelixHandlerIdxOffset]") {
 		ReverseAccessibility racc(acc2);
 		InteractionEnergyBasePair energy(acc1, racc);
 
-		HelixConstraint hC(2, 4, 2, 0, 999, 0, false);
+		HelixConstraint hC(2, 4, 2, 2, 999, 0, false);
 		HelixHandlerIdxOffset hhIO(new HelixHandlerUnpaired(energy, hC));
 
 		// set offsets
@@ -364,7 +364,7 @@ TEST_CASE( "HelixHandlerIdxOffset for Unpaired", "[HelixHandlerIdxOffset]") {
 
 	}
 
-	SECTION("Helix with Offset: Case 5 - unpaired bases in sequence 1 ", "[HelixHandlerUnpaired]") {
+	SECTION("Helix with Offset: Case 3 - unpaired bases in sequence 1 ", "[HelixHandlerUnpaired]") {
 		// Case 4 -NO HELIX POSSIBLE
 		RnaSequence r1("r1", "AGGAAGG");
 		RnaSequence r2("r2", "CCCCAA");
@@ -373,7 +373,7 @@ TEST_CASE( "HelixHandlerIdxOffset for Unpaired", "[HelixHandlerIdxOffset]") {
 		ReverseAccessibility racc(acc2);
 		InteractionEnergyBasePair energy(acc1, racc);
 
-		HelixConstraint hC(2, 4, 2, 0, 999, 0, false);
+		HelixConstraint hC(2, 4, 2, 2, 999, 0, false);
 		HelixHandlerIdxOffset hhIO(new HelixHandlerUnpaired(energy, hC));
 
 		// set offsets
@@ -411,4 +411,73 @@ TEST_CASE( "HelixHandlerIdxOffset for Unpaired", "[HelixHandlerIdxOffset]") {
 
 	}
 
+	SECTION("Helix: Case 8 - unpaired bases, many unpaired bases", "[HelixHandlerUnpaired]") {
+		RnaSequence r1("r1", "AGAAGAGG");
+		RnaSequence r2("r2", "CAACACCAA");
+		AccessibilityDisabled acc1(r1, 0, NULL);
+		AccessibilityDisabled acc2(r2, 0, NULL);
+		ReverseAccessibility racc(acc2);
+		InteractionEnergyBasePair energy(acc1, racc);
+
+		HelixConstraint hC(2, 4, 2, 2, 999, 0, false);
+		HelixHandlerIdxOffset hhIO(new HelixHandlerUnpaired(energy, hC));
+
+		// set offsets
+		hhIO.setOffset1(1);
+		hhIO.setOffset2(2);
+
+		//////////////////////////////////////////////////////////////////////////////////////////////////////////
+		////////////////////////////////////////////   FILLHELIX  ////////////////////////////////////////////////
+		//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		REQUIRE(hhIO.fillHelix(0, energy.size1()-hhIO.getOffset1() - 1, 0, energy.size2()-hhIO.getOffset2() - 1) == 3);
+
+		// (0,0)
+		REQUIRE(hhIO.getHelixE(0, 0) == -3);
+		REQUIRE(hhIO.getHelixLength1(0, 0) == 7);
+		REQUIRE(hhIO.getHelixLength2(0, 0) == 7);
+
+		// (3,0)
+		REQUIRE(hhIO.getHelixE(3, 0) == -2);
+		REQUIRE(hhIO.getHelixLength1(3, 0) == 4);
+		REQUIRE(hhIO.getHelixLength2(3, 0) == 4);
+
+		// (3,1)
+		REQUIRE(hhIO.getHelixE(3, 1) == -2);
+		REQUIRE(hhIO.getHelixLength1(3, 1) == 4);
+		REQUIRE(hhIO.getHelixLength2(3, 1) == 6);
+
+		// (5,0)
+		REQUIRE(hhIO.getHelixE(5, 0) == -1);
+		REQUIRE(hhIO.getHelixLength1(5, 0) == 2);
+		REQUIRE(hhIO.getHelixLength2(5, 0) == 2);
+
+		// (5,1)
+		REQUIRE(hhIO.getHelixE(5, 1) == -1);
+		REQUIRE(hhIO.getHelixLength1(5, 1) == 2);
+		REQUIRE(hhIO.getHelixLength2(5, 1) == 3);
+
+		// (5,3)
+		REQUIRE(hhIO.getHelixE(5, 3) == -1);
+		REQUIRE(hhIO.getHelixLength1(5, 3) == 2);
+		REQUIRE(hhIO.getHelixLength2(5, 3) == 4);
+
+		//////////////////////////////////////////////////////////////////////////////////////////////////////////
+		////////////////////////////////////////////   TRACEBACK   ///////////////////////////////////////////////
+		//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		// Case (2,2)
+		//////////////////////
+		Interaction interaction(r1,r2);
+		hhIO.traceBackHelix(interaction, 0, 0);
+
+		REQUIRE(interaction.basePairs.size() == 2);
+		// First / last base pair of helix
+		REQUIRE(interaction.basePairs.begin()->first == 3);
+		REQUIRE(interaction.basePairs.begin()->second == 5);
+
+		REQUIRE(interaction.basePairs.rbegin()->first == 5);
+		REQUIRE(interaction.basePairs.rbegin()->second == 3);
+
+	}
 }

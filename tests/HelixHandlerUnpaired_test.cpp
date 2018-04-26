@@ -17,23 +17,23 @@ using namespace IntaRNA;
 TEST_CASE( "HelixHandlerUnpaired", "[HelixHandlerUnpaired]") {
 
 
-	SECTION("getter", "[HelixHandlerUnpaired]") {
-
-		RnaSequence r1("r1", "GGGGG");
-		RnaSequence r2("r2", "CCCCC");
-		AccessibilityDisabled acc1(r1, 0, NULL);
-		AccessibilityDisabled acc2(r2, 0, NULL);
-		ReverseAccessibility racc(acc2);
-		InteractionEnergyBasePair energy(acc1, racc);
-
-		HelixConstraint hC(2, 10, 2, 0, 999, 0, false);
-		HelixHandlerUnpaired hhU(energy, hC);
-
-		REQUIRE(&hhU.getInteractionEnergy() == &energy);
-		REQUIRE(&hhU.getConstraint() == &hC);
-
-	}
-
+//	SECTION("getter", "[HelixHandlerUnpaired]") {
+//
+//		RnaSequence r1("r1", "GGGGG");
+//		RnaSequence r2("r2", "CCCCC");
+//		AccessibilityDisabled acc1(r1, 0, NULL);
+//		AccessibilityDisabled acc2(r2, 0, NULL);
+//		ReverseAccessibility racc(acc2);
+//		InteractionEnergyBasePair energy(acc1, racc);
+//
+//		HelixConstraint hC(2, 10, 2, 2, 999, 0, false);
+//		HelixHandlerUnpaired hhU(energy, hC);
+//
+//		REQUIRE(&hhU.getInteractionEnergy() == &energy);
+//		REQUIRE(&hhU.getConstraint() == &hC);
+//
+//	}
+//
 	SECTION("Helix: Case 1 - Everything is complementary", "[HelixHandlerUnpaired]") {
 
 		// Case 1 Perfect sequence
@@ -44,7 +44,7 @@ TEST_CASE( "HelixHandlerUnpaired", "[HelixHandlerUnpaired]") {
 		ReverseAccessibility racc(acc2);
 		InteractionEnergyBasePair energy(acc1, racc);
 
-		HelixConstraint hC(2, 4, 2, 0, 999, 0, false);
+		HelixConstraint hC(2, 4, 2, 2, 999, 0, false);
 		HelixHandlerUnpaired hhU(energy, hC);
 
 		//////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -200,7 +200,7 @@ TEST_CASE( "HelixHandlerUnpaired", "[HelixHandlerUnpaired]") {
 		ReverseAccessibility racc(acc2);
 		InteractionEnergyBasePair energy(acc1, racc);
 
-		HelixConstraint hC(2, 4, 2, 0, 999, 0, false);
+		HelixConstraint hC(2, 4, 2, 2, 999, 0, false);
 		HelixHandlerUnpaired hhU(energy, hC);
 
 		//////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -353,7 +353,7 @@ TEST_CASE( "HelixHandlerUnpaired", "[HelixHandlerUnpaired]") {
 		ReverseAccessibility racc(acc2);
 		InteractionEnergyBasePair energy(acc1, racc);
 
-		HelixConstraint hC(2, 4, 2, 0, 999, 0, false);
+		HelixConstraint hC(2, 4, 2, 2, 999, 0, false);
 		HelixHandlerUnpaired hhU(energy, hC);
 
 		//////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -365,14 +365,14 @@ TEST_CASE( "HelixHandlerUnpaired", "[HelixHandlerUnpaired]") {
 		REQUIRE_FALSE(energy.areComplementary(5,4));
 		// All optimal combinations
 		// (0,0)
-		REQUIRE(hhU.getHelixE(0, 0) == -2);
-		REQUIRE(hhU.getHelixLength1(0, 0) == 3);
-		REQUIRE(hhU.getHelixLength2(0, 0) == hhU.getHelixLength1(0, 0));
+		REQUIRE(hhU.getHelixE(0, 0) == -3);
+		REQUIRE(hhU.getHelixLength1(0, 0) == 6);
+		REQUIRE(hhU.getHelixLength2(0, 0) == 7);
 
 		// (0,1)
-		REQUIRE(hhU.getHelixE(0, 1) == -2);
-		REQUIRE(hhU.getHelixLength1(0, 1) == 3);
-		REQUIRE(hhU.getHelixLength2(0, 1) == 5);
+		REQUIRE(hhU.getHelixE(0, 1) == -3);
+		REQUIRE(hhU.getHelixLength1(0, 1) == 6);
+		REQUIRE(hhU.getHelixLength2(0, 1) == 6);
 
 		// (0,2)
 		REQUIRE(hhU.getHelixE(0, 2) == -2);
@@ -385,9 +385,9 @@ TEST_CASE( "HelixHandlerUnpaired", "[HelixHandlerUnpaired]") {
 		REQUIRE(hhU.getHelixLength2(0, 5) == hhU.getHelixLength1(0, 5));
 
 		// (1,0)
-		REQUIRE(hhU.getHelixE(1, 0) == -2);
-		REQUIRE(hhU.getHelixLength1(1, 0) == 5);
-		REQUIRE(hhU.getHelixLength2(1, 0) == 3);
+		REQUIRE(hhU.getHelixE(1, 0) == -3);
+		REQUIRE(hhU.getHelixLength1(1, 0) == 6);
+		REQUIRE(hhU.getHelixLength2(1, 0) == 6);
 
 		// (1,1)
 		REQUIRE(hhU.getHelixE(1, 1) == -1);
@@ -395,9 +395,9 @@ TEST_CASE( "HelixHandlerUnpaired", "[HelixHandlerUnpaired]") {
 		REQUIRE(hhU.getHelixLength2(1, 1) == hhU.getHelixLength1(1, 1));
 
 		// (1,2)
-		REQUIRE(hhU.getHelixE(1, 2) == -1);
-		REQUIRE(hhU.getHelixLength1(1, 2) == 2);
-		REQUIRE(hhU.getHelixLength2(1, 2) == 4);
+		REQUIRE(hhU.getHelixE(1, 2) == -2);
+		REQUIRE(hhU.getHelixLength1(1, 2) == 5);
+		REQUIRE(hhU.getHelixLength2(1, 2) == 5);
 
 		// (1,5)
 		REQUIRE(hhU.getHelixE(1, 5) == -1);
@@ -410,9 +410,9 @@ TEST_CASE( "HelixHandlerUnpaired", "[HelixHandlerUnpaired]") {
 		REQUIRE(hhU.getHelixLength2(2, 0) == 3);
 
 		// (2,1)
-		REQUIRE(hhU.getHelixE(2, 1) == -1);
-		REQUIRE(hhU.getHelixLength1(2, 1) == 4);
-		REQUIRE(hhU.getHelixLength2(2, 1) == 2);
+		REQUIRE(hhU.getHelixE(2, 1) == -2);
+		REQUIRE(hhU.getHelixLength1(2, 1) == 5);
+		REQUIRE(hhU.getHelixLength2(2, 1) == 5);
 
 		// (2,5)
 		REQUIRE(hhU.getHelixE(2, 5) == -1);
@@ -471,13 +471,13 @@ TEST_CASE( "HelixHandlerUnpaired", "[HelixHandlerUnpaired]") {
 		Interaction interaction(r1,r2);
 		hhU.traceBackHelix(interaction, 0, 0);
 
-		REQUIRE(interaction.basePairs.size() == 1);
+		REQUIRE(interaction.basePairs.size() == 2);
 		// First / last base pair of helix
 		REQUIRE(interaction.basePairs.begin()->first == 1);
-		REQUIRE(interaction.basePairs.begin()->second == 5);
+		REQUIRE(interaction.basePairs.begin()->second == 4);
 
-		REQUIRE(interaction.basePairs.rbegin()->first == 1);
-		REQUIRE(interaction.basePairs.rbegin()->second == 5);
+		REQUIRE(interaction.basePairs.rbegin()->first == 2);
+		REQUIRE(interaction.basePairs.rbegin()->second == 1);
 
 		// Case (2,1) - two unpaired bases in sequence 1
 		//////////////////////
@@ -485,7 +485,13 @@ TEST_CASE( "HelixHandlerUnpaired", "[HelixHandlerUnpaired]") {
 		interaction.clear();
 		hhU.traceBackHelix(interaction, 2, 1);
 
-		REQUIRE(interaction.basePairs.size() == 0);
+		REQUIRE(interaction.basePairs.size() == 1);
+		// First / last base pair of helix
+		REQUIRE(interaction.basePairs.begin()->first == 5);
+		REQUIRE(interaction.basePairs.begin()->second == 4);
+
+		REQUIRE(interaction.basePairs.rbegin()->first == 5);
+		REQUIRE(interaction.basePairs.rbegin()->second == 4);
 
 		// Case (5,5) - Possible but only 2 base pairs long (e.g no bp needs to be reported)
 		//////////////////////
@@ -520,7 +526,7 @@ TEST_CASE( "HelixHandlerUnpaired", "[HelixHandlerUnpaired]") {
 		ReverseAccessibility racc(acc2);
 		InteractionEnergyBasePair energy(acc1, racc);
 
-		HelixConstraint hC(2, 4, 2, 0, 999, 0, false);
+		HelixConstraint hC(2, 4, 2, 2, 999, 0, false);
 		HelixHandlerUnpaired hhU(energy, hC);
 
 		//////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -571,7 +577,7 @@ TEST_CASE( "HelixHandlerUnpaired", "[HelixHandlerUnpaired]") {
 		ReverseAccessibility racc(acc2);
 		InteractionEnergyBasePair energy(acc1, racc);
 
-		HelixConstraint hC(2, 4, 2, 0, 999, 0, false);
+		HelixConstraint hC(2, 4, 2, 2, 999, 0, false);
 		HelixHandlerUnpaired hhU(energy, hC);
 
 		//////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -613,7 +619,7 @@ TEST_CASE( "HelixHandlerUnpaired", "[HelixHandlerUnpaired]") {
 		ReverseAccessibility racc(acc2);
 		InteractionEnergyBasePair energy(acc1, racc);
 
-		HelixConstraint hC(2, 4, 2, 0, 999, 0, false);
+		HelixConstraint hC(2, 4, 2, 2, 999, 0, false);
 		HelixHandlerUnpaired hhU(energy, hC);
 
 		//////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -641,7 +647,7 @@ TEST_CASE( "HelixHandlerUnpaired", "[HelixHandlerUnpaired]") {
 	}
 
 	SECTION("Helix: Case 7 - unpaired bases after 2,2 ", "[HelixHandlerUnpaired]") {
-		// Case 4 -NO HELIX POSSIBLE
+
 		RnaSequence r1("r1", "GGGAGG");
 		RnaSequence r2("r2", "CCACCC");
 		AccessibilityDisabled acc1(r1, 0, NULL);
@@ -649,7 +655,7 @@ TEST_CASE( "HelixHandlerUnpaired", "[HelixHandlerUnpaired]") {
 		ReverseAccessibility racc(acc2);
 		InteractionEnergyBasePair energy(acc1, racc);
 
-		HelixConstraint hC(2, 5, 2, 0, 999, 0, false);
+		HelixConstraint hC(2, 5, 2, 2, 999, 0, false);
 		HelixHandlerUnpaired hhU(energy, hC);
 
 		//////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -754,6 +760,117 @@ TEST_CASE( "HelixHandlerUnpaired", "[HelixHandlerUnpaired]") {
 
 		REQUIRE(interaction.basePairs.rbegin()->first == 4);
 		REQUIRE(interaction.basePairs.rbegin()->second == 1);
+
+	}
+
+	SECTION("Helix: Case 8 - unpaired bases, many unpaired bases", "[HelixHandlerUnpaired]") {
+		RnaSequence r1("r1", "GAAGAGG");
+		RnaSequence r2("r2", "CAACACC");
+		AccessibilityDisabled acc1(r1, 0, NULL);
+		AccessibilityDisabled acc2(r2, 0, NULL);
+		ReverseAccessibility racc(acc2);
+		InteractionEnergyBasePair energy(acc1, racc);
+
+		HelixConstraint hC(2, 4, 2, 2, 999, 0, false);
+		HelixHandlerUnpaired hhU(energy, hC);
+
+		//////////////////////////////////////////////////////////////////////////////////////////////////////////
+		////////////////////////////////////////////   FILLHELIX  ////////////////////////////////////////////////
+		//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		REQUIRE(hhU.fillHelix(0, energy.size1() - 1, 0, energy.size2() - 1) == 6);
+
+		// (0,0)
+		REQUIRE(hhU.getHelixE(0, 0) == -3);
+		REQUIRE(hhU.getHelixLength1(0, 0) == 7);
+		REQUIRE(hhU.getHelixLength2(0, 0) == 7);
+
+		// (3,0)
+		REQUIRE(hhU.getHelixE(3, 0) == -2);
+		REQUIRE(hhU.getHelixLength1(3, 0) == 4);
+		REQUIRE(hhU.getHelixLength2(3, 0) == 4);
+
+		// (3,1)
+		REQUIRE(hhU.getHelixE(3, 1) == -2);
+		REQUIRE(hhU.getHelixLength1(3, 1) == 4);
+		REQUIRE(hhU.getHelixLength2(3, 1) == 6);
+
+		// (5,0)
+		REQUIRE(hhU.getHelixE(5, 0) == -1);
+		REQUIRE(hhU.getHelixLength1(5, 0) == 2);
+		REQUIRE(hhU.getHelixLength2(5, 0) == 2);
+
+		// (5,1)
+		REQUIRE(hhU.getHelixE(5, 1) == -1);
+		REQUIRE(hhU.getHelixLength1(5, 1) == 2);
+		REQUIRE(hhU.getHelixLength2(5, 1) == 3);
+
+		// (5,3)
+		REQUIRE(hhU.getHelixE(5, 3) == -1);
+		REQUIRE(hhU.getHelixLength1(5, 3) == 2);
+		REQUIRE(hhU.getHelixLength2(5, 3) == 4);
+
+		//////////////////////////////////////////////////////////////////////////////////////////////////////////
+		////////////////////////////////////////////   TRACEBACK   ///////////////////////////////////////////////
+		//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		// Case (2,2)
+		//////////////////////
+		Interaction interaction(r1,r2);
+		hhU.traceBackHelix(interaction, 0, 0);
+
+		REQUIRE(interaction.basePairs.size() == 2);
+		// First / last base pair of helix
+		REQUIRE(interaction.basePairs.begin()->first == 3);
+		REQUIRE(interaction.basePairs.begin()->second == 5);
+
+		REQUIRE(interaction.basePairs.rbegin()->first == 5);
+		REQUIRE(interaction.basePairs.rbegin()->second == 3);
+
+	}
+
+	SECTION("Helix: Case 9 - unpaired bases, many unpaired bases --only allow 1 unpaired base", "[HelixHandlerUnpaired]") {
+		RnaSequence r1("r1", "GAAGAGG");
+		RnaSequence r2("r2", "CAACACC");
+		AccessibilityDisabled acc1(r1, 0, NULL);
+		AccessibilityDisabled acc2(r2, 0, NULL);
+		ReverseAccessibility racc(acc2);
+		InteractionEnergyBasePair energy(acc1, racc);
+
+		HelixConstraint hC(2, 4, 2, 1, 999, 0, false);
+		HelixHandlerUnpaired hhU(energy, hC);
+
+		//////////////////////////////////////////////////////////////////////////////////////////////////////////
+		////////////////////////////////////////////   FILLHELIX  ////////////////////////////////////////////////
+		//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		REQUIRE(hhU.fillHelix(0, energy.size1() - 1, 0, energy.size2() - 1) == 3);
+
+		// (3,0)
+		REQUIRE(hhU.getHelixE(3, 0) == -2);
+		REQUIRE(hhU.getHelixLength1(3, 0) == 4);
+		REQUIRE(hhU.getHelixLength2(3, 0) == 4);
+
+		// (5,0)
+		REQUIRE(hhU.getHelixE(5, 0) == -1);
+		REQUIRE(hhU.getHelixLength1(5, 0) == 2);
+		REQUIRE(hhU.getHelixLength2(5, 0) == 2);
+
+		// (5,1)
+		REQUIRE(hhU.getHelixE(5, 1) == -1);
+		REQUIRE(hhU.getHelixLength1(5, 1) == 2);
+		REQUIRE(hhU.getHelixLength2(5, 1) == 3);
+
+		//////////////////////////////////////////////////////////////////////////////////////////////////////////
+		////////////////////////////////////////////   TRACEBACK   ///////////////////////////////////////////////
+		//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		// Case (5,0)
+		//////////////////////
+		Interaction interaction(r1,r2);
+		hhU.traceBackHelix(interaction, 5, 0);
+
+		REQUIRE(interaction.basePairs.size() == 0);
 
 	}
 }
