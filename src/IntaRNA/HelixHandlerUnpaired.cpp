@@ -90,7 +90,7 @@ fillHelix(const size_t i1min, const size_t i1max, const size_t i2min, const size
 							bestL2 = curBP +u2;
 						}
 					} else {
-//							LOG(DEBUG) << "i1, i2, u1, u2, curBP: " << i1 << " " << i2 << " " << u1p << " " << u2p << " " << curBP;
+//						LOG(DEBUG) << "i1, i2, u1, u2, curBP: " << i1 << " " << i2 << " " << u1p << " " << u2p << " " << curBP;
 //						LOG(DEBUG) << ">>>>>> k1, k2: " << k1 << " " << k2;
 
 						// check if recursed entry is < E_INF
@@ -100,7 +100,7 @@ fillHelix(const size_t i1min, const size_t i1max, const size_t i2min, const size
 
 //						LOG(DEBUG) << "HelixE: " << getHelixE(k1 - offset1, k2 - offset2, curBP - 1);
 						// check right boundaries
-						if (i1 + u1 + getHelixLength1(k1-offset1, k2-offset2,curBP-1) -offset1 >= helix.size1()
+						if (i1 + u1 + getHelixLength1(k1-offset1, k2-offset2, curBP-1) -offset1 >= helix.size1()
 							|| i2 + u2 + getHelixLength2(k1-offset1, k2-offset2, curBP-1)-offset2 >= helix.size2()) {
 							continue; // not within the boundaries -> skip
 						}
@@ -182,7 +182,7 @@ fillHelix(const size_t i1min, const size_t i1max, const size_t i2min, const size
 			}
 		}
 
-//		LOG(DEBUG) << "i1,i2, bestE: " << i1 << " " << i2 << " " << bestE;
+//		LOG(DEBUG) << "i1,i2, bestE: " << i1-offset1 << " " << i2-offset2 << " " << bestE;
 		// store best (mfe) helix for all u1/u2
 		helix(i1 - offset1, i2 - offset2) = HelixMatrix::value_type(bestE,
 																	E_isINF(bestE) ? 0 : encodeHelixLength(
@@ -220,6 +220,7 @@ traceBackHelix( Interaction & interaction
 
 	// get energy of provided seed
 	E_type curE = getHelixE(i1_,i2_,bp);
+//	LOG(DEBUG) << "i1_, i2_, bp, curE: " << i1_ << " " << i2_ << " " << bp << " " << curE;
 	// trace helices
 	// trace each helix base pair (excluding right most)
 	for ( size_t curBP=1+bp; curBP-- > 2; ) {
@@ -241,7 +242,7 @@ traceBackHelix( Interaction & interaction
 				k2 = i2+u2+1;
 
 				// check right boundary
-				if ( k1-offset1 >= helix.size1() || k2-offset2 >= helix.size2()) {
+				if ( k1 >= helix.size1() || k2 >= helix.size2()) {
 					continue;
 				}
 
@@ -252,6 +253,7 @@ traceBackHelix( Interaction & interaction
 					if ( E_equal( curE, energy.getE_interLeft(i1+offset1, k1+offset1, i2+offset2, k2+offset2)
 										+ getHelixE( k1, k2, curBP-1 )) )
 					{
+//						LOG(DEBUG) << "TRACE FOUND!";
 						// store left base pair if not left helix boundary
 						if (i1 != i1_) {
 							interaction.basePairs.push_back( energy.getBasePair(i1+offset1, i2+offset2) );
@@ -261,6 +263,7 @@ traceBackHelix( Interaction & interaction
 						// reset for next trace step
 						i1 = k1;
 						i2 = k2;
+//						LOG(DEBUG) << "NEXT Entry: " << i1 << " " << i2 << " " << curE;
 						// mark trace step done
 						traceNotFound = false;
 					}
