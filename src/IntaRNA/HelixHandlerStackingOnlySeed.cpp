@@ -58,10 +58,9 @@ fillHelixSeed(const size_t i1min, const size_t i1max, const size_t i2min, const 
 		for (size_t leadingBP=0; leadingBP <= possibleBasePairs && (i1+leadingBP-offset1) < helixSeed.size1()
 								 								&& (i2+leadingBP-offset2) < helixSeed.size2(); leadingBP++) {
 			// If leading base pairs exist and helixE = E_INF -> skip to the next leadingBP
-			if (leadingBP != 0)
-				if (E_isINF(getHelixE(i1-offset1,i2-offset2,leadingBP+1))) {
-					continue;
-				}
+			if (leadingBP != 0 && E_isINF(getHelixE(i1-offset1,i2-offset2,leadingBP+1))) {
+				continue;
+			}
 
 			// the start positions for the seed
 			seedStart1 = i1+leadingBP;
@@ -82,10 +81,9 @@ fillHelixSeed(const size_t i1min, const size_t i1max, const size_t i2min, const 
 									  && (seedEnd2+trailingBP-offset2) < helixSeed.size2(); trailingBP++) {
 
 				// If trailing base pairs exist and helixE = E_INF -> skip to the next leadingBP
-				if (trailingBP != 0)
-					if (E_isINF(getHelixE(seedEnd1-offset1,seedEnd2-offset2,trailingBP+1))) {
-						break;
-					}
+				if (trailingBP != 0 && E_isINF(getHelixE(seedEnd1-offset1,seedEnd2-offset2,trailingBP+1))) {
+					break;
+				}
 
 				j1 = seedEnd1+trailingBP;
 				j2 = seedEnd2+trailingBP;

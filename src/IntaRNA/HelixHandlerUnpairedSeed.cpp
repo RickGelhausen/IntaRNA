@@ -8,8 +8,7 @@ size_t
 HelixHandlerUnpaired::
 fillHelixSeed(const size_t i1min, const size_t i1max, const size_t i2min, const size_t i2max)
 {
-//	LOG(DEBUG) << "";
-//	LOG(DEBUG) << "FILLHELIX SEED";
+
 	helixSeed.resize( i1max-i1min+1, i2max-i2min+1 );
 
 	// store index offset due to restricted matrix size generation
@@ -17,10 +16,10 @@ fillHelixSeed(const size_t i1min, const size_t i1max, const size_t i2min, const 
 	offset2 = i2min;
 
 	// temporary variables
-	size_t i1, i2, seedStart1, seedStart2, seedEnd1, seedEnd2, u1L, u1T, u2L, u2T, bestL1, bestL2, possibleBasePairs;
+	size_t i1, i2, seedStart1, seedStart2, seedEnd1, seedEnd2, j1, j2, bestL1, bestL2, possibleBasePairs;
 	size_t  helixCountNotInf = 0, helixCount = 0;
 
-	E_type curE, tmpE;
+	E_type curE, rawE, bestE, bestRawE;
 
 	// fill for all start indices
 	// in decreasing index order
@@ -50,6 +49,9 @@ fillHelixSeed(const size_t i1min, const size_t i1max, const size_t i2min, const 
 
 		// Initialuze variables
 		curE = E_INF;
+		rawE = E_INF;
+		bestE = E_INF;
+		bestRawE = E_INF;
 		bestL1 = 0;
 		bestL2 = 0;
 
@@ -58,92 +60,113 @@ fillHelixSeed(const size_t i1min, const size_t i1max, const size_t i2min, const 
 								 && (i1+leadingBP-offset1) < helixSeed.size1()
 								 && (i2+leadingBP-offset2) < helixSeed.size2(); leadingBP++) {
 
-			// Check all leading unpaired bases combinations
-			for (u1L = 0; u1L < getConstraint().getMaxUnpaired()+1 && (i1+leadingBP+u1L-offset1) < helixSeed.size1(); u1L++) {
-			for (u2L = 0; u2L < getConstraint().getMaxUnpaired()+1-u1L && (i2+leadingBP+u2L-offset2) < helixSeed.size2(); u2L++) {
+			// If leading base pairs exist and helixE = E_INF -> skip to the next leadingBP
+			if (leadingBP != 0 && E_isINF(getHelixE(i1-offset1,i2-offset2,leadingBP+1))) {
+				continue;
+			}
 
-				// If leading base pairs exist and helixE = E_INF -> skip to the next leadingBP
-				if (leadingBP != 0) {
-					if (E_isINF(getHelixE(i1-offset1,i2-offset2,leadingBP+1,u1L, u2L))) {
-						continue;
-					}
-				} else {
-					// ensure no dangling unpaired bases are considered
-					if (u1L != 0 || u2L != 0)
-						break;
-				}
+			// the start positions for the seed
+			if (leadingBP != 0) {
+				seedStart1 = i1 + getHelixLength1(i1 - offset1, i2 - offset2, leadingBP + 1) - 1;
+				seedStart2 = i2 + getHelixLength2(i1 - offset1, i2 - offset2, leadingBP + 1) - 1;
+			} else {
+				seedStart1 = i1;
+				seedStart2 = i2;
+			}
 
-				// the start positions for the seed
-				seedStart1 = i1+leadingBP+u1L;
-				seedStart2 = i2+leadingBP+u2L;
+			// check whether the right boundaries are broken
+			if (seedStart1-offset1 >= helixSeed.size1() || seedStart2-offset2 >= helixSeed.size2()) {
+				continue;
+			}
 
-				// If no seed is possible here, skip to next leading base pair number
-				if (E_isINF(seedHandler->getSeedE(seedStart1, seedStart2))) {
+			// If no seed is possible here, skip to next leading base pair number
+			if (E_isINF(seedHandler->getSeedE(seedStart1, seedStart2))) {
+				continue;
+			}
+
+			// the end positions of the seed
+			seedEnd1 = seedStart1+seedHandler->getSeedLength1(seedStart1, seedStart2)-1;
+			seedEnd2 = seedStart2+seedHandler->getSeedLength2(seedStart1, seedStart2)-1;
+
+			// Run over all trailing base pairs
+			for (size_t trailingBP=0; trailingBP <= possibleBasePairs - leadingBP
+									  && (seedEnd1+trailingBP-offset1) < helixSeed.size1()
+									  && (seedEnd2+trailingBP-offset2) < helixSeed.size2(); trailingBP++) {
+
+				// If trailing base pairs exist and helixE = E_INF -> skip to the next leadingBP
+				if (trailingBP != 0 && E_isINF(getHelixE(seedEnd1 - offset1, seedEnd2 - offset2, trailingBP + 1))) {
 					continue;
 				}
 
-				// the end positions of the seed
-				seedEnd1 = seedStart1+seedHandler->getSeedLength1(seedStart1, seedStart2)-1;
-				seedEnd2 = seedStart2+seedHandler->getSeedLength2(seedStart1, seedStart2)-1;
+				// right boundary
+				if (trailingBP != 0) {
+					j1 = seedEnd1+getHelixLength1(seedEnd1-offset1,seedEnd2-offset2,trailingBP+1)-1;
+					j2 = seedEnd2+getHelixLength2(seedEnd1-offset1,seedEnd2-offset2,trailingBP+1)-1;
+				} else {
+					j1 = seedEnd1;
+					j2 = seedEnd2;
+				}
 
-				// Run over all trailing base pairs
-				for (size_t trailingBP=0; trailingBP <= possibleBasePairs - leadingBP
-										  && (seedEnd1+trailingBP-offset1) < helixSeed.size1()
-										  && (seedEnd2+trailingBP-offset2) < helixSeed.size2(); trailingBP++) {
+				// check whether the right boundaries are broken
+				if (j1-offset1 >= helixSeed.size1()
+					|| j2-offset2 >= helixSeed.size2()) {
+					continue;
+				}
 
-//					LOG(DEBUG) << "TrailingBP: " << trailingBP;
-//					LOG(DEBUG) << "helixSizes: " << helixSeed.size1() << " " << helixSeed.size2();
-//					LOG(DEBUG) << "seedEnd+trailingBP: " << seedEnd1+trailingBP << " " << seedEnd2+trailingBP;
-					// check all trailing unpaired bases combinations
-					for (u1T = 0; u1T < getConstraint().getMaxUnpaired()+1 - (u1L+u2L) && (seedEnd1+trailingBP+u1T-offset1) < helixSeed.size1(); u1T++) {
-					for (u2T = 0; u2T < getConstraint().getMaxUnpaired()+1 - (u1L+u2L+u1T) && (seedEnd2+trailingBP+u2T-offset2) < helixSeed.size2(); u2T++) {
+				// ensure that ED-values are within the boundaries (default 999)
+				if (energy.getED1(i1, j1) > helixConstraint.getMaxED()
+					|| energy.getED2(i2, j2) > helixConstraint.getMaxED()) {
+					continue;
+				}
 
-//						LOG(DEBUG) << "u1T, u2T: " << u1T << " "<< u2T;
-						// If trailing base pairs exist and helixE = E_INF -> skip to the next leadingBP
-						if (trailingBP != 0) {
-							if (E_isINF(getHelixE(seedEnd1 - offset1, seedEnd2 - offset2, trailingBP + 1, u1T, u2T))) {
-								continue;
-							}
-						} else {
-							// ensure no dangling unpaired bases are considered
-							if (u1T != 0 || u2T != 0)
-								break;
-						}
-//						LOG(DEBUG) << "i1, i2: " << i1 << " " << i2;
-//						LOG(DEBUG) << "leadingBP+1: " << leadingBP+1;
-//						LOG(DEBUG) << "u1L, u2L: " << u1L << " " << u2L;
-//						LOG(DEBUG) << "seedStart1, seedStart2: " << seedStart1 << " " << seedStart2;
-//						LOG(DEBUG) << "seedEnd1, seedEnd2: " << seedEnd1 << " " << seedEnd2;
-//						LOG(DEBUG) << "trailingBP+1: " << trailingBP+1;
-//						LOG(DEBUG) << "u1T, u2T: " << u1T << " " << u2T;
-//						LOG(DEBUG) << "Energie: " << getHelixE(i1 - offset1, i2 - offset2, leadingBP + 1, u1L, u2L)
-//								   << " + "<< seedHandler->getSeedE(seedStart1, seedStart2)
-//								   << " + "<< getHelixE(seedEnd1 - offset1, seedEnd2 - offset2, trailingBP + 1, u1T, u2T);
+				// energy value without dangling ends and E_init
+				rawE = getHelixE(i1 - offset1, i2 - offset2, leadingBP + 1)
+					   + seedHandler->getSeedE(seedStart1, seedStart2)
+					   + getHelixE(seedEnd1 - offset1, seedEnd2 - offset2, trailingBP + 1);
 
-						tmpE = getHelixE(i1 - offset1, i2 - offset2, leadingBP + 1, u1L, u2L)
-							   + seedHandler->getSeedE(seedStart1, seedStart2)
-							   + getHelixE(seedEnd1 - offset1, seedEnd2 - offset2, trailingBP + 1, u1T, u2T);
+				// energy value
+				curE = energy.getE(i1,j1,i2,j2, rawE) + energy.getE_init();
 
-						if (tmpE < curE) {
-							curE = tmpE;
-							bestL1 = leadingBP + u1L + seedHandler->getSeedLength1(seedStart1, seedStart2) + trailingBP + u1T;
-							bestL2 = leadingBP + u2L + seedHandler->getSeedLength2(seedStart1, seedStart2) + trailingBP + u2T;
- 						}
-					} // u2T
-					} // u1T
-				} // trailingBP
+				// If no ED-values are wanted, remove them
+				if (helixConstraint.noED())
+					curE -= (energy.getED1(i1,j1)+ energy.getED2(i2, j2));
 
-			} // u2L
-			} // u1L
+				if (curE < bestE) {
+					bestE = curE;
+					bestRawE = rawE;
+					bestL1 = seedHandler->getSeedLength1(seedStart1, seedStart2);
+					bestL2 = seedHandler->getSeedLength2(seedStart1, seedStart2);
+					// Add leadingBP length contribution
+					if (leadingBP != 0) {
+						bestL1 += getHelixLength1(i1-offset1, i2-offset2, leadingBP+1)-1;
+						bestL2 += getHelixLength2(i1-offset1, i2-offset2, leadingBP+1)-1;
+					}
+					// Add trailingBP length contribution
+					if (trailingBP != 0) {
+						bestL1 += getHelixLength1(seedEnd1-offset1, seedEnd2-offset2, trailingBP+1)-1;
+						bestL2 += getHelixLength2(seedEnd1-offset1, seedEnd2-offset2, trailingBP+1)-1;
+					}
+				}
+
+			} // trailingBP
 		} // leadingBP
 
-		helixSeed(i1-offset1, i2-offset2) = HelixSeedMatrix::value_type(curE, E_isINF(curE) ? 0: encodeHelixSeedLength(bestL1,bestL2));
 
 		// Ensures that the helixCount is only increased for the mfe helix.
-		if (E_isNotINF(curE)) {
-//			LOG(DEBUG) << "i1, i2: " << i1-offset1 << " " << i2-offset2 << " " << curE;
-			helixCountNotInf++;
+		if (E_isNotINF(bestE)) {
+			// overwrite all helices with too high energy -> infeasible start interactions
+			if (bestE > helixConstraint.getMaxE()) {
+				bestE = E_INF;
+			} else {
+				// get helix hybridization loop energies only
+				bestE = bestRawE;
+				// count true helix
+				helixCountNotInf++;
+			}
 		}
+		helixSeed(i1-offset1, i2-offset2) = HelixSeedMatrix::value_type(bestE, E_isINF(bestE) ? 0: encodeHelixSeedLength(bestL1,bestL2));
+
+
 	} // i2
 	} // i1
 
@@ -162,7 +185,7 @@ traceBackHelixSeed( Interaction & interaction
 	, i2 = i2_
 	, seedStart1, seedEnd1
 	, seedStart2, seedEnd2
-	, u1L, u2L, u1T, u2T;
+	, j1, j2;
 
 	bool traceNotFound = true;
 
@@ -183,85 +206,81 @@ traceBackHelixSeed( Interaction & interaction
 							 && leadingBP <= possibleBasePairs
 							 && i1 + leadingBP-offset1 < helixSeed.size1()
 							 && i2 + leadingBP-offset2 < helixSeed.size2(); leadingBP++) {
-		for (u1L = 0; u1L < getConstraint().getMaxUnpaired()+1 && traceNotFound && (i1+leadingBP+u1L-offset1) < helixSeed.size1(); u1L++) {
-		for (u2L = 0; u2L < getConstraint().getMaxUnpaired()+1-u1L && traceNotFound && (i2+leadingBP+u2L-offset2) < helixSeed.size2(); u2L++) {
-			// If leading base pairs exist and helixE = E_INF -> skip to the next leadingBP
-			if (leadingBP != 0) {
-				if (E_isINF(getHelixE(i1-offset1,i2-offset2,leadingBP+1,u1L, u2L))) {
-					continue;
-				}
-			} else {
-				// ensure no dangling unpaired bases are considered
-				if (u1L != 0 || u2L != 0)
-					break;
-			}
 
-			// start positions of the seed
-			seedStart1 = i1 + leadingBP + u1L;
-			seedStart2 = i2 + leadingBP + u2L;
+		// If leading base pairs exist and helixE = E_INF -> skip to the next leadingBP
+		if (leadingBP != 0 && E_isINF(getHelixE(i1-offset1,i2-offset2,leadingBP+1))) {
+			continue;
+		}
 
-			// Check whether seed is possible for this starting position
-			if (E_isINF(seedHandler->getSeedE(seedStart1, seedStart2))) {
+		// the start positions for the seed
+		if (leadingBP != 0) {
+			seedStart1 = i1 + getHelixLength1(i1 - offset1, i2 - offset2, leadingBP + 1) - 1;
+			seedStart2 = i2 + getHelixLength2(i1 - offset1, i2 - offset2, leadingBP + 1) - 1;
+		} else {
+			seedStart1 = i1;
+			seedStart2 = i2;
+		}
+		// check whether the right boundaries are broken
+		if (seedStart1-offset1>= helixSeed.size1() || seedStart2-offset2 >= helixSeed.size2()) {
+			continue;
+		}
+
+		// Check whether seed is possible for this starting position
+		if (E_isINF(seedHandler->getSeedE(seedStart1, seedStart2))) {
+			continue;
+		}
+
+		// end positions of the seed
+		seedEnd1 = seedStart1 + seedHandler->getSeedLength1(seedStart1, seedStart2) - 1;
+		seedEnd2 = seedStart2 + seedHandler->getSeedLength2(seedStart1, seedStart2) - 1;
+
+		// Trailing base pairs
+		for (size_t trailingBP = 0; traceNotFound
+									&& trailingBP <= possibleBasePairs - leadingBP
+									&& seedEnd1 + trailingBP - offset1 < helixSeed.size1()
+									&& seedEnd2 + trailingBP - offset2 < helixSeed.size2(); trailingBP++) {
+
+
+			// If trailing base pairs exist and helixE = E_INF -> skip to the next leadingBP
+			if (trailingBP != 0 && E_isINF(getHelixE(seedEnd1 - offset1, seedEnd2 - offset2, trailingBP + 1))) {
 				continue;
 			}
 
-			// end positions of the seed
-			seedEnd1 = seedStart1 + seedHandler->getSeedLength1(seedStart1, seedStart2) - 1;
-			seedEnd2 = seedStart2 + seedHandler->getSeedLength2(seedStart1, seedStart2) - 1;
+			// right boundary
+			if (trailingBP != 0) {
+				j1 = seedEnd1+getHelixLength1(seedEnd1-offset1,seedEnd2-offset2,trailingBP+1)-1;
+				j2 = seedEnd2+getHelixLength2(seedEnd1-offset1,seedEnd2-offset2,trailingBP+1)-1;
+			} else {
+				j1 = seedEnd1;
+				j2 = seedEnd2;
+			}
 
+			// check whether the right boundaries are broken
+			if (j1-offset1 >= helixSeed.size1()
+				|| j2-offset2 >= helixSeed.size2()) {
+				continue;
+			}
 
-			// Trailing base pairs
-			for (size_t trailingBP = 0; traceNotFound
-										&& trailingBP <= possibleBasePairs - leadingBP
-										&& seedEnd1 + trailingBP - offset1 < helixSeed.size1()
-										&& seedEnd2 + trailingBP - offset2 < helixSeed.size2(); trailingBP++) {
+			if (E_equal(curE, getHelixE(i1 - offset1, i2 - offset2, leadingBP + 1)
+							  + seedHandler->getSeedE(seedStart1, seedStart2)
+							  + getHelixE(seedEnd1 - offset1, seedEnd2 - offset2, trailingBP + 1))) {
 
-				for (u1T = 0; u1T < getConstraint().getMaxUnpaired()+1 - (u1L+u2L) && traceNotFound && (seedEnd1+trailingBP+u1T-offset1) < helixSeed.size1(); u1T++) {
-				for (u2T = 0; u2T < getConstraint().getMaxUnpaired()+1 - (u1L + u2L + u1T) && traceNotFound && (seedEnd2 + trailingBP + u2T - offset2) < helixSeed.size2(); u2T++) {
+				// Trace the first part if existing
+				if (leadingBP != 0) {
+					traceBackHelix(interaction, i1 - offset1, i2 - offset2, leadingBP + 1);
+					interaction.basePairs.push_back(energy.getBasePair(seedStart1, seedStart2));
+				}
+				// Trace the seed
+				seedHandler->traceBackSeed(interaction, seedStart1, seedStart2);
 
-					// If trailing base pairs exist and helixE = E_INF -> skip to the next leadingBP
-					if (trailingBP != 0) {
-						if (E_isINF(getHelixE(seedEnd1 - offset1, seedEnd2 - offset2, trailingBP + 1, u1T, u2T))) {
-							continue;
-						}
-					} else {
-						// ensure no dangling unpaired bases are considered
-						if (u1T != 0 || u2T != 0)
-							break;
-					}
-
-					if (E_equal(curE, getHelixE(i1 - offset1, i2 - offset2, leadingBP + 1, u1L, u2L)
-									  + seedHandler->getSeedE(seedStart1, seedStart2)
-									  + getHelixE(seedEnd1 - offset1, seedEnd2 - offset2, trailingBP + 1, u1T, u2T))) {
-//						LOG(DEBUG) << "Found Trace!";
-//						LOG(DEBUG) << "i1, i2: " << i1 << " " << i2;
-//						LOG(DEBUG) << "LeadingBP: " << leadingBP;
-//						LOG(DEBUG) << "u1L, u2L: " << u1L << " " << u2L;
-//						LOG(DEBUG) << "seedStart1, seedStart2: " << seedStart1 << " " << seedStart2;
-//						LOG(DEBUG) << "TrailingBP: " << trailingBP;
-//						LOG(DEBUG) << "u1T, u2T: " << u1T << " " << u2T;
-//						LOG(DEBUG) << "seedEnd1, seedEnd2: " << seedEnd1 << " " << seedEnd2;
-						// Trace the first part if existing
-						if (leadingBP != 0) {
-							traceBackHelix(interaction, i1 - offset1, i2 - offset2, leadingBP + 1,u1L,u2L);
-							interaction.basePairs.push_back(energy.getBasePair(seedStart1, seedStart2));
-						}
-						// Trace the seed
-						seedHandler->traceBackSeed(interaction, seedStart1, seedStart2);
-
-						// Trace the last part if existing
-						if (trailingBP != 0) {
-							interaction.basePairs.push_back(energy.getBasePair(seedEnd1, seedEnd2));
-							traceBackHelix(interaction, seedEnd1 - offset1, seedEnd2 - offset2, trailingBP + 1,u1T,u2T);
-						}
-						traceNotFound = false;
-					}
-				} // u2T
-				} // u1T
-			} // trailing
-
-		} // u2L
-		} // u1L
+				// Trace the last part if existing
+				if (trailingBP != 0) {
+					interaction.basePairs.push_back(energy.getBasePair(seedEnd1, seedEnd2));
+					traceBackHelix(interaction, seedEnd1 - offset1, seedEnd2 - offset2, trailingBP + 1);
+				}
+				traceNotFound = false;
+			}
+		} // trailing
 	} // leading
 	assert(!traceNotFound);
 

@@ -23,6 +23,8 @@ runTests_SOURCES =	\
 					HelixHandlerStackingOnlySeedIdxOffset_test.cpp \
 					HelixHandlerUnpaired_test.cpp \
 					HelixHandlerUnpairedIdxOffset_test.cpp \
+					HelixHandlerUnpairedSeed_test.cpp \
+					HelixHandlerUnpairedSeedIdxOffset_test.cpp \
 					IndexRange_test.cpp  \
 					IndexRangeList_test.cpp  \
 					Interaction_test.cpp  \

@@ -630,21 +630,6 @@ setSeedHandler(SeedHandler & seedHandler) {
 
 ///////////////////////////////////////////////////////////////////////////
 
-inline
-size_t
-HelixHandlerUnpaired::
-fillHelixSeed(const size_t i1, const size_t j1, const size_t i2, const size_t j2){
-	INTARNA_NOT_IMPLEMENTED("NOT IMPLEMENTED");
-}
-
-inline
-void
-HelixHandlerUnpaired::
-traceBackHelixSeed( Interaction & interaction, const size_t i1, const size_t i2)
-{
-	INTARNA_NOT_IMPLEMENTED("NOT IMPLEMENTED");
-}
-
 } // namespace
 
 #endif //INTARNA_HELIXHANDLERUNPAIRED_H_

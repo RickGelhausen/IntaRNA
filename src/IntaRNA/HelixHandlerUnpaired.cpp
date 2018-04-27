@@ -8,8 +8,6 @@ size_t
 HelixHandlerUnpaired::
 fillHelix(const size_t i1min, const size_t i1max, const size_t i2min, const size_t i2max)
 {
-//	LOG(DEBUG) << "         ";
-//	LOG(DEBUG) << "         ";
 #if INTARNA_IN_DEBUG_MODE
 	if ( i1min > i1max ) throw std::runtime_error("HelixHandlerUnpaired::fillHelix: i1min("+toString(i1min)+") > i1max("+toString(i1max)+")");
 	if ( i2min > i2max ) throw std::runtime_error("HelixHandlerUnpaired::fillHelix: i2min("+toString(i2min)+") > i2max("+toString(i2max)+")");
@@ -43,7 +41,6 @@ fillHelix(const size_t i1min, const size_t i1max, const size_t i2min, const size
 	for (i2=i2max+1; i2-- > i2min;) {
 		// count possible helices
 		helixCount++;
-//		LOG(DEBUG) << "i1, i2: " << i1 << " " << i2;
 		// init according to no helix interaction
 		helix(i1-offset1,i2-offset2) = HelixMatrix::value_type( E_INF, 0, 0 );
 
@@ -57,8 +54,6 @@ fillHelix(const size_t i1min, const size_t i1max, const size_t i2min, const size
 					  && (i1+curBP-1-offset1) < helix.size1()
 					  && (i2+curBP-1-offset2) < helix.size2(); curBP++) {
 
-
-//			LOG(DEBUG) << ">> curBP: " << curBP;
 			// init current helix energy
 			curE = E_INF;
 			bestE = E_INF;
@@ -69,12 +64,10 @@ fillHelix(const size_t i1min, const size_t i1max, const size_t i2min, const size
 			for (u1 = 0; u1 < getConstraint().getMaxIL()+1 && (i1+u1+1 -offset1)< helix.size1(); u1++) {
 			for (u2 = 0; u2 < getConstraint().getMaxIL()+1 - u1 && (i2+u2+1 -offset2) < helix.size2(); u2++) {
 
-//				LOG(DEBUG) << ">>>> u1, u2: " << u1 << " " << u2;
 				// get split base pair (right boundaries when curBP = 2)
 				k1 = i1 + u1 +1;
 				k2 = i2 + u2 +1;
 
-//				LOG(DEBUG) << ">>>> k1, k2: " << k1 << " " << k2;
 				// check if split base pair is complementary
 				if (energy.areComplementary(k1, k2)) {
 
@@ -82,7 +75,6 @@ fillHelix(const size_t i1min, const size_t i1max, const size_t i2min, const size
 					if (curBP == 2) {
 						// energy for stacking/bulge/interior depending on u1/u2
 						curE = energy.getE_interLeft(i1, k1, i2, k2);
-//						LOG(DEBUG) << "i1, i2, curBP, u1, u2, curE: " << i1 << " " << i2 << " " << curBP << " " << u1 << " " << u2 << " " << curE;
 						// save the best energy among all u1/u2 combinations
 						if (curE < bestE) {
 							bestE = curE;
@@ -90,15 +82,11 @@ fillHelix(const size_t i1min, const size_t i1max, const size_t i2min, const size
 							bestL2 = curBP +u2;
 						}
 					} else {
-//						LOG(DEBUG) << "i1, i2, u1, u2, curBP: " << i1 << " " << i2 << " " << u1p << " " << u2p << " " << curBP;
-//						LOG(DEBUG) << ">>>>>> k1, k2: " << k1 << " " << k2;
-
 						// check if recursed entry is < E_INF
 						if (E_isINF(getHelixE(k1 - offset1, k2 - offset2, curBP - 1))) {
 							continue; // invalid entry -> skip
 						}
 
-//						LOG(DEBUG) << "HelixE: " << getHelixE(k1 - offset1, k2 - offset2, curBP - 1);
 						// check right boundaries
 						if (i1 + u1 + getHelixLength1(k1-offset1, k2-offset2, curBP-1) -offset1 >= helix.size1()
 							|| i2 + u2 + getHelixLength2(k1-offset1, k2-offset2, curBP-1)-offset2 >= helix.size2()) {
@@ -107,15 +95,12 @@ fillHelix(const size_t i1min, const size_t i1max, const size_t i2min, const size
 
 						// update mfe for split at k1,k2
 						curE = energy.getE_interLeft(i1, k1, i2, k2) + getHelixE(k1 - offset1, k2 - offset2, curBP - 1);
-//						LOG(DEBUG) << "i1, i2, curBP, u1, u2, curE: " << i1 << " " << i2 << " " << curBP << " " << u1 << " " << u2 << " " << curE;
 
 						// store best energy only
 						if (curE < bestE) {
 							bestE = curE;
 							bestL1 = u1 + getHelixLength1(k1 - offset1, k2 - offset2, curBP - 1) + 1;
 							bestL2 = u2 + getHelixLength2(k1 - offset1, k2 - offset2, curBP - 1) + 1;
-//								LOG(DEBUG) << curBP;
-//								LOG(DEBUG) << "bestE, bestL1, bestL2: " << bestE << " " << bestL1 << " " << bestL2;
 						}
 					} // more than two base pairs
 				} // (j1, j2) complementary
@@ -124,7 +109,6 @@ fillHelix(const size_t i1min, const size_t i1max, const size_t i2min, const size
 			} // u2
 			} // u1
 			// store helix energy and length
-//			LOG(DEBUG) << "SetHelix: i1, i2, curBP, bestE, l1, l2: " << i1 << " " << i2 << " " << curBP << " " << bestE << " " << bestL1 << " " << bestL2;
 			setHelixPair(i1 - offset1, i2 - offset2, curBP, bestE, encodeHelixLength(bestL1, bestL2));
 
 		} // curBP
@@ -146,7 +130,6 @@ fillHelix(const size_t i1min, const size_t i1max, const size_t i2min, const size
 			// get right helix boundaries
 			j1 = i1 + getHelixLength1(i1-offset1, i2-offset2, curBP)-1;
 			j2 = i2 + getHelixLength2(i1-offset1, i2-offset2, curBP)-1;
-//			LOG(DEBUG) << "i1, i2, j1, j2: " << i1 << " " << i2 << " " << j1 << " " << j2;
 
 			if (energy.getED1(i1, j1) > helixConstraint.getMaxED()
 				|| energy.getED2(i2, j2) > helixConstraint.getMaxED()) {
@@ -182,7 +165,6 @@ fillHelix(const size_t i1min, const size_t i1max, const size_t i2min, const size
 			}
 		}
 
-//		LOG(DEBUG) << "i1,i2, bestE: " << i1-offset1 << " " << i2-offset2 << " " << bestE;
 		// store best (mfe) helix for all u1/u2
 		helix(i1 - offset1, i2 - offset2) = HelixMatrix::value_type(bestE,
 																	E_isINF(bestE) ? 0 : encodeHelixLength(
@@ -220,7 +202,6 @@ traceBackHelix( Interaction & interaction
 
 	// get energy of provided seed
 	E_type curE = getHelixE(i1_,i2_,bp);
-//	LOG(DEBUG) << "i1_, i2_, bp, curE: " << i1_ << " " << i2_ << " " << bp << " " << curE;
 	// trace helices
 	// trace each helix base pair (excluding right most)
 	for ( size_t curBP=1+bp; curBP-- > 2; ) {
@@ -253,7 +234,6 @@ traceBackHelix( Interaction & interaction
 					if ( E_equal( curE, energy.getE_interLeft(i1+offset1, k1+offset1, i2+offset2, k2+offset2)
 										+ getHelixE( k1, k2, curBP-1 )) )
 					{
-//						LOG(DEBUG) << "TRACE FOUND!";
 						// store left base pair if not left helix boundary
 						if (i1 != i1_) {
 							interaction.basePairs.push_back( energy.getBasePair(i1+offset1, i2+offset2) );
@@ -263,7 +243,6 @@ traceBackHelix( Interaction & interaction
 						// reset for next trace step
 						i1 = k1;
 						i2 = k2;
-//						LOG(DEBUG) << "NEXT Entry: " << i1 << " " << i2 << " " << curE;
 						// mark trace step done
 						traceNotFound = false;
 					}
