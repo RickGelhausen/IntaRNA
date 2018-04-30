@@ -165,6 +165,7 @@ fillHelix(const size_t i1min, const size_t i1max, const size_t i2min, const size
 			}
 		}
 
+		LOG(DEBUG) << "i1, i2 " << i1 << " " << i2 << " " << bestE;
 		// store best (mfe) helix for all u1/u2
 		helix(i1 - offset1, i2 - offset2) = HelixMatrix::value_type(bestE,
 																	E_isINF(bestE) ? 0 : encodeHelixLength(
@@ -238,11 +239,13 @@ traceBackHelix( Interaction & interaction
 						if (i1 != i1_) {
 							interaction.basePairs.push_back( energy.getBasePair(i1+offset1, i2+offset2) );
 						}
+
 						// store next energy value in trace
 						curE = getHelixE( k1, k2, curBP-1 );
 						// reset for next trace step
 						i1 = k1;
 						i2 = k2;
+
 						// mark trace step done
 						traceNotFound = false;
 					}

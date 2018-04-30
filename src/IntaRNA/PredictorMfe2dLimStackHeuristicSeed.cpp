@@ -433,7 +433,7 @@ traceBack( Interaction & interaction, const OutputConstraint & outConstraint )
 					traceNotFound = false;
 					i1=j1;
 					i2=j2;
-					break;
+//					break;
 				}
 			} // w1
 			} // w2

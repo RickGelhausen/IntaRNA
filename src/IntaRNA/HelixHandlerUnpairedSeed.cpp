@@ -8,6 +8,8 @@ size_t
 HelixHandlerUnpaired::
 fillHelixSeed(const size_t i1min, const size_t i1max, const size_t i2min, const size_t i2max)
 {
+//	LOG(DEBUG) << " ";
+//	LOG(DEBUG) << " ";
 
 	helixSeed.resize( i1max-i1min+1, i2max-i2min+1 );
 
@@ -106,7 +108,8 @@ fillHelixSeed(const size_t i1min, const size_t i1max, const size_t i2min, const 
 					j1 = seedEnd1;
 					j2 = seedEnd2;
 				}
-
+//				LOG_IF(i1==0 && i2==0, DEBUG) << "trailingBP: " << trailingBP+1;
+//				LOG_IF(i1==0 && i2==0, DEBUG) << "j1, j2: " << j1 << " " << j2;
 				// check whether the right boundaries are broken
 				if (j1-offset1 >= helixSeed.size1()
 					|| j2-offset2 >= helixSeed.size2()) {
@@ -126,12 +129,15 @@ fillHelixSeed(const size_t i1min, const size_t i1max, const size_t i2min, const 
 
 				// energy value
 				curE = energy.getE(i1,j1,i2,j2, rawE) + energy.getE_init();
-
+//				curE = rawE;
 				// If no ED-values are wanted, remove them
 				if (helixConstraint.noED())
 					curE -= (energy.getED1(i1,j1)+ energy.getED2(i2, j2));
 
+//				LOG_IF(i1==0 && i2==0, DEBUG) << "curE: " << curE;
+//				LOG_IF(i1==0 && i2==0, DEBUG) << "rawE: " << rawE;
 				if (curE < bestE) {
+//					LOG_IF(i1==0 && i2==0, DEBUG) << "leading/trailing: " << leadingBP << " " << trailingBP << " with bestE: " << curE << " (" << rawE << ") beating last bestE: " << bestE;
 					bestE = curE;
 					bestRawE = rawE;
 					bestL1 = seedHandler->getSeedLength1(seedStart1, seedStart2);
@@ -164,6 +170,7 @@ fillHelixSeed(const size_t i1min, const size_t i1max, const size_t i2min, const 
 				helixCountNotInf++;
 			}
 		}
+//		LOG(DEBUG) << "(i1,i2): BestL, bestE: (" << i1 <<", " << i2 << ") " << bestL1 << " " << bestL2 << " E: " << bestE;
 		helixSeed(i1-offset1, i2-offset2) = HelixSeedMatrix::value_type(bestE, E_isINF(bestE) ? 0: encodeHelixSeedLength(bestL1,bestL2));
 
 
@@ -181,6 +188,7 @@ traceBackHelixSeed( Interaction & interaction
 		, const size_t i1_
 		, const size_t i2_)
 {
+//	LOG(DEBUG) << "Traceback Start!";
 	size_t i1 = i1_
 	, i2 = i2_
 	, seedStart1, seedEnd1
@@ -190,7 +198,11 @@ traceBackHelixSeed( Interaction & interaction
 	bool traceNotFound = true;
 
 	E_type curE = getHelixSeedE(i1_,i2_);
-
+//	LOG(DEBUG) << "Best Energy!: " << getHelixSeedE(i1_,i2_);
+	size_t l1 = getHelixSeedLength1(i1_,i2_)-1;
+	size_t l2 = getHelixSeedLength2(i1_,i2_)-1;
+//	LOG(DEBUG ) << "l1, l2: " << l1 << " " << l2;
+	curE = energy.getE(i1_, i1_+l1, i2_, i2_+l2, curE);
 	// No traceback possible for current boundary
 	if (E_isINF(curE)) {
 		return;
@@ -200,7 +212,11 @@ traceBackHelixSeed( Interaction & interaction
 	// Calculate how many base pairs are possible allongside the seed.
 	// Note: If seedHandler allows unpaired positions this check is not enough, check happens in loop
 	size_t possibleBasePairs = std::min(std::min(helixSeed.size1()-i1 +offset1, helixSeed.size2()-i2+offset2), helixConstraint.getMaxBasePairs())-seedHandler->getConstraint().getBasePairs();
+//	LOG(DEBUG) << "possibleBasePairs: " << possibleBasePairs;
 
+	// calculate with the true energy in order to avoid problems with multiple combinations leading to the same raw energy value.
+	// Happening for example with: -t AGGGGAATTCCGTGCTGTGCCG -q cagccacgatttccct
+//	LOG(DEBUG) << "curE: "<< curE;
 	// screen over all possible leading and trailing base pair combinations
 	for (size_t leadingBP=0; traceNotFound
 							 && leadingBP <= possibleBasePairs
@@ -237,8 +253,8 @@ traceBackHelixSeed( Interaction & interaction
 		// Trailing base pairs
 		for (size_t trailingBP = 0; traceNotFound
 									&& trailingBP <= possibleBasePairs - leadingBP
-									&& seedEnd1 + trailingBP - offset1 < helixSeed.size1()
-									&& seedEnd2 + trailingBP - offset2 < helixSeed.size2(); trailingBP++) {
+									&& (seedEnd1 + trailingBP - offset1) < helixSeed.size1()
+									&& (seedEnd2 + trailingBP - offset2) < helixSeed.size2(); trailingBP++) {
 
 
 			// If trailing base pairs exist and helixE = E_INF -> skip to the next leadingBP
@@ -261,22 +277,39 @@ traceBackHelixSeed( Interaction & interaction
 				continue;
 			}
 
-			if (E_equal(curE, getHelixE(i1 - offset1, i2 - offset2, leadingBP + 1)
-							  + seedHandler->getSeedE(seedStart1, seedStart2)
-							  + getHelixE(seedEnd1 - offset1, seedEnd2 - offset2, trailingBP + 1))) {
+//			LOG_IF(leadingBP==0 && trailingBP==2,DEBUG) << getHelixE(i1 - offset1, i2 - offset2, leadingBP + 1)
+//						  + seedHandler->getSeedE(seedStart1, seedStart2)
+//						  + getHelixE(seedEnd1 - offset1, seedEnd2 - offset2, trailingBP + 1);
 
+			if (E_equal(curE, energy.getE(i1,j1,i2,j2, getHelixE(i1 - offset1, i2 - offset2, leadingBP + 1)
+							  + seedHandler->getSeedE(seedStart1, seedStart2)
+							  + getHelixE(seedEnd1 - offset1, seedEnd2 - offset2, trailingBP + 1)))) {
+//				LOG(DEBUG) << "Trace Found!";
+//				LOG(DEBUG) << "i1, i2: " << i1 << " " << i2;
+//				LOG(DEBUG) << "leadinBP+1: " << leadingBP+1;
+//				LOG(DEBUG) << "seedStarts: " << seedStart1 << " " << seedStart2;
+//				LOG(DEBUG) << "seedEnds: " << seedEnd1 << " " << seedEnd2;
+//				LOG(DEBUG) << "trailingBP+1: " << trailingBP+1;
+//
+//				LOG(DEBUG) << "Energy: " << getHelixE(i1 - offset1, i2 - offset2, leadingBP + 1)
+//						   << " + " << seedHandler->getSeedE(seedStart1, seedStart2)
+//						   << " + " << getHelixE(seedEnd1 - offset1, seedEnd2 - offset2, trailingBP + 1);
 				// Trace the first part if existing
 				if (leadingBP != 0) {
 					traceBackHelix(interaction, i1 - offset1, i2 - offset2, leadingBP + 1);
 					interaction.basePairs.push_back(energy.getBasePair(seedStart1, seedStart2));
 				}
+//				interaction.clear();
 				// Trace the seed
 				seedHandler->traceBackSeed(interaction, seedStart1, seedStart2);
+//				LOG(DEBUG) << interaction;
 
 				// Trace the last part if existing
 				if (trailingBP != 0) {
 					interaction.basePairs.push_back(energy.getBasePair(seedEnd1, seedEnd2));
+//					LOG(DEBUG) << interaction;
 					traceBackHelix(interaction, seedEnd1 - offset1, seedEnd2 - offset2, trailingBP + 1);
+//					LOG(DEBUG) << interaction;
 				}
 				traceNotFound = false;
 			}
