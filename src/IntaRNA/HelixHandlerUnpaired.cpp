@@ -165,7 +165,7 @@ fillHelix(const size_t i1min, const size_t i1max, const size_t i2min, const size
 			}
 		}
 
-		LOG(DEBUG) << "i1, i2 " << i1 << " " << i2 << " " << bestE;
+//		LOG(DEBUG) << "i1, i2 " << i1 << " " << i2 << " " << bestE;
 		// store best (mfe) helix for all u1/u2
 		helix(i1 - offset1, i2 - offset2) = HelixMatrix::value_type(bestE,
 																	E_isINF(bestE) ? 0 : encodeHelixLength(

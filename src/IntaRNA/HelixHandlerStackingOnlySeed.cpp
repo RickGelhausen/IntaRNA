@@ -144,18 +144,19 @@ traceBackHelixSeed( Interaction & interaction
 	size_t i1 = i1_
 		 , i2 = i2_
 		 , seedStart1, seedEnd1
-	     , seedStart2, seedEnd2;
+	     , seedStart2, seedEnd2
+		 , j1,j2;
 
 	bool traceNotFound = true;
 
-	E_type curE = getHelixSeedE(i1_,i2_);
+	// calculate with the true energy in order to avoid problems with multiple combinations leading to the same raw energy value.
+	E_type curE = energy.getE(i1_, i1_+getHelixSeedLength1(i1_,i2_)-1, i2_, i2_+getHelixSeedLength2(i1_,i2_)-1, getHelixSeedE(i1_,i2_));
 
 	// No traceback possible for current boundary
 	if (E_isINF(curE)) {
 		return;
 	}
 
-	// TODO: Check if this work when seed allows unpaired bases
 	// Calculate how many base pairs are possible allongside the seed.
 	// Note: If seedHandler allows unpaired positions this check is not enough, check happens in loop
 	size_t possibleBasePairs = std::min(std::min(helixSeed.size1()-i1 +offset1, helixSeed.size2()-i2+offset2), helixConstraint.getMaxBasePairs())-seedHandler->getConstraint().getBasePairs();
@@ -167,10 +168,9 @@ traceBackHelixSeed( Interaction & interaction
 							 && i2 + leadingBP-offset2 < helixSeed.size2(); leadingBP++) {
 
 		// If leading base pairs exist and helixE = E_INF -> skip to the next leadingBP
-		if (leadingBP != 0)
-			if (E_isINF(getHelixE(i1-offset1,i2-offset2,leadingBP+1))) {
-				continue;
-			}
+		if (leadingBP != 0 && E_isINF(getHelixE(i1-offset1,i2-offset2,leadingBP+1))) {
+			continue;
+		}
 
 		// start positions of the seed
 		seedStart1 = i1 + leadingBP;
@@ -192,14 +192,15 @@ traceBackHelixSeed( Interaction & interaction
 									&& seedEnd2+trailingBP-offset2 < helixSeed.size2(); trailingBP++) {
 
 			// If trailing base pairs exist and helixE = E_INF -> skip to the next leadingBP
-			if (trailingBP != 0)
-				if (E_isINF(getHelixE(seedEnd1-offset1,seedEnd2-offset2,trailingBP+1))) {
-					break;
-				}
+			if (trailingBP != 0 && E_isINF(getHelixE(seedEnd1-offset1,seedEnd2-offset2,trailingBP+1))) {
+				break;
+			}
+			j1 = seedEnd1 + trailingBP;
+			j2 = seedEnd2 + trailingBP;
 
-			if (E_equal(curE, getHelixE(i1-offset1, i2-offset2, leadingBP+1)
+			if (E_equal(curE, energy.getE(i1, j1, i2, j2, getHelixE(i1-offset1, i2-offset2, leadingBP+1)
 							  + seedHandler->getSeedE(seedStart1, seedStart2)
-							  + getHelixE(seedEnd1-offset1, seedEnd2-offset2, trailingBP+1)))
+							  + getHelixE(seedEnd1-offset1, seedEnd2-offset2, trailingBP+1))))
 			{
 				// Trace the first part if existing
 				if (leadingBP != 0) {

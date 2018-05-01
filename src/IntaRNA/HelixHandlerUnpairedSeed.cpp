@@ -197,12 +197,9 @@ traceBackHelixSeed( Interaction & interaction
 
 	bool traceNotFound = true;
 
-	E_type curE = getHelixSeedE(i1_,i2_);
-//	LOG(DEBUG) << "Best Energy!: " << getHelixSeedE(i1_,i2_);
-	size_t l1 = getHelixSeedLength1(i1_,i2_)-1;
-	size_t l2 = getHelixSeedLength2(i1_,i2_)-1;
-//	LOG(DEBUG ) << "l1, l2: " << l1 << " " << l2;
-	curE = energy.getE(i1_, i1_+l1, i2_, i2_+l2, curE);
+	// calculate with the true energy in order to avoid problems with multiple combinations leading to the same raw energy value.
+	// Happening for example with: -t AGGGGAATTCCGTGCTGTGCCG -q cagccacgatttccct
+	E_type curE = energy.getE(i1_, i1_+getHelixSeedLength1(i1_,i2_)-1, i2_, i2_+getHelixSeedLength2(i1_,i2_)-1, getHelixSeedE(i1_,i2_));
 	// No traceback possible for current boundary
 	if (E_isINF(curE)) {
 		return;
@@ -214,8 +211,7 @@ traceBackHelixSeed( Interaction & interaction
 	size_t possibleBasePairs = std::min(std::min(helixSeed.size1()-i1 +offset1, helixSeed.size2()-i2+offset2), helixConstraint.getMaxBasePairs())-seedHandler->getConstraint().getBasePairs();
 //	LOG(DEBUG) << "possibleBasePairs: " << possibleBasePairs;
 
-	// calculate with the true energy in order to avoid problems with multiple combinations leading to the same raw energy value.
-	// Happening for example with: -t AGGGGAATTCCGTGCTGTGCCG -q cagccacgatttccct
+
 //	LOG(DEBUG) << "curE: "<< curE;
 	// screen over all possible leading and trailing base pair combinations
 	for (size_t leadingBP=0; traceNotFound
