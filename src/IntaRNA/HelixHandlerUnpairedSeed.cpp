@@ -136,7 +136,7 @@ fillHelixSeed(const size_t i1min, const size_t i1max, const size_t i2min, const 
 
 //				LOG_IF(i1==0 && i2==0, DEBUG) << "curE: " << curE;
 //				LOG_IF(i1==0 && i2==0, DEBUG) << "rawE: " << rawE;
-				if (curE < bestE) {
+				if (curE < bestE && !E_equal(curE, bestE)) {
 //					LOG_IF(i1==0 && i2==0, DEBUG) << "leading/trailing: " << leadingBP << " " << trailingBP << " with bestE: " << curE << " (" << rawE << ") beating last bestE: " << bestE;
 					bestE = curE;
 					bestRawE = rawE;
@@ -156,7 +156,6 @@ fillHelixSeed(const size_t i1min, const size_t i1max, const size_t i2min, const 
 
 			} // trailingBP
 		} // leadingBP
-
 
 		// Ensures that the helixCount is only increased for the mfe helix.
 		if (E_isNotINF(bestE)) {
@@ -197,9 +196,8 @@ traceBackHelixSeed( Interaction & interaction
 
 	bool traceNotFound = true;
 
-	// calculate with the true energy in order to avoid problems with multiple combinations leading to the same raw energy value.
-	// Happening for example with: -t AGGGGAATTCCGTGCTGTGCCG -q cagccacgatttccct
-	E_type curE = energy.getE(i1_, i1_+getHelixSeedLength1(i1_,i2_)-1, i2_, i2_+getHelixSeedLength2(i1_,i2_)-1, getHelixSeedE(i1_,i2_));
+	E_type curE = getHelixSeedE(i1_,i2_);
+
 	// No traceback possible for current boundary
 	if (E_isINF(curE)) {
 		return;
@@ -233,7 +231,7 @@ traceBackHelixSeed( Interaction & interaction
 			seedStart2 = i2;
 		}
 		// check whether the right boundaries are broken
-		if (seedStart1-offset1>= helixSeed.size1() || seedStart2-offset2 >= helixSeed.size2()) {
+		if (seedStart1-offset1 >= helixSeed.size1() || seedStart2-offset2 >= helixSeed.size2()) {
 			continue;
 		}
 
@@ -277,9 +275,9 @@ traceBackHelixSeed( Interaction & interaction
 //						  + seedHandler->getSeedE(seedStart1, seedStart2)
 //						  + getHelixE(seedEnd1 - offset1, seedEnd2 - offset2, trailingBP + 1);
 
-			if (E_equal(curE, energy.getE(i1,j1,i2,j2, getHelixE(i1 - offset1, i2 - offset2, leadingBP + 1)
+			if (E_equal(curE, getHelixE(i1 - offset1, i2 - offset2, leadingBP + 1)
 							  + seedHandler->getSeedE(seedStart1, seedStart2)
-							  + getHelixE(seedEnd1 - offset1, seedEnd2 - offset2, trailingBP + 1)))) {
+							  + getHelixE(seedEnd1 - offset1, seedEnd2 - offset2, trailingBP + 1))) {
 //				LOG(DEBUG) << "Trace Found!";
 //				LOG(DEBUG) << "i1, i2: " << i1 << " " << i2;
 //				LOG(DEBUG) << "leadinBP+1: " << leadingBP+1;

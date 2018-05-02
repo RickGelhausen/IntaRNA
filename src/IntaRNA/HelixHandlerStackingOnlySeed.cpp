@@ -103,7 +103,7 @@ fillHelixSeed(const size_t i1min, const size_t i1max, const size_t i2min, const 
 				if (helixConstraint.noED())
 					curE -= (energy.getED1(i1,j1) + energy.getED2(i2,j2));
 
-				if (curE < bestE) {
+				if (curE < bestE && !E_equal(curE, bestE)) {
 					bestE = curE;
 					bestRawE = rawE;
 					bestL1 = leadingBP + seedHandler->getSeedLength1(seedStart1,seedStart2) + trailingBP;
@@ -149,8 +149,7 @@ traceBackHelixSeed( Interaction & interaction
 
 	bool traceNotFound = true;
 
-	// calculate with the true energy in order to avoid problems with multiple combinations leading to the same raw energy value.
-	E_type curE = energy.getE(i1_, i1_+getHelixSeedLength1(i1_,i2_)-1, i2_, i2_+getHelixSeedLength2(i1_,i2_)-1, getHelixSeedE(i1_,i2_));
+	E_type curE = getHelixSeedE(i1_,i2_);
 
 	// No traceback possible for current boundary
 	if (E_isINF(curE)) {
@@ -198,9 +197,9 @@ traceBackHelixSeed( Interaction & interaction
 			j1 = seedEnd1 + trailingBP;
 			j2 = seedEnd2 + trailingBP;
 
-			if (E_equal(curE, energy.getE(i1, j1, i2, j2, getHelixE(i1-offset1, i2-offset2, leadingBP+1)
+			if (E_equal(curE,getHelixE(i1-offset1, i2-offset2, leadingBP+1)
 							  + seedHandler->getSeedE(seedStart1, seedStart2)
-							  + getHelixE(seedEnd1-offset1, seedEnd2-offset2, trailingBP+1))))
+							  + getHelixE(seedEnd1-offset1, seedEnd2-offset2, trailingBP+1)))
 			{
 				// Trace the first part if existing
 				if (leadingBP != 0) {

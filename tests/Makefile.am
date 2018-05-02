@@ -32,6 +32,7 @@ runTests_SOURCES =	\
 					InteractionRange_test.cpp  \
 					PredictionTrackerProfileMinE_test.cpp \
 					PredictorMfe2dLimStackHeuristic_test.cpp \
+					PredictorMfe2dLimStackHeuristicSeed_test.cpp \
 					PredictionTrackerSpotProb_test.cpp \
 					NussinovHandler_test.cpp \
 					RnaSequence_test.cpp \
