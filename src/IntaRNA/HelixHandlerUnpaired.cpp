@@ -150,7 +150,7 @@ fillHelix(const size_t i1min, const size_t i1max, const size_t i2min, const size
 			}
 
 			// check if better than what is known so far
-			if (curE < bestE && !E_equal(curE, bestE)) {
+			if (curE < bestE) {
 				bestE = curE;
 				bestBP = curBP;
 			}

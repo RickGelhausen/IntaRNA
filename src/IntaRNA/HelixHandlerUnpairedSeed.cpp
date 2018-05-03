@@ -9,7 +9,7 @@ HelixHandlerUnpaired::
 fillHelixSeed(const size_t i1min, const size_t i1max, const size_t i2min, const size_t i2max)
 {
 //	LOG(DEBUG) << " ";
-//	LOG(DEBUG) << " ";
+	LOG(DEBUG) << "Start FILLHELIXSEED!";
 
 	helixSeed.resize( i1max-i1min+1, i2max-i2min+1 );
 
@@ -21,12 +21,13 @@ fillHelixSeed(const size_t i1min, const size_t i1max, const size_t i2min, const 
 	size_t i1, i2, seedStart1, seedStart2, seedEnd1, seedEnd2, j1, j2, bestL1, bestL2, possibleBasePairs;
 	size_t  helixCountNotInf = 0, helixCount = 0;
 
-	E_type curEwithED, curE, bestEwithED, bestE;
+	E_type curE_withED, curE, bestE_withED, bestE;
 
 	// fill for all start indices
 	// in decreasing index order
 	for (i1=i1max+1; i1-- > i1min;) {
 	for (i2=i2max+1; i2-- > i2min;) {
+//		LOG(DEBUG) << "i1, i2: " << i1 << " " << i2;
 
 		// count possible helices
 		helixCount++;
@@ -51,7 +52,9 @@ fillHelixSeed(const size_t i1min, const size_t i1max, const size_t i2min, const 
 
 		// Initialuze variables
 		curE = E_INF;
+		curE_withED = E_INF;
 		bestE = E_INF;
+		bestE_withED = E_INF;
 		bestL1 = 0;
 		bestL2 = 0;
 
@@ -120,20 +123,21 @@ fillHelixSeed(const size_t i1min, const size_t i1max, const size_t i2min, const 
 					continue;
 				}
 
+				curE = getHelixE(i1 - offset1, i2 - offset2, leadingBP + 1)
+					   + seedHandler->getSeedE(seedStart1, seedStart2)
+					   + getHelixE(seedEnd1 - offset1, seedEnd2 - offset2, trailingBP + 1);
+
 				// energy value
-				curE = energy.getE(i1,j1,i2,j2, getHelixE(i1 - offset1, i2 - offset2, leadingBP + 1)
-													  + seedHandler->getSeedE(seedStart1, seedStart2)
-													  + getHelixE(seedEnd1 - offset1, seedEnd2 - offset2, trailingBP + 1))
-					   + energy.getE_init();
+				curE_withED = energy.getE(i1,j1,i2,j2, curE) + energy.getE_init();
 
 				// If no ED-values are wanted, remove them
 				if (helixConstraint.noED())
-					curE -= (energy.getED1(i1,j1)+ energy.getED2(i2, j2));
+					curE_withED -= (energy.getED1(i1,j1) + energy.getED2(i2, j2));
 
-//				LOG_IF(i1==0 && i2==0, DEBUG) << "curE: " << curE;
-//				LOG_IF(i1==0 && i2==0, DEBUG) << "rawE: " << rawE;
-				if (curE < bestE && !E_equal(curE, bestE)) {
-//					LOG_IF(i1==0 && i2==0, DEBUG) << "leading/trailing: " << leadingBP << " " << trailingBP << " with bestE: " << curE << " (" << rawE << ") beating last bestE: " << bestE;
+//				LOG(DEBUG) << "curE: " << curE;
+				if (curE_withED < bestE_withED && !E_equal(curE_withED, bestE_withED)) {
+//					LOG(DEBUG) << "leading/trailing: " << leadingBP << " " << trailingBP << " with bestE: " << curE <<" beating last bestE: " << bestE;
+					bestE_withED = curE_withED;
 					bestE = curE;
 					bestL1 = seedHandler->getSeedLength1(seedStart1, seedStart2);
 					bestL2 = seedHandler->getSeedLength2(seedStart1, seedStart2);
@@ -153,16 +157,16 @@ fillHelixSeed(const size_t i1min, const size_t i1max, const size_t i2min, const 
 		} // leadingBP
 
 		// Ensures that the helixCount is only increased for the mfe helix.
-		if (E_isNotINF(bestE)) {
+		if (E_isNotINF(bestE_withED)) {
 			// overwrite all helices with too high energy -> infeasible start interactions
-			if (bestE > helixConstraint.getMaxE()) {
+			if (bestE_withED > helixConstraint.getMaxE()) {
 				bestE = E_INF;
 			} else {
-				// energy without dangling ends and other contributions
-				bestE -= energy.getE_init();
-				if (!helixConstraint.noED()) {
-					bestE-= energy.getED1(i1, i1+bestL1-1) +energy.getED2(i2, i2+bestL2-1);
-				}
+//				// energy without dangling ends and other contributions
+//				bestE -= energy.getE_init();
+//				if (!helixConstraint.noED()) {
+//					bestE-= (energy.getED1(i1, i1+bestL1-1) + energy.getED2(i2, i2+bestL2-1));
+//				}
 				// count true helix
 				helixCountNotInf++;
 			}
