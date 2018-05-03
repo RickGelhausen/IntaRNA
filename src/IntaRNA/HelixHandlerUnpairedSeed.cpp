@@ -50,9 +50,7 @@ fillHelixSeed(const size_t i1min, const size_t i1max, const size_t i2min, const 
 		}
 
 		// Initialuze variables
-		curEwithED = E_INF;
 		curE = E_INF;
-		bestEwithED = E_INF;
 		bestE = E_INF;
 		bestL1 = 0;
 		bestL2 = 0;
@@ -122,23 +120,20 @@ fillHelixSeed(const size_t i1min, const size_t i1max, const size_t i2min, const 
 					continue;
 				}
 
-				// energy value without dangling ends and E_init
-				curE = getHelixE(i1 - offset1, i2 - offset2, leadingBP + 1)
-					   + seedHandler->getSeedE(seedStart1, seedStart2)
-					   + getHelixE(seedEnd1 - offset1, seedEnd2 - offset2, trailingBP + 1);
-
 				// energy value
-				curEwithED = energy.getE(i1,j1,i2,j2, curE) + energy.getE_init();
-//				curE = rawE;
+				curE = energy.getE(i1,j1,i2,j2, getHelixE(i1 - offset1, i2 - offset2, leadingBP + 1)
+													  + seedHandler->getSeedE(seedStart1, seedStart2)
+													  + getHelixE(seedEnd1 - offset1, seedEnd2 - offset2, trailingBP + 1))
+					   + energy.getE_init();
+
 				// If no ED-values are wanted, remove them
 				if (helixConstraint.noED())
-					curEwithED -= (energy.getED1(i1,j1)+ energy.getED2(i2, j2));
+					curE -= (energy.getED1(i1,j1)+ energy.getED2(i2, j2));
 
 //				LOG_IF(i1==0 && i2==0, DEBUG) << "curE: " << curE;
 //				LOG_IF(i1==0 && i2==0, DEBUG) << "rawE: " << rawE;
-				if (curEwithED < bestEwithED && !E_equal(curEwithED, bestEwithED)) {
+				if (curE < bestE && !E_equal(curE, bestE)) {
 //					LOG_IF(i1==0 && i2==0, DEBUG) << "leading/trailing: " << leadingBP << " " << trailingBP << " with bestE: " << curE << " (" << rawE << ") beating last bestE: " << bestE;
-					bestEwithED = curEwithED;
 					bestE = curE;
 					bestL1 = seedHandler->getSeedLength1(seedStart1, seedStart2);
 					bestL2 = seedHandler->getSeedLength2(seedStart1, seedStart2);
@@ -158,11 +153,16 @@ fillHelixSeed(const size_t i1min, const size_t i1max, const size_t i2min, const 
 		} // leadingBP
 
 		// Ensures that the helixCount is only increased for the mfe helix.
-		if (E_isNotINF(bestEwithED)) {
+		if (E_isNotINF(bestE)) {
 			// overwrite all helices with too high energy -> infeasible start interactions
-			if (bestEwithED > helixConstraint.getMaxE()) {
+			if (bestE > helixConstraint.getMaxE()) {
 				bestE = E_INF;
 			} else {
+				// energy without dangling ends and other contributions
+				bestE -= energy.getE_init();
+				if (!helixConstraint.noED()) {
+					bestE-= energy.getED1(i1, i1+bestL1-1) +energy.getED2(i2, i2+bestL2-1);
+				}
 				// count true helix
 				helixCountNotInf++;
 			}
