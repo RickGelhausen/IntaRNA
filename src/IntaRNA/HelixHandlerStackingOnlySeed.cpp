@@ -15,10 +15,10 @@ fillHelixSeed(const size_t i1min, const size_t i1max, const size_t i2min, const 
 	offset2 = i2min;
 
 	// temporary variables
-	size_t i1, i2,j1,j2, seedStart1, seedStart2, seedEnd1, seedEnd2, bestL1, bestL2, possibleBasePairs;
+	size_t i1, i2,j1,j2, seedStart1, seedStart2, seedEnd1, seedEnd2,curL1, curL2, bestL1, bestL2, possibleBasePairs;
 	size_t  helixCountNotInf = 0, helixCount = 0;
 
-	E_type bestE, curE, bestEwithED, curEwithED;
+	E_type bestE, curE, bestE_withED, curE_withED;
 
 	// fill for all start indices
 	// in decreasing index order
@@ -47,16 +47,17 @@ fillHelixSeed(const size_t i1min, const size_t i1max, const size_t i2min, const 
 		}
 
 		// Initialuze variables
-		curEwithED = E_INF;
+		curE_withED = E_INF;
 		curE = E_INF;
-		bestEwithED = E_INF;
+		bestE_withED = E_INF;
 		bestE = E_INF;
 		bestL1 = 0;
 		bestL2 = 0;
 
 		// screen over all possible leading and trailing base pair combinations
-		for (size_t leadingBP=0; leadingBP <= possibleBasePairs && (i1+leadingBP-offset1) < helixSeed.size1()
-								 								&& (i2+leadingBP-offset2) < helixSeed.size2(); leadingBP++) {
+		for (size_t leadingBP=0; leadingBP <= possibleBasePairs
+								 && (i1+leadingBP-offset1) < helixSeed.size1()
+								 && (i2+leadingBP-offset2) < helixSeed.size2(); leadingBP++) {
 			// If leading base pairs exist and helixE = E_INF -> skip to the next leadingBP
 			if (leadingBP != 0 && E_isINF(getHelixE(i1-offset1,i2-offset2,leadingBP+1))) {
 				continue;
@@ -94,28 +95,36 @@ fillHelixSeed(const size_t i1min, const size_t i1max, const size_t i2min, const 
 					continue;
 				}
 
-				// energy value without dangling ends and E_init
-				curE = getHelixE(i1-offset1,i2-offset2,leadingBP+1) + seedHandler->getSeedE(seedStart1, seedStart2) + getHelixE(seedEnd1-offset1,seedEnd2-offset2,trailingBP+1);
+				// current lengths
+				curL1 = leadingBP + seedHandler->getSeedLength1(seedStart1,seedStart2) + trailingBP;
+				curL2 = leadingBP + seedHandler->getSeedLength2(seedStart1,seedStart2) + trailingBP;
 
-				// energy value
-				curEwithED = energy.getE(i1,j1,i2,j2, curE) + energy.getE_init();
+				if (bestL1 != curL1 || bestL2 != curL2) {
+					// energy value without dangling ends and E_init
+					curE = getHelixE(i1 - offset1, i2 - offset2, leadingBP + 1) +
+						   seedHandler->getSeedE(seedStart1, seedStart2) +
+						   getHelixE(seedEnd1 - offset1, seedEnd2 - offset2, trailingBP + 1);
 
-				if (helixConstraint.noED())
-					curEwithED -= (energy.getED1(i1,j1) + energy.getED2(i2,j2));
+					// energy value
+					curE_withED = energy.getE(i1, j1, i2, j2, curE) + energy.getE_init();
 
-				if (curEwithED < bestEwithED && !E_equal(curEwithED, bestEwithED)) {
-					bestEwithED = curEwithED;
-					bestE = curE;
-					bestL1 = leadingBP + seedHandler->getSeedLength1(seedStart1,seedStart2) + trailingBP;
-					bestL2 = leadingBP + seedHandler->getSeedLength2(seedStart1,seedStart2) + trailingBP;
+					if (helixConstraint.noED())
+						curE_withED -= (energy.getED1(i1, j1) + energy.getED2(i2, j2));
+
+					if (curE_withED < bestE_withED) {
+						bestE_withED = curE_withED;
+						bestE = curE;
+						bestL1 = curL1;
+						bestL2 = curL2;
+					}
 				}
 			} // trailingBP
 		} // leadingBP
 
 		// reduce bestE to hybridization energy only (init+loops)
-		if (E_isNotINF( bestEwithED )) {
+		if (E_isNotINF( bestE_withED )) {
 			// overwrite all helices with too high energy -> infeasible start interactions
-			if (bestEwithED > helixConstraint.getMaxE()) {
+			if (bestE_withED > helixConstraint.getMaxE()) {
 				bestE = E_INF;
 			} else {
 				// count true helix
@@ -142,8 +151,7 @@ traceBackHelixSeed( Interaction & interaction
 	size_t i1 = i1_
 		 , i2 = i2_
 		 , seedStart1, seedEnd1
-	     , seedStart2, seedEnd2
-		 , j1,j2;
+	     , seedStart2, seedEnd2;
 
 	bool traceNotFound = true;
 
@@ -192,8 +200,6 @@ traceBackHelixSeed( Interaction & interaction
 			if (trailingBP != 0 && E_isINF(getHelixE(seedEnd1-offset1,seedEnd2-offset2,trailingBP+1))) {
 				break;
 			}
-			j1 = seedEnd1 + trailingBP;
-			j2 = seedEnd2 + trailingBP;
 
 			if (E_equal(curE,getHelixE(i1-offset1, i2-offset2, leadingBP+1)
 							  + seedHandler->getSeedE(seedStart1, seedStart2)

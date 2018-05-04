@@ -89,6 +89,7 @@ namespace IntaRNA {
 #endif
 	//! check if two energies are equal according to some epsilon
 #define E_equal( e1, e2 ) ( std::abs((e1)-(e2)) < E_precisionEpsilon)
+
 // another option from http://en.cppreference.com/w/cpp/types/numeric_limits/epsilon
 //#define E_equal_ULP 2
 //#define E_equal( e1, e2 ) ( \

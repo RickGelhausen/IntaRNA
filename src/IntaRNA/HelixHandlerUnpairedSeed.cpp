@@ -9,7 +9,7 @@ HelixHandlerUnpaired::
 fillHelixSeed(const size_t i1min, const size_t i1max, const size_t i2min, const size_t i2max)
 {
 //	LOG(DEBUG) << " ";
-	LOG(DEBUG) << "Start FILLHELIXSEED!";
+//	LOG(DEBUG) << "Start FILLHELIXSEED!";
 
 	helixSeed.resize( i1max-i1min+1, i2max-i2min+1 );
 
@@ -18,7 +18,7 @@ fillHelixSeed(const size_t i1min, const size_t i1max, const size_t i2min, const 
 	offset2 = i2min;
 
 	// temporary variables
-	size_t i1, i2, seedStart1, seedStart2, seedEnd1, seedEnd2, j1, j2, bestL1, bestL2, possibleBasePairs;
+	size_t i1, i2, seedStart1, seedStart2, seedEnd1, seedEnd2, j1, j2, bestL1, bestL2, possibleBasePairs, curL1, curL2;
 	size_t  helixCountNotInf = 0, helixCount = 0;
 
 	E_type curE_withED, curE, bestE_withED, bestE;
@@ -123,36 +123,44 @@ fillHelixSeed(const size_t i1min, const size_t i1max, const size_t i2min, const 
 					continue;
 				}
 
-				curE = getHelixE(i1 - offset1, i2 - offset2, leadingBP + 1)
-					   + seedHandler->getSeedE(seedStart1, seedStart2)
-					   + getHelixE(seedEnd1 - offset1, seedEnd2 - offset2, trailingBP + 1);
+				// current lengths
+				curL1 = seedHandler->getSeedLength1(seedStart1, seedStart2);
+				curL2 = seedHandler->getSeedLength2(seedStart1, seedStart2);
 
-				// energy value
-				curE_withED = energy.getE(i1,j1,i2,j2, curE) + energy.getE_init();
-
-				// If no ED-values are wanted, remove them
-				if (helixConstraint.noED())
-					curE_withED -= (energy.getED1(i1,j1) + energy.getED2(i2, j2));
-
-//				LOG(DEBUG) << "curE: " << curE;
-				if (curE_withED < bestE_withED && !E_equal(curE_withED, bestE_withED)) {
-//					LOG(DEBUG) << "leading/trailing: " << leadingBP << " " << trailingBP << " with bestE: " << curE <<" beating last bestE: " << bestE;
-					bestE_withED = curE_withED;
-					bestE = curE;
-					bestL1 = seedHandler->getSeedLength1(seedStart1, seedStart2);
-					bestL2 = seedHandler->getSeedLength2(seedStart1, seedStart2);
-					// Add leadingBP length contribution
-					if (leadingBP != 0) {
-						bestL1 += getHelixLength1(i1-offset1, i2-offset2, leadingBP+1)-1;
-						bestL2 += getHelixLength2(i1-offset1, i2-offset2, leadingBP+1)-1;
-					}
-					// Add trailingBP length contribution
-					if (trailingBP != 0) {
-						bestL1 += getHelixLength1(seedEnd1-offset1, seedEnd2-offset2, trailingBP+1)-1;
-						bestL2 += getHelixLength2(seedEnd1-offset1, seedEnd2-offset2, trailingBP+1)-1;
-					}
+				// Add leadingBP length contribution
+				if (leadingBP != 0) {
+					curL1 += getHelixLength1(i1-offset1, i2-offset2, leadingBP+1)-1;
+					curL2 += getHelixLength2(i1-offset1, i2-offset2, leadingBP+1)-1;
+				}
+				// Add trailingBP length contribution
+				if (trailingBP != 0) {
+					curL1 += getHelixLength1(seedEnd1-offset1, seedEnd2-offset2, trailingBP+1)-1;
+					curL2 += getHelixLength2(seedEnd1-offset1, seedEnd2-offset2, trailingBP+1)-1;
 				}
 
+				// check the lengths
+				if (bestL1 != curL1 || bestL2 != curL2) {
+					// energy without contributions
+					curE = getHelixE(i1 - offset1, i2 - offset2, leadingBP + 1)
+						   + seedHandler->getSeedE(seedStart1, seedStart2)
+						   + getHelixE(seedEnd1 - offset1, seedEnd2 - offset2, trailingBP + 1);
+					// energy value
+					curE_withED = energy.getE(i1,j1,i2,j2, curE) + energy.getE_init();
+
+					// If no ED-values are wanted, remove them
+					if (helixConstraint.noED())
+						curE_withED -= (energy.getED1(i1,j1) + energy.getED2(i2, j2));
+
+		//				LOG(DEBUG) << "curE: " << curE;
+					if (curE_withED < bestE_withED) {
+		//					LOG(DEBUG) << "leading/trailing: " << leadingBP << " " << trailingBP << " with bestE: " << curE_withED << "(" << curE << ") beating last bestE: " << bestE_withED;
+						bestE_withED = curE_withED;
+						bestE = curE;
+						bestL1 = curL1;
+						bestL2 = curL2;
+		//					LOG(DEBUG) << "lengths: " << bestL1 << " " << bestL2;
+					}
+				}
 			} // trailingBP
 		} // leadingBP
 
