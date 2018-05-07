@@ -144,7 +144,7 @@ fillHelixSeed(const size_t i1min, const size_t i1max, const size_t i2min, const 
 				if (helixConstraint.noED())
 					curE_withED -= (energy.getED1(i1,j1) + energy.getED2(i2, j2));
 
-				if (curE_withED <= bestE_withED ) {
+				if (curE_withED < bestE_withED || E_equal(curE_withED, bestE_withED)) {
 //						LOG(DEBUG) << "-------------------------------------------------------------";
 //						LOG(DEBUG) << "j1, j2: " << j1 << " " << j2;
 //						LOG(DEBUG) << "leading/trailing: " << leadingBP << " " << trailingBP << " with bestE: " << curE_withED << "(" << curE << ") beating last bestE: " << bestE_withED;

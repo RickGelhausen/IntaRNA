@@ -15,7 +15,7 @@ fillHelixSeed(const size_t i1min, const size_t i1max, const size_t i2min, const 
 	offset2 = i2min;
 
 	// temporary variables
-	size_t i1, i2,j1,j2, seedStart1, seedStart2, seedEnd1, seedEnd2,curL1, curL2, bestL1, bestL2, possibleBasePairs;
+	size_t i1, i2,j1,j2, seedStart1, seedStart2, seedEnd1, seedEnd2, bestL1, bestL2, possibleBasePairs;
 	size_t  helixCountNotInf = 0, helixCount = 0;
 
 	E_type bestE, curE, bestE_withED, curE_withED;
@@ -95,29 +95,24 @@ fillHelixSeed(const size_t i1min, const size_t i1max, const size_t i2min, const 
 					continue;
 				}
 
-				// current lengths
-				curL1 = leadingBP + seedHandler->getSeedLength1(seedStart1,seedStart2) + trailingBP;
-				curL2 = leadingBP + seedHandler->getSeedLength2(seedStart1,seedStart2) + trailingBP;
+				// energy value without dangling ends and E_init
+				curE = getHelixE(i1 - offset1, i2 - offset2, leadingBP + 1) +
+					   seedHandler->getSeedE(seedStart1, seedStart2) +
+					   getHelixE(seedEnd1 - offset1, seedEnd2 - offset2, trailingBP + 1);
 
-				if (bestL1 != curL1 || bestL2 != curL2) {
-					// energy value without dangling ends and E_init
-					curE = getHelixE(i1 - offset1, i2 - offset2, leadingBP + 1) +
-						   seedHandler->getSeedE(seedStart1, seedStart2) +
-						   getHelixE(seedEnd1 - offset1, seedEnd2 - offset2, trailingBP + 1);
+				// energy value
+				curE_withED = energy.getE(i1, j1, i2, j2, curE) + energy.getE_init();
 
-					// energy value
-					curE_withED = energy.getE(i1, j1, i2, j2, curE) + energy.getE_init();
+				if (helixConstraint.noED())
+					curE_withED -= (energy.getED1(i1, j1) + energy.getED2(i2, j2));
 
-					if (helixConstraint.noED())
-						curE_withED -= (energy.getED1(i1, j1) + energy.getED2(i2, j2));
-
-					if (curE_withED < bestE_withED) {
-						bestE_withED = curE_withED;
-						bestE = curE;
-						bestL1 = curL1;
-						bestL2 = curL2;
-					}
+				if (curE_withED < bestE_withED && !E_equal(curE_withED, bestE_withED)) {
+					bestE_withED = curE_withED;
+					bestE = curE;
+					bestL1 = leadingBP + seedHandler->getSeedLength1(seedStart1,seedStart2) + trailingBP;
+					bestL2 = leadingBP + seedHandler->getSeedLength2(seedStart1,seedStart2) + trailingBP;
 				}
+
 			} // trailingBP
 		} // leadingBP
 
@@ -156,6 +151,9 @@ traceBackHelixSeed( Interaction & interaction
 	bool traceNotFound = true;
 
 	E_type curE = getHelixSeedE(i1_,i2_);
+
+	size_t bestL1 = getHelixSeedLength1(i1_,i2_);
+	size_t bestL2 = getHelixSeedLength2(i1_,i2_);
 
 	// No traceback possible for current boundary
 	if (E_isINF(curE)) {
@@ -205,22 +203,27 @@ traceBackHelixSeed( Interaction & interaction
 							  + seedHandler->getSeedE(seedStart1, seedStart2)
 							  + getHelixE(seedEnd1-offset1, seedEnd2-offset2, trailingBP+1)))
 			{
-				// Trace the first part if existing
-				if (leadingBP != 0) {
-					traceBackHelix(interaction, i1-offset1, i2-offset2, leadingBP+1);
-					interaction.basePairs.push_back(energy.getBasePair(seedStart1, seedStart2));
-				}
-				// Trace the seed
-				seedHandler->traceBackSeed(interaction,seedStart1,seedStart2);
+				// length check
+				if (bestL1 == (leadingBP + seedHandler->getSeedLength1(seedStart1,seedStart2) + trailingBP)
+					&& bestL2 == (leadingBP + seedHandler->getSeedLength2(seedStart1,seedStart2) + trailingBP)) {
 
-				// Trace the last part if existing
-				if (trailingBP != 0) {
-					interaction.basePairs.push_back(energy.getBasePair(seedEnd1, seedEnd2));
-					traceBackHelix(interaction, seedEnd1-offset1, seedEnd2-offset2, trailingBP+1);
+					// Trace the first part if existing
+					if (leadingBP != 0) {
+						traceBackHelix(interaction, i1-offset1, i2-offset2, leadingBP+1);
+						interaction.basePairs.push_back(energy.getBasePair(seedStart1, seedStart2));
+					}
+					// Trace the seed
+					seedHandler->traceBackSeed(interaction,seedStart1,seedStart2);
+
+					// Trace the last part if existing
+					if (trailingBP != 0) {
+						interaction.basePairs.push_back(energy.getBasePair(seedEnd1, seedEnd2));
+						traceBackHelix(interaction, seedEnd1-offset1, seedEnd2-offset2, trailingBP+1);
+					}
+					traceNotFound = false;
 				}
-				traceNotFound = false;
+
 			}
-
 
 		} // trailing
 	} // leading
