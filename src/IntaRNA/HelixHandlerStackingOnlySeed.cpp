@@ -106,7 +106,9 @@ fillHelixSeed(const size_t i1min, const size_t i1max, const size_t i2min, const 
 				if (helixConstraint.noED())
 					curE_withED -= (energy.getED1(i1, j1) + energy.getED2(i2, j2));
 
-				if (curE_withED < bestE_withED && !E_equal(curE_withED, bestE_withED)) {
+				// Check whether new combination is better and fullfils the minBP constraints
+				if (curE_withED < bestE_withED && !E_equal(curE_withED, bestE_withED)
+					&& leadingBP + trailingBP+ seedHandler->getConstraint().getBasePairs() >= getConstraint().getMinBasePairs()) {
 					bestE_withED = curE_withED;
 					bestE = curE;
 					bestL1 = leadingBP + seedHandler->getSeedLength1(seedStart1,seedStart2) + trailingBP;

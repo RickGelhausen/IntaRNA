@@ -69,9 +69,9 @@ predict( const IndexRange & r1
 	hybridE.resize( hybridEsize1, hybridEsize2 );
 	hybridE_seed.resize( hybridE.size1(), hybridE.size2() );
 
-	// Fill helix / seed and helixSeed Matrices, if one is empty trigger empty interaction reporting
-	if ((helixHandler.fillHelix( 0, hybridEsize1-1, 0, hybridEsize2-1) == 0)
-		|| (seedHandler.fillSeed(0, hybridEsize1-1, 0, hybridEsize2-1) == 0)
+	// Fill seed / helix and helixSeed Matrices, if one is empty trigger empty interaction reporting
+	if ((seedHandler.fillSeed(0, hybridEsize1-1, 0, hybridEsize2-1) == 0)
+		|| (helixHandler.fillHelix( 0, hybridEsize1-1, 0, hybridEsize2-1) == 0)
 		|| (helixHandler.fillHelixSeed( 0, hybridEsize1-1, 0, hybridEsize2-1) == 0)) {
 		// trigger empty interaction reporting
 		initOptima(outConstraint);

@@ -26,6 +26,18 @@ fillHelix(const size_t i1min, const size_t i1max, const size_t i2min, const size
 	// Initialize helixE_rec with E_INF in order to ensure that skipped values are not considered.
 	std::fill( helixE_rec.origin(), helixE_rec.origin() + helixE_rec.num_elements(), E_INF);
 
+	size_t minBP;
+	E_type maxE;
+	// TODO: Fix until better solution is found
+	// if no seedHandler is given use given values, else use default values to ensure they dont compromise the results of the helixSeed method
+	if (seedHandler == NULL) {
+		minBP = helixConstraint.getMinBasePairs();
+		maxE = helixConstraint.getMaxE();
+	} else {
+		minBP = 2;
+		maxE = 999;
+	}
+
 	// store index offset due to restricted matrix size generation
 	offset1 = i1min;
 	offset2 = i2min;
@@ -97,7 +109,7 @@ fillHelix(const size_t i1min, const size_t i1max, const size_t i2min, const size
 
 		// Calculate energy for all different number of base pairs
 		// Ensure minimum number of base pairs
-		for (curBP = helixConstraint.getMinBasePairs(); curBP < helixConstraint.getMaxBasePairs() + 1
+		for (curBP = minBP; curBP < helixConstraint.getMaxBasePairs() + 1
 														&& (i1+curBP-1-offset1) < helix.size1()
 														&& (i2+curBP-1-offset2) < helix.size2(); curBP++) {
 			// right helix boundaries
@@ -128,7 +140,7 @@ fillHelix(const size_t i1min, const size_t i1max, const size_t i2min, const size
 		// reduce bestE to hybridization energy only (init+loops)
 		if (E_isNotINF( bestE )) {
 			// overwrite all helices with too high energy -> infeasible start interactions
-			if (bestE > helixConstraint.getMaxE()) {
+			if (bestE > maxE) {
 				bestE = E_INF;
 			} else {
 				// get helix hybridization loop energies only
