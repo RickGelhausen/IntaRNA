@@ -162,6 +162,7 @@ predict( const IndexRange & r1
 			curEtotal = energy.getE(i1,i1+h1, i2, i2+h2, curE);
 			if ( curEtotal < curCellEtotal )
 			{
+
 				// update current best for this left boundary
 				// set right boundary
 				curCell->j1 = i1+h1;
@@ -196,7 +197,6 @@ predict( const IndexRange & r1
 				{
 					continue;
 				}
-
 				// compute energy for this loop sizes
 				curE = helixHandler.getHelixSeedE(i1,i2) + energy.getE_interLeft(i1+h1,i1+h1+w1,i2+h2,i2+h2+w2) + rightExt->E;
 
@@ -249,7 +249,6 @@ predict( const IndexRange & r1
 				{
 					continue;
 				}
-
 				// compute energy for this loop sizes
 				curE = helixHandler.getHelixE(i1,i2) + energy.getE_interLeft(i1+h1,i1+h1+w1,i2+h2,i2+h2+w2) + rightExt->E;
 
@@ -321,7 +320,6 @@ traceBack( Interaction & interaction, const OutputConstraint & outConstraint )
 	const size_t j1 = energy.getIndex1(interaction.basePairs.at(1));
 	const size_t j2 = energy.getIndex2(interaction.basePairs.at(1));
 
-
 	// the currently traced value for i1-j1, i2-j2
 	E_type curE = hybridE_seed(i1,i2).E;
 	assert( hybridE_seed(i1,i2).j1 == j1 );
@@ -343,7 +341,7 @@ traceBack( Interaction & interaction, const OutputConstraint & outConstraint )
 		assert(E_isNotINF(helixHandler.getHelixE(i1,i2)) || E_isNotINF(helixHandler.getHelixSeedE(i1,i2)));
 
 		// helix + il + hybridE_seed
-		if (helixHandler.getHelixE(i1,i2)) {
+		if (E_isNotINF(helixHandler.getHelixE(i1,i2))) {
 			h1 = helixHandler.getHelixLength1(i1,i2)-1; assert(i1+h1<hybridE.size1());
 			h2 = helixHandler.getHelixLength2(i1,i2)-1; assert(i2+h2<hybridE.size2());
 
@@ -380,7 +378,6 @@ traceBack( Interaction & interaction, const OutputConstraint & outConstraint )
 					i1=k1;
 					i2=k2;
 					curE = curCell->E;
-
 				}
 			} // w1
 			} // w2
@@ -388,7 +385,7 @@ traceBack( Interaction & interaction, const OutputConstraint & outConstraint )
 		}
 
 		// seed + il + hybridE
-		if (helixHandler.getHelixSeedE(i1,i2)) {
+		if (E_isNotINF(helixHandler.getHelixSeedE(i1,i2))) {
 			h1 = helixHandler.getHelixSeedLength1(i1,i2)-1; assert(i1+h1<hybridE_seed.size1());
 			h2 = helixHandler.getHelixSeedLength2(i1,i2)-1; assert(i2+h2<hybridE_seed.size2());
 			// check all combinations of decompositions into (i1,i2)..(k1,k2)-(j1,j2)

@@ -128,6 +128,7 @@ fillHelixSeed(const size_t i1min, const size_t i1max, const size_t i2min, const 
 				helixCountNotInf++;
 			}
 		}
+
 		// store best (mfe) helix for left boundary i1, i2
 		helixSeed(i1-offset1, i2-offset2) = HelixMatrix::value_type(bestE, E_isINF(bestE) ? 0: encodeHelixSeedLength(bestL1,bestL2));
 
