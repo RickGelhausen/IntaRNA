@@ -126,7 +126,7 @@ CommandLineParsing::CommandLineParsing()
 
 	// Helix Constraints
 	helixMinBP(2,4,2),
-	helixMaxBP(2,15,10),
+	helixMaxBP(2,20,10),
 	helixMaxUP(0,2,0),
 	helixMaxIL(0,2,0),
 	helixMaxED(-999,+999, 999),

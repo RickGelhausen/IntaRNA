@@ -116,6 +116,10 @@ fillHelix(const size_t i1min, const size_t i1max, const size_t i2min, const size
 			j1 = i1 + curBP-1;
 			j2 = i2 + curBP-1;
 
+			if (E_isINF(getHelixE(i1-offset1, i2-offset2, curBP))) {
+				continue;
+			}
+
 			// ensure that ED-values are within the boundaries (default 999)
 			if (energy.getED1(i1, j1) > helixConstraint.getMaxED()
 				|| energy.getED2(i2, j2) > helixConstraint.getMaxED())
